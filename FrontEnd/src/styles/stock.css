@@ -1,0 +1,167 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+}
+.left-top {
+  font-size: 20px;
+  margin-left: 18px;
+  
+}
+.totalpage {
+  /* background-color: #fff;  */
+  border-radius: 8px; /* Set border radius */
+  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  */
+  padding: 20px; /* Add padding as needed */
+  /* Add margin as needed */
+}
+
+
+.right-top {
+  position: absolute;
+  top: 14%;
+  right: 10%;
+  display: flex;
+  align-items: center;
+}
+
+.right-top button {
+  margin-left: 10px;
+  padding: 10px;
+  font-size: 14px;
+  background-color: teal;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.right-bottom {
+  position: absolute;
+  top: 100px; /* Adjust this value to fit your layout */
+  right: 35%;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.ant-picker {
+  width: 150px; 
+  margin-right: 10px; 
+}
+
+.ant-picker input {
+  height: 30px; 
+  border: 1px solid #ddd; 
+  border-radius: 4px; 
+  padding: 5px; 
+}
+
+.ant-picker-suffix {
+  display: none; 
+}
+
+.ant-picker-clear {
+  display: none;
+}
+
+.bold-placeholder .ant-picker-input > input::placeholder {
+  font-weight: bold;
+  color: #555;
+}
+
+.search-bar {
+  display: flex;
+  border: 1px solid #ccc;
+  margin-left: 5%;
+  
+ 
+  border-radius: 5px;
+  position: relative;
+  width: 300px;
+   /* You can adjust this value */
+}
+
+
+.search-bar input {
+  border: none;
+  outline: none;
+  padding: 10px 30px 10px 40px; 
+  width: 100%;
+}
+
+.search-bar svg {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+}
+
+
+
+.stock-table {
+  margin: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+ 
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px; /* Adjust font size as needed */
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+button {
+  padding: 12px;
+  margin: 5px;
+  cursor: pointer;
+  background-color:teal;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  
+}
+
+.pagination button {
+  background-color: teal;
+  color: white;
+  border: none;
+  padding: 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 0px 40px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
