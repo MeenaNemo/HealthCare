@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import bgImage from '../logo/y.jpeg';
+import ReactToPrint from 'react-to-print';
 
 
 function Billing() {
-  const [medicineRows, setMedicineRows] = useState(Array.from({ length: 4 }, (_, index) => ({ id: index + 1 })));
+  const [medicineRows, setMedicineRows] = useState(Array.from({ length: 3 }, (_, index) => ({ id: index + 1 })));
   const [subtotal, setSubtotal] = useState(0);
   const [discount, setDiscountTotal] = useState(0);
   const [grandtotal, setGrandTotal] = useState(0);
@@ -16,12 +18,12 @@ function Billing() {
   const [cashGiven, setCashGiven] = useState('');
   const [balance, setBalance] = useState(0);
   const [mobileNo, setMobileNo] = useState('');
-  const [countryCode, setCountryCode] = useState('+1');
+  const [countryCode, setCountryCode] = useState('+91');
   const [suggestions, setSuggestions] = useState('');
-  // Default country code, change as needed
+  const componentRef = useRef();
+
 
   useEffect(() => {
-    // Initialize inputRefs with refs for each input field
     setMedicineRows((prevRows) => {
       const newRows = prevRows.map((row) => ({
         ...row,
@@ -30,7 +32,6 @@ function Billing() {
       return newRows;
     });
   }, []);
-
 
   const handleAddMedicine = () => {
     const newId = Date.now();
@@ -45,7 +46,6 @@ function Billing() {
     }
   };
 
-
   const handleMedicineNameChange = async (event, id) => {
     const inputValue = event.target.value;
     try {
@@ -59,8 +59,6 @@ function Billing() {
       console.error('Error fetching suggestions:', error);
     }
   };
-
-
 
   const handleKeyPress = async (event, rowIndex, colIndex, id) => {
     
@@ -79,6 +77,25 @@ function Billing() {
 
     if ((event.key === 'Enter' || event.key === 'Tab') && event.target.tagName.toLowerCase() === 'input') {
       event.preventDefault();
+      if (event.key === 'Tab' && event.target.tagName.toLowerCase() === 'input') {
+        // Shift focus to the next input field in the same row or the first input field of the next row
+        const nextRowIndex = rowIndex + (event.shiftKey ? -1 : 1);
+        const nextColIndex = colIndex + (event.shiftKey ? -1 : 1);
+  
+        if (nextColIndex >= 0 && nextColIndex <= 3) {
+          // Shift focus to the next input field in the same row
+          const nextInput = inputRefs.current[id]?.[nextColIndex];
+          if (nextInput) {
+            nextInput.focus();
+          }
+        } else if (nextRowIndex >= 0 && nextRowIndex < medicineRows.length) {
+          // Shift focus to the first input field of the next row
+          const nextInput = inputRefs.current[medicineRows[nextRowIndex].id]?.[0];
+          if (nextInput) {
+            nextInput.focus();
+          }
+        }
+      }
 
       // Check if it's the DiscountTotal input field
       if (event.target.id === 'discount') {
@@ -248,7 +265,6 @@ function Billing() {
     }
   };
 
-
   const handleCashGivenChange = (event) => {
     const newCashGiven = event.target.value;
     setCashGiven(newCashGiven);
@@ -260,8 +276,7 @@ function Billing() {
       const newBalance = newCashGiven - grandtotal;
       setBalance(newBalance);
     }
-  }, [cashGiven, grandtotal]);
-  
+  }, [cashGiven, grandtotal]); 
 
   const handleCountryCodeChange = (e) => {
     setCountryCode(e.target.value);
@@ -284,8 +299,83 @@ function Billing() {
   const handleRemoveMedicine = (id) => {
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
+  
+ 
+  
+  const handleSubmit = async () => {
+    // Check if at least one medicine row is filled
+    const isAnyFieldFilled = medicineRows.some((row) => {
+      const isFilled = inputRefs.current[row.id].some((input) => !!input.value.trim());
+      return isFilled;
+    });
+  
+    if (!isAnyFieldFilled) {
+      alert('Please fill in at least one input field.');
+      return;
+    }
+  
+    const updatedMedicineRows = medicineRows
+      .map((row) => {
+        const medicinename = inputRefs.current[row.id][0].value.trim();
+        const qty = parseFloat(inputRefs.current[row.id][1].value) || '';
+        const qtyprice = parseFloat(inputRefs.current[row.id][2].value) || '';
+        const total = qty * qtyprice;
+  
+        // Skip rows where at least one field is empty
+        if (!medicinename || !qty || !qtyprice) {
+          return null;
+        }
+  
+        inputRefs.current[row.id][3].value = total.toFixed(2);
+  
+        return {
+          id: row.id,
+          medicinename: medicinename,
+          qty: qty.toString(),
+          qtyprice: qtyprice.toString(),
+          total: total.toFixed(2),
+        };
+      })
+      // Filter out rows that were skipped (where at least one field is empty)
+      .filter((row) => row !== null);
+  
+    setSubmittedData(updatedMedicineRows);
+  
+    const newSubtotal = updatedMedicineRows.reduce((acc, row) => acc + parseFloat(row.total || 0), 0);
+    setSubtotal(newSubtotal);
+  
+    const newGrandTotal = newSubtotal - discount;
+    setGrandTotal(newGrandTotal);
+  
+    const billingData = {
+      medicineRows: updatedMedicineRows,
+      subtotal: newSubtotal,
+      discount: discount,
+      grandtotal: newGrandTotal,
+      patientname: document.getElementById('patientname').value || '',
+      doctorname: document.getElementById('doctorname').value || '',
+      mobileno: document.getElementById('mobileno').value || '',
+      cashgiven: cashGiven,
+      balance: balance,
+      medicinename: updatedMedicineRows.map((row) => row.medicinename),
+    };
+  
+    try {
+      const response = await axios.post('http://localhost:3000/billing', billingData);
+      console.log('Billing data submitted successfully!', response.data);
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting billing data:', error);
+    }
+  };
+  const handleCancel = () => {
+    // Set isSubmitted to false when Cancel button is clicked
+    setIsSubmitted(false);
+  
+    
+  };
 
-  const handlePrint = () => {
+  const handlePdf = () => {
     const capture = document.querySelector('.bill');
     setLoader(true);
     const html2canvasOptions = {
@@ -309,88 +399,74 @@ function Billing() {
       doc.addImage(imgData, 'PNG', 0, 0, imageWidth, imageHeight);
       setLoader(false);
       doc.save('bill.pdf');
+}); };
+
+  
+const handleWhatsApp = () => {
+  const phoneNumber = `${countryCode}${mobileNo}`;
+  let message = `Hello! Your bill details:\n`;
+  message += `Subtotal: ${subtotal}\n`;
+  message += `Discount: ${discount}\n`;
+  message += `Grand Total: ${grandtotal}\n\nPurchased Tablets:\n`;
+
+  // Construct a table-like representation for medicine details
+  message += 'S.No | Medicine Name | Qty | Price | Total\n';
+  message += '--------------------------------------------\n';
+
+  submittedData.forEach((data, index) => {
+    const { medicinename, qty, qtyprice, total } = data;
+    message += `${index + 1} | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
+  });
+
+  // Create a link with the WhatsApp message format
+  const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  // Open the link in a new tab/window
+  window.open(whatsappLink, '_blank');
+};
+const handleCance = () => {
+  // Reset all the necessary state values to their initial values
+  setMedicineRows([]);
+  setSubtotal(0);
+  setGrandTotal(0);
+  setMobileNo('');
+  setCashGiven(0);
+  setBalance(0);
+  setCountryCode('+91');
+  setDiscountTotal(0);
+  // setLoader(false);
+  
+
+  // Clear input values using refs
+  Object.values(inputRefs.current).forEach((refs) => {
+    refs.forEach((ref) => {
+      if (ref) {
+        ref.value = '';
+      }
     });
-  };
+  });
+  setIsSubmitted(false);
+};
 
-  const handleSubmit = async () => {
-    const isAnyFieldEmpty = medicineRows.some((row) => {
-      const isEmpty = inputRefs.current[row.id].some((input) => !input.value.trim());
-      return isEmpty;
-    });
 
-    if (isAnyFieldEmpty) {
-      alert('Please fill in all the input fields.');
-      return;
-    }
-    const updatedMedicineRows = medicineRows.map((row) => {
-      const qty = parseFloat(inputRefs.current[row.id][1].value) || 0;
-      const qtyprice = parseFloat(inputRefs.current[row.id][2].value) || 0;
-      const total = qty * qtyprice;
 
-      inputRefs.current[row.id][3].value = total.toFixed(2);
-
-      return {
-        id: row.id,
-        medicinename: inputRefs.current[row.id][0].value || '',
-        qty: qty.toString(), // Ensure qty is converted to string before storing in DB
-        qtyprice: qtyprice.toString(), // Ensure qtyprice is converted to string before storing in DB
-        total: total.toFixed(2),
-      };
-    });
-
-    setSubmittedData(updatedMedicineRows);
-
-    const newSubtotal = updatedMedicineRows.reduce((acc, row) => acc + parseFloat(row.total || 0), 0);
-    setSubtotal(newSubtotal);
-
-    const newGrandTotal = newSubtotal - discount;
-    setGrandTotal(newGrandTotal);
-
-    // Constructing the billingData object
-    const billingData = {
-      medicineRows: updatedMedicineRows,
-      subtotal: newSubtotal,
-      discount: discount,
-      grandtotal: newGrandTotal,
-      patientname: document.getElementById('patientname').value || '',
-      doctorname: document.getElementById('doctorname').value || '',
-      mobileno: document.getElementById('mobileno').value || '',
-      cashgiven: cashGiven,
-      balance: balance,
-      medicinename: updatedMedicineRows.map((row) => row.medicinename),
-    };
-
-    try {
-      const response = await axios.post('http://localhost:3000/billing', billingData);
-      console.log('Billing data submitted successfully!', response.data);
-      setIsSubmitted(true);
-    } catch (error) {
-      console.error('Error submitting billing data:', error);
-    }
-  };
-
-  const handleWhatsApp = () => {
-    // const countryCode='+91'
-    // const mobileNo="6369183006"
-    const phoneNumber = `${countryCode}${mobileNo}`;
-    const message = `Hello! Your bill details:\nSubtotal: ${subtotal}\nDiscount: ${discount}\nGrand Total: ${grandtotal}`;
-
-    // Create a link with the WhatsApp message format
-    const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-
-    // Open the link in a new tab/window
-    window.open(whatsappLink, '_blank');
-  }
   return (
     <div>
       {!isSubmitted ? (
-        <div className="container" >
-          <div className=' d-flex justify-content-between align-items-center mb-3'>
-            <b><h2 className="mb-0">Billing
-              <span>
-                <button type="button" className="btn ms-3 mb-2" > + </button>
-              </span>
-            </h2></b>
+        <div className="container" style={{ 
+          // display: 'flex',
+          // alignItems: 'center',
+          // justifyContent: 'center',
+          height: '100vh',
+          backgroundImage: `url(${bgImage})`, // Set your background image
+          backgroundSize: '100%',
+          marginLeft:'-30px',
+          fontFamily: 'serif'
+        }}>
+        <div style={{marginLeft:'60px'}}>
+          <div className=' d-flex justify-content-between align-items-center mb-3' >
+            <h2 className="mb-0"  style={{marginTop:'40px'}}><b>Billing</b>
+            </h2>
 
           </div>
           <div className="container mt-1">
@@ -513,9 +589,7 @@ function Billing() {
               </div>
             </div>
           </div>
-
-
-          <div className='container '>
+          <div >
             <div className='row ms-3 mt-3 '>
               <div className='col-3 '><b><label >Patient Name</label></b>  <input type='text' id='patientname' onKeyPress={(e) => handleKeyPress(e, 0, 0, 'patientname')} /> </div>
               <div className='col-3'> <b><label>Doctor Name</label></b>  <input type='text' id='doctorname' onKeyPress={(e) => handleKeyPress(e, 0, 0, 'doctorname')} /> </div>
@@ -545,76 +619,97 @@ function Billing() {
               <div className='col-2'><b><label>Balance</label></b>  <input type='text' id='balance' value={balance} readOnly style={{ width: '130px' }} />
               </div>
             </div>
-
-          </div>
-          <div className="row mt-1 mb-2 p-3 border-top border-top-2">
+            <div className="row mt-1 mb-2 p-3 ">
             <div className="col-md-12 text-end">
-              <button type="button" className="btn me-2">Cancel</button>
+              <button type="button" className="btn me-2" onClick={handleCance}>Cancel</button>
               <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn" onClick={handleSubmit}>Submit</button>
             </div>
           </div>
-        </div>
-      ) : (
-
-        <div className="container">
-          <div className="bill" style={{ textAlign: 'center' }}>
-            <div className="d-flex align-items-center">
-
-              <h4 className="text-xl font-weight-bold mb-0"><b>ALAGAR CLINIC</b></h4>
-            </div>
-            <table border="1" style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>S.No</th>
-                  <th>Product Description</th>
-                  <th>Price</th>
-                  <th>Qty</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submittedData.map((data) => (
-                  <tr key={data.id}>
-                    <td>{data.id}</td>
-                    <td>{data.medicinename}</td>
-                    <td>{data.qty}</td>
-                    <td>{data.qtyprice}</td>
-                    <td>{data.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan="4">Subtotal:</td>
-                  <td>{subtotal}</td>
-                </tr>
-              </tfoot>
-            </table>
           </div>
-          <div className="col-md-12 text-end">
-
-            <button
-              type="button"
-              style={{ backgroundColor: 'teal', color: 'white' }}
-              className="btn"
-              onClick={handleWhatsApp}
-            >
-              WhatsApp
-            </button>
-            <button
-              type="button"
-              style={{ backgroundColor: 'teal', color: 'white' }}
-              className="btn"
-              onClick={handlePrint}
-              disabled={!(loader === false)}>
-
-              Print
-            </button>
-            <button type="button" className="btn me-2">Cancel</button>
-
-          </div>
+         </div>
         </div>
-      )}
+      ) : (<div className="container" id="dev">
+      <div className="bill" style={{ textAlign: 'center' }}>
+        <div className="d-flex align-items-center">
+          <h4 className="text-xl font-weight-bold mb-0">
+            <b>ALAGAR CLINIC</b>
+          </h4>
+        </div>
+        <div className="col-md-12 text-end" style={{ marginTop: '20px' }}>
+          <button
+            type="button"
+            style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
+            className="btn"
+            onClick={handleWhatsApp}
+          >
+            WhatsApp
+          </button>
+          <button
+            type="button"
+            style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
+            className="btn"
+            onClick={handlePdf}
+            disabled={!(loader === false)}
+          >
+            Download PDF
+          </button>
+          <ReactToPrint
+                trigger={() => (
+                  <button type="button" className="btn" style={{ backgroundColor: 'teal', color: 'white' }}>
+                    Print
+                  </button>
+                )}
+                content={() => componentRef.current}
+              />
+        </div>
+
+        <table border="2" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+          <thead style={{ backgroundColor: '#f2f2f2' }}>
+            <tr>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>S.No</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Product Description</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Price</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Qty</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {submittedData.map((data) => (
+              <tr key={data.id} style={{ borderBottom: '1px solid #ddd' }}>
+                <td style={{ padding: '10px', textAlign: 'left' }}>{data.id}</td>
+                <td style={{ padding: '10px', textAlign: 'left' }}>{data.medicinename}</td>
+                <td style={{ padding: '10px', textAlign: 'left' }}>{data.qtyprice}</td>
+                <td style={{ padding: '10px', textAlign: 'left' }}>{data.qty}</td>
+                <td style={{ padding: '10px', textAlign: 'left' }}>{data.total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="col-md-12 mt-3 text-start" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+        Cash Given: {cashGiven}
+      </div>
+      <div className="col-md-12 mt-3 text-start" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+        Balance: {balance}
+      </div>
+      <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+        Subtotal: {subtotal}
+      </div>
+
+      <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+        Discount: <span>{discount}</span>
+      </div>
+
+      <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+        Grand Total: {grandtotal}
+      </div>
+
+      <button type="button" className="btn me-2" style={{ backgroundColor: 'green', color: 'white' }} onClick={handleCancel}>
+        Cancel
+      </button>
+    </div>
+  )}
     </div>
   );
 }

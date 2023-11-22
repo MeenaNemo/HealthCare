@@ -6,10 +6,12 @@ import AddMedicine from "./components/addmedicine";
 import Sidebar from "./components/sidebar";
 import StockDetailsPage from "./components/stock";
 import Billing from "./components/billing";
+
 const App = () => {
   return (
     <Router>
       <Switch>
+        
         <Route exact path="/" component={Login} />
         <Route path="/sidebar" component={Sidebar}/>
         <Route path="/addmedicine" component={AddMedicine} />

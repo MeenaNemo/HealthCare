@@ -8,6 +8,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import '../styles/stock.css'
+import bgImage from '../logo/y.jpeg';
+
 
 const StockDetailsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +109,7 @@ const StockDetailsPage = () => {
       { header: 'Brand Names', key: 'brandname', width: 15 },
       { header: 'purchase price', key: 'purchaseprice', width: 15 },
       { header: 'Purchase Amount', key: 'purchaseamount', width: 17 },
-      { header: 'mrp', key: 'mrp', width: 15 },
+      { header: 'MRP', key: 'mrp', width: 15 },
       { header: 'Total Qty', key: 'totalqty', width: 15 },
     ];
     worksheet.getRow(1).alignment = { horizontal: 'center' };
@@ -129,8 +131,9 @@ const StockDetailsPage = () => {
       medicinename: item.medicinename || 'N/A',
       dosage: item.dosage || 'N/A',
       brandname: item.brandname || 'N/A',
-      buyingprice: item.buyingprice || 'N/A',
+      purchaseprice: item.purchaseprice || 'N/A',
       purchaseamount: item.purchaseamount || 'N/A',
+      mrp:item.mrp ||'N/A',
       totalqty: item.totalqty || 'N/A',
     });
   });
@@ -186,13 +189,32 @@ const StockDetailsPage = () => {
 
   return (
     <div>
-      <div className='totalpage'>
-        <div className="stock-details-header">
-          <div className="left-top">
-            <h2>Stock Details</h2>
-            <br />
-            
-            <div className="search-bar">
+      <div style={{marginTop:'20px', marginLeft:'-10px', backgroundImage: `url(${bgImage})`, 
+      fontFamily:'serif',
+                backgroundSize: '100% 100%',
+      backgroundRepeat: 'no-repeat',}}>
+        <div className="d-flex align-items-center justify-content-between">  
+        <div style={{marginLeft:'20px'}}>
+        <h2>
+          <b> STOCK DETAILS</b>
+          </h2>
+        <h6 style={{textAlign:'center'}}>
+          
+          View your stock list</h6>
+          </div>     
+      <div >
+            <button onClick={exportToExcel}>
+              <FontAwesomeIcon icon={faFileExport} /> Export
+            </button>
+            <button onClick={downloadPDF} disabled={!(loader === false)}>
+              {loader ? (<span>Downloading</span>) : (<span>Download</span>)}
+            </button>
+          </div>
+</div>
+<br/>
+<div  className="d-flex align-items-center justify-content-between">
+
+<div className="search-bar" style={{height:'50px'}}>
               <FontAwesomeIcon icon={faSearch} />
               <input
                 type="text"
@@ -201,26 +223,18 @@ const StockDetailsPage = () => {
                 onChange={(event) => handleSearchChange(event.target.value)}
               />
             </div>
-          </div>
-          <div className="right-top">
-            <button onClick={exportToExcel}>
-              <FontAwesomeIcon icon={faFileExport} /> Export
-            </button>
-            <button onClick={downloadPDF} disabled={!(loader === false)}>
-              {loader ? (<span>Downloading</span>) : (<span>Download</span>)}
-            </button>
-          </div>
-          <div className='right-bottom' >
+        <div className='right-bottom'  >
             <DatePicker onChange={handleFromDateChange} className="bold-placeholder" placeholder="From Date" />
             <DatePicker onChange={handleToDateChange} className="bold-placeholder" placeholder="To Date" />
           </div>
-        </div>
 
+</div>     
         <div className="stock-table">
-
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
+            <div>
+              <h2>stock details</h2>
             <table>
               <thead>
                 <tr>
@@ -251,6 +265,7 @@ const StockDetailsPage = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
 
 

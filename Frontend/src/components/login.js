@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
-import logoImage from '../logo/logo.jpeg'; // Adjust the path as needed
+import logoImage from '../logo/logo.jpg'; // Adjust the path as needed
 
 const styles = {
+  
   loginContainer: {
     background: `url('../Assets/e.jpeg') `, // Replace 'path_to_your_image.jpg' with the actual path to your image
     backgroundSize: '100%  100%', // Set width to 50% and auto height to maintain aspect ratio
@@ -75,7 +76,7 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.loginContainer}>
+    <div style={styles.loginContainer} >
       <div className="col-md-3" style={{height:'300px', marginTop:'-150px', marginLeft:'150px'}}>
         <div style={styles.card}> 
         {/* className="card shadow" */}
@@ -84,8 +85,9 @@ const Login = () => {
          <img
               src={logoImage} 
               alt="Profile"
-              style={{ width: '90px', height: '90px', marginLeft: '150px', borderRadius: '50%', marginBottom:'20px' }}
+              style={{ width: '1o0px', height: '100px', marginLeft: '100px', borderRadius: '100%'}}
             />
+            <br/> <br/>
             <h2 className="card-title text-center mb-4">Log in to your account</h2>
             <h6 style={{ color: 'GrayText', textAlign: 'center' }}>Welcome back! Please enter your details</h6>
             <br/>

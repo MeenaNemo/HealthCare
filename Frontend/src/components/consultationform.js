@@ -1,5 +1,7 @@
 import React, { useState, useEffect  } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import bgImage from '../logo/y.jpeg';
+
 
 const ConsultationForm = () => {
     const [formData, setFormData] = useState({
@@ -120,9 +122,16 @@ const ConsultationForm = () => {
       };
 
   return (
-    <div className="container mt-4">
-      <h2>Doctor Consultation Form</h2>
-      <br/>
+    <div className="container" style={{ 
+
+      backgroundImage: `url(${bgImage})`, 
+      backgroundSize: '100%',
+      marginLeft:'-50px',
+      fontFamily: 'serif'
+    }}>
+      <div style={{marginLeft:'100px', marginRight:'100px', marginBottom:'-200px'}}>
+      <h2> <b>Doctor Consultation Form</b></h2>
+     
       {showForm && (
         <form onSubmit={handleSubmit}>
           <div className="row mb-3">
@@ -214,7 +223,7 @@ const ConsultationForm = () => {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary">Submit</button>
+          <button type="submit" className="btn" style={{backgroundColor:'teal', marginLeft:'300px', width:'200px'}}>Submit</button>
         </form>
       )}
 
@@ -234,6 +243,10 @@ const ConsultationForm = () => {
         </div>
       )}
 
+
+
+      </div>
+     
     </div>
   );
 };

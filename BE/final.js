@@ -1,20 +1,14 @@
-const axios = require('axios');
 const express = require('express');
 const mysql = require('mysql');
+const axios = require('axios');
 const app = express();
 const port = 3000;
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const twilio = require('twilio');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid').v4;
 
-const accountSid = 'ACc90419120f2cb0a90fcca862b6bf5a42';
-const authToken = 'c91778a9cc7c87fd6a7c1a596418dbbd';
-const twilioPhoneNumber = '+919629907152';
-
-const client = twilio(accountSid, authToken);
 
 app.use(cors());
 app.use(express.json());
@@ -25,34 +19,34 @@ const db = mysql.createPool({
   host: 'fivewhyrds.ctxjvxl0k0dq.us-east-1.rds.amazonaws.com',
   user: 'fivewhyadmin',
   password: 'Yayaya#143',
-  database: '5ydatabase',
+  database: 'Alagar_Clinic',
 });
 
 
 const createUsersTableQuery = `
-  CREATE TABLE IF NOT EXISTS \`user\` (
-    \`user_id\` VARCHAR(36) PRIMARY KEY,
-    \`user_first_name\` VARCHAR(255),
-    \`user_last_name\` VARCHAR(255),
-    \`user_email\` VARCHAR(255) UNIQUE,
-    \`user_mobile_number\` VARCHAR(20),
-    \`user_password\` VARCHAR(255),
-    \`user_token\` VARCHAR(255),
-    \`user_timestamp\` TIMESTAMP,
-    \`user_profile_photo\` VARCHAR(255)
+  CREATE TABLE IF NOT EXISTS User_Inventory (
+    user_id  VARCHAR(36) PRIMARY KEY,
+    user_first_name VARCHAR(255),
+    user_last_name VARCHAR(255),
+    user_email VARCHAR(255) UNIQUE,
+    user_mobile_number VARCHAR(20),
+    user_role VARCHAR(20),
+    user_password VARCHAR(255),
+    user_token VARCHAR(255),
+    user_timestamp TIMESTAMP,
+    user_profile_photo VARCHAR(255)
   )
 `;
 
 
 db.query(createUsersTableQuery, (error, result) => {
   if (error) {
-    throw new Error("Error creating users table: " + error.message);
+    throw new Error("Error creating User_Inventory table: " + error.message);
   }
 
-  console.log("Users table created successfully");
+  console.log("User_Inventory table created successfully");
 });
 
-app.use(express.json());
 
 const privateKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCKYCCU+icNr+dlESZOSomuTvi7Sv5HXbV2+RGzNWNGhnQYLGSPYFh3NRZ7HuP3C1M+sI2vX1UGb/AXlucw+pDLQpungBOyyi9zwsyzgBvdeZRFNj3V9tn3CQaEPTXbBFwSszmpPZvdk58L/YCru3G2XPdFNpKnv0Q7yiiiMWIX0wIDAQAB"; 
 
@@ -64,7 +58,7 @@ app.post('/register', async (req, res) => {
       throw new Error("Please provide data.");
     }
 
-    const existingEmailQuery = 'SELECT COUNT(*) as count FROM user WHERE user_email = ?';
+    const existingEmailQuery = 'SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?';
 
     db.query(existingEmailQuery, [reqData.user_email, reqData.user_mobile_number], async (error, results) => 
      {
@@ -81,15 +75,15 @@ app.post('/register', async (req, res) => {
       const user = 'userid-' + uuid();
 
       const insertUserQuery = `
-        INSERT INTO user (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_password, user_token, user_timestamp, user_profile_photo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
+      INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp, user_profile_photo)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
       const values = [user, 
         reqData.user_first_name, 
         reqData.user_last_name,
          reqData.user_email, 
          reqData.user_mobile_number,
+         reqData.user_role,
          enpPassword,
           token,
           new Date(), 
@@ -113,7 +107,7 @@ app.post('/login', async (req, res) => {
       const { loginIdentifier, password } = req.body;
 
       const getUserQuery = `
-        SELECT * FROM user WHERE user_email = ? OR user_mobile_number = ?
+        SELECT * FROM User_Inventory WHERE user_email = ? OR user_mobile_number = ?
       `;
   
       db.query(getUserQuery, [loginIdentifier, loginIdentifier], async (error, results) => {
@@ -160,7 +154,7 @@ app.post('/login', async (req, res) => {
 
 
 const createBillingTableQuery = `
-CREATE TABLE IF NOT EXISTS billing (
+CREATE TABLE IF NOT EXISTS Billing_Inventory (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tabletdetails JSON, 
   subtotal DECIMAL(10,2),  
@@ -176,7 +170,7 @@ CREATE TABLE IF NOT EXISTS billing (
 `;
 
 const createPurchaseTableQuery = `
-  CREATE TABLE IF NOT EXISTS purchase (
+  CREATE TABLE IF NOT EXISTS Purchase_Inventory (
     id INT NOT NULL AUTO_INCREMENT,
     medicinename VARCHAR(20),
     brandname VARCHAR(20),
@@ -194,7 +188,7 @@ const createPurchaseTableQuery = `
 `;
 
 const createStockTableQuery = `
-  CREATE TABLE IF NOT EXISTS stocknew (
+  CREATE TABLE IF NOT EXISTS Stock_Inventory (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     medicinename VARCHAR(20), 
     brandname VARCHAR(20), 
@@ -206,7 +200,7 @@ const createStockTableQuery = `
     purchasedate DATE,
     expirydate DATE,
     time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (medicinename, dosage) REFERENCES purchase(medicinename, dosage)
+    FOREIGN KEY (medicinename, dosage) REFERENCES Purchase_Inventory(medicinename, dosage)
   )
 `;
 
@@ -221,7 +215,7 @@ db.getConnection((connectionError, connection) => {
     if (err) {
       console.error('Error creating the table: ' + err);
     } else {
-      console.log('Billing Table created successfully');
+      console.log('Billing_Inventory Table created successfully');
     }
   });
 
@@ -230,7 +224,7 @@ db.getConnection((connectionError, connection) => {
     if (err) {
       console.error('Error creating the table: ' + err);
     } else {
-      console.log('Purchase Table created successfully');
+      console.log('Purchase_Inventory Table created successfully');
     }
   });
 
@@ -239,7 +233,7 @@ db.getConnection((connectionError, connection) => {
     if (err) {
       console.error('Error creating the table: ' + err);
     } else {
-      console.log('Stock Table created successfully');
+      console.log('Stock_Inventory Table created successfully');
     }
   });
 
@@ -252,13 +246,13 @@ app.post('/billing', (req, res) => {
     const { medicinename, qty } = row;
 
     // Perform a query to update the stock in the database
-    const updateStockQuery = 'UPDATE stocknew SET totalqty = totalqty - ? WHERE medicinename = ?';
+    const updateStockQuery = 'UPDATE Stock_Inventory SET totalqty = totalqty - ? WHERE medicinename = ?';
     db.query(updateStockQuery, [qty, medicinename], (err, results) => {
       console.log("result", results)
       if (err) {
-        console.error('Error updating stock quantity:', err);
+        console.error('Error updating Stock_Inventory quantity:', err);
       }
-      console.log(`Stock updated for ${medicinename}`);
+      console.log(`Stock_Inventory updated for ${medicinename}`);
     });
   }
 
@@ -273,7 +267,7 @@ app.post('/billing', (req, res) => {
   };
 
   // Insert data into MySQL table
-  const sql = `INSERT INTO billing
+  const sql = `INSERT INTO Billing_Inventory
     (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
@@ -289,8 +283,8 @@ app.post('/billing', (req, res) => {
     billingData.balance
   ], (err, result) => {
     if (err) throw err;
-    console.log('Billing data inserted:', result);
-    res.send('Billing data inserted successfully!');
+    console.log('Billing_Inventory data inserted:', result);
+    res.send('Billing_Inventory data inserted successfully!');
   });
 });
 
@@ -302,7 +296,7 @@ app.get('/allstock', (req, res) => {
     return;
   }
 
-  const sql = 'SELECT * FROM stocknew WHERE medicinename = ? AND dosage = ?';
+  const sql = 'SELECT * FROM Stock_Inventory WHERE medicinename = ? AND dosage = ?';
 
   db.query(sql, [medicinename, dosage], (err, results) => {
     if (err) {
@@ -331,7 +325,7 @@ app.get('/allstock', (req, res) => {
 
 
 app.get('/stock', (req, res) => {
-  const sql = 'SELECT * FROM stocknew';
+  const sql = 'SELECT * FROM Stock_Inventory';
   db.query(sql, (err, results) => {
     if (err) {
       console.error('Error fetching data:', err);
@@ -357,7 +351,7 @@ app.post('/purchase', (req, res) => {
   } = req.body;
 
   const insertPurchaseQuery = `
-    INSERT INTO purchase 
+    INSERT INTO Purchase_Inventory 
       (medicinename, brandname, otherdetails, purchaseprice, totalqty, purchaseamount, dosage, expirydate, mrp) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
@@ -376,24 +370,24 @@ app.post('/purchase', (req, res) => {
 
   db.query(insertPurchaseQuery, valuesPurchase, (err, result) => {
     if (err) {
-      console.error('Error inserting data into purchase table:', err);
+      console.error('Error inserting data into Purchase_Inventory table:', err);
       res.status(500).send('Internal Server Error');
     } else {
-      console.log('Data inserted into purchase table successfully');
-      // Proceed with updating or inserting into stocknew table
-      const selectStockQuery = 'SELECT * FROM stocknew WHERE medicinename = ? AND dosage = ?';
+      console.log('Data inserted into Purchase_Inventory table successfully');
+      // Proceed with updating or inserting into Stock_Inventory table
+      const selectStockQuery = 'SELECT * FROM Stock_Inventory WHERE medicinename = ? AND dosage = ?';
 
       db.query(selectStockQuery, [medicinename, dosage], (selectErr, selectResults) => {
         if (selectErr) {
-          console.error('Error selecting from stocknew:', selectErr);
+          console.error('Error selecting from Stock_Inventory:', selectErr);
           res.status(500).send('Internal Server Error');
         } else if (selectResults.length > 0) {
           const existingQuantity = selectResults[0].totalqty;
           const updatedQuantity = existingQuantity + totalqty;
 
-          // Update quantity, purchase price, purchase amount, purchase date, and expiry date in stocknew table
+          // Update quantity, purchase price, purchase amount, purchase date, and expiry date in Stock_Inventory table
           const updateStockQuery = `
-            UPDATE stocknew 
+            UPDATE Stock_Inventory 
             SET totalqty = ?, 
                 purchaseprice = ?, 
                 purchaseamount = ?, 
@@ -415,17 +409,17 @@ app.post('/purchase', (req, res) => {
 
           db.query(updateStockQuery, valuesStock, (updateErr, updateResult) => {
             if (updateErr) {
-              console.error('Error updating stocknew:', updateErr);
+              console.error('Error updating Stock_Inventory:', updateErr);
               res.status(500).send('Internal Server Error');
             } else {
-              console.log('Data updated in stocknew table successfully');
-              res.status(200).send('Data updated in stocknew successfully');
+              console.log('Data updated in Stock_Inventory table successfully');
+              res.status(200).send('Data updated in Stock_Inventory successfully');
             }
           });
         } else {
-          // Insert a new record into stocknew table
+          // Insert a new record into Stock_Inventory table
           const insertStockQuery = `
-            INSERT INTO stocknew 
+            INSERT INTO Stock_Inventory 
               (medicinename, dosage, brandname, purchaseprice, totalqty, purchaseamount, purchasedate, expirydate, mrp) 
               VALUES (?, ?, ?, ?, ?, ?, CURDATE(), ?, ?)
           `;
@@ -443,11 +437,11 @@ app.post('/purchase', (req, res) => {
 
           db.query(insertStockQuery, valuesStock, (errStock, resultStock) => {
             if (errStock) {
-              console.error('Error inserting data in stocknew table:', errStock);
+              console.error('Error inserting data in Stock_Inventory table:', errStock);
               res.status(500).send('Internal Server Error');
             } else {
-              console.log('Data inserted into stocknew table successfully');
-              res.status(200).send('Data inserted into stocknew successfully');
+              console.log('Data inserted into Stock_Inventory table successfully');
+              res.status(200).send('Data inserted into Stock_Inventory successfully');
             }
           });
         }
@@ -460,7 +454,7 @@ app.post('/purchase', (req, res) => {
 app.get('/quantity', (req, res) => {
   const { medicinename, dosage } = req.query;
 
-  const selectQuantityQuery = 'SELECT totalqty FROM stocknew WHERE medicinename = ? AND dosage = ?';
+  const selectQuantityQuery = 'SELECT totalqty FROM Stock_Inventory WHERE medicinename = ? AND dosage = ?';
   console.log("total", selectQuantityQuery)
 
   db.query(selectQuantityQuery, [medicinename, dosage], (err, results) => {
@@ -480,7 +474,7 @@ app.get('/quantity', (req, res) => {
 app.get('/getMRP', (req, res) => {
   const { medicinename, dosage } = req.query;
 
-  const selectMRPQuery = 'SELECT mrp FROM stocknew WHERE medicinename = ? AND dosage = ?';
+  const selectMRPQuery = 'SELECT mrp FROM Stock_Inventory WHERE medicinename = ? AND dosage = ?';
 
   db.query(selectMRPQuery, [medicinename, dosage], (err, results) => {
     if (err) {
@@ -503,7 +497,7 @@ app.get('/suggestions', (req, res) => {
     return;
   }
 
-  const tabletSuggestionsQuery = 'SELECT medicinename, dosage FROM stocknew WHERE medicinename LIKE ?';
+  const tabletSuggestionsQuery = 'SELECT medicinename, dosage FROM Stock_Inventory WHERE medicinename LIKE ?';
   const searchTerm = `%${partialName}%`; // Prepare the search term with wildcards
 
   db.query(tabletSuggestionsQuery, [searchTerm], (err, results) => {
@@ -517,25 +511,7 @@ app.get('/suggestions', (req, res) => {
   });
 });
 
-app.post('/send-bill', async (req, res) => {
-  try {
-    const phoneNumber = req.body.phoneNumber;
-    const message = req.body.message;
 
-    // Sending WhatsApp message using Twilio API
-    const result = await client.messages.create({
-      body: message,
-      from: `whatsapp:+12014742001`,
-      to: `whatsapp:+919629907152`,
-    });
-
-    console.log('WhatsApp message sent:', result);
-    res.json({ success: true, message: 'WhatsApp message sent successfully.' });
-  } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
-    res.status(500).json({ success: false, message: 'Error sending WhatsApp message.' });
-  }
-});
 
 
 app.listen(port, () => {

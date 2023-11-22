@@ -1,6 +1,9 @@
 import { React, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import bgImage from '../logo/y.jpeg';
+
+
 
 function AddMedicine() {
   const [formData, setFormData] = useState({
@@ -32,24 +35,37 @@ function AddMedicine() {
   
     // Reset border color and hide error messages
     const inputElement = document.getElementById(id);
-    inputElement.style.border = '';
-    const errorMessageContainer = inputElement.parentNode.querySelector('.error-message-container');
-    if (errorMessageContainer) {
-      errorMessageContainer.remove();
+    if (inputElement) {
+      inputElement.style.border = '';
+      const errorMessageContainer = inputElement.parentNode.querySelector('.error-message-container');
+      if (errorMessageContainer) {
+        errorMessageContainer.remove();
+      }
     }
   
     setFormData((prevData) => {
       let updatedData = {
         ...prevData,
-        [id]: id === 'medicinename' || id === 'brandname'
-          ? specialCharacterRegex.test(value) ? value : prevData[id]
-          : isNaN(numericValue) ? value : numericValue,
+        [id]: id === 'medicinename' || id === 'brandname' ? (isNaN(numericValue) ? value : numericValue) : prevData[id],
       };
   
-      if (id === 'purchaseprice' && !isNaN(numericValue) && !isNaN(prevData.purchaseprice)) {
-        updatedData.purchaseamount = numericValue * prevData.totalqty;
-      } else if (id === 'totalqty' && !isNaN(numericValue) && !isNaN(prevData.totalqty)) {
-        updatedData.purchaseamount = prevData.purchaseprice * numericValue;
+      if (id === 'purchaseprice' || id === 'totalqty') {
+        const numericValue = parseInt(value, 10); // Parse the value as an integer
+        if (!isNaN(numericValue)) {
+          updatedData[id] = numericValue;
+          updatedData.purchaseamount = id === 'purchaseprice' && !isNaN(prevData.totalqty)
+            ? numericValue * prevData.totalqty
+            : id === 'totalqty' && !isNaN(prevData.purchaseprice)
+            ? prevData.purchaseprice * numericValue
+            : 0; // Set default if one of the conditions fails
+        }
+      } else if (id === 'mrp') {
+        const numericValue = parseFloat(value); // Parse the value as a float
+        if (!isNaN(numericValue)) {
+          updatedData.mrp = numericValue;
+        }
+      } else if (id === 'otherdetails') {
+        updatedData.otherdetails = value; // Assign the value directly for otherdetails
       }
   
       if (id === 'expirydate' && !isNaN(new Date(value).getTime())) {
@@ -177,13 +193,20 @@ function AddMedicine() {
 
   return (
 
-    <div className="container ">
-      <div className=' d-flex justify-content-between align-items-center mb-3 mt-4'>
-        <b><h2 className="mb-0">Add Medicine
-          <span>
-            <button type="submit" className="btn ms-3 mb-2" onClick={handleCancel}>+</button>
-          </span>
-        </h2></b>
+    <div className="container "style={{ 
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      backgroundImage: `url(${bgImage})`, // Set your background image
+      backgroundSize: '100%',
+      marginLeft:'-50px',
+      fontFamily: 'serif'
+    }}>
+      <div style={{margin:'10px'}}>
+      <div className=' d-flex justify-content-between align-items-center mb-3 mt-4' style={{margin:'0px'}}>
+        <h2 className="mb-0"> <b>Add Medicine</b>
+        </h2>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -227,12 +250,6 @@ function AddMedicine() {
     </div>
   </div>
 </div>
-
-
-
-
-
-
 
           <div className="col-md-6">
             <div className="form-group" style={labelStyle}>
@@ -328,7 +345,7 @@ function AddMedicine() {
           </div>
         </div>
       </div>
-
+      </div>
     </div>
   );
 }
