@@ -22,7 +22,6 @@ const db = mysql.createPool({
   database: 'Alagar_Clinic',
 });
 
-
 const createUsersTableQuery = `
   CREATE TABLE IF NOT EXISTS User_Inventory (
     user_id  VARCHAR(36) PRIMARY KEY,
@@ -38,7 +37,6 @@ const createUsersTableQuery = `
   )
 `;
 
-
 db.query(createUsersTableQuery, (error, result) => {
   if (error) {
     throw new Error("Error creating User_Inventory table: " + error.message);
@@ -46,7 +44,6 @@ db.query(createUsersTableQuery, (error, result) => {
 
   console.log("User_Inventory table created successfully");
 });
-
 
 const privateKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCKYCCU+icNr+dlESZOSomuTvi7Sv5HXbV2+RGzNWNGhnQYLGSPYFh3NRZ7HuP3C1M+sI2vX1UGb/AXlucw+pDLQpungBOyyi9zwsyzgBvdeZRFNj3V9tn3CQaEPTXbBFwSszmpPZvdk58L/YCru3G2XPdFNpKnv0Q7yiiiMWIX0wIDAQAB"; 
 
@@ -144,30 +141,12 @@ app.post('/login', async (req, res) => {
     }
   });
   
-
   app.use((req, res, next) => {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     next();
   });
   
 
-
-
-const createBillingTableQuery = `
-CREATE TABLE IF NOT EXISTS Billing_Inventory (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  tabletdetails JSON, 
-  subtotal DECIMAL(10,2),  
-  discount DECIMAL(10,2),
-  grandtotal DECIMAL(10,2),
-  patientname VARCHAR(255),
-  doctorname VARCHAR(255),
-  mobileno VARCHAR(20),
-  cashgiven DECIMAL(10,2),
-  balance DECIMAL(10,2),
-  createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-`;
 
 const createPurchaseTableQuery = `
   CREATE TABLE IF NOT EXISTS Purchase_Inventory (
@@ -239,8 +218,51 @@ db.getConnection((connectionError, connection) => {
 
 });
 
-app.post('/billing', (req, res) => {
+
+const createBillingTableQuery = `
+CREATE TABLE IF NOT EXISTS Billing_Inventory (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tabletdetails JSON, 
+  subtotal DECIMAL(10,2),  
+  discount DECIMAL(10,2),
+  grandtotal DECIMAL(10,2),
+  patientname VARCHAR(255),
+  doctorname VARCHAR(255),
+  mobileno VARCHAR(20),
+  cashgiven DECIMAL(10,2),
+  balance DECIMAL(10,2),
+  invoice_number VARCHAR(20),
+  createdate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+`;
+
+async function generateInvoiceNumber() {
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = currentDate.toLocaleString('default', { month: 'short' });
+
+  // Retrieve the last invoice number from your database
+  const getLastInvoiceNumberQuery = 'SELECT MAX(CAST(SUBSTRING(invoice_number, 10) AS UNSIGNED)) as lastInvoiceNumber FROM Billing_Inventory';
+ 
+  const lastInvoiceNumberResult = await new Promise((resolve, reject) => {
+    db.query(getLastInvoiceNumberQuery, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result[0].lastInvoiceNumber || 0);
+      }
+    });
+  });
+
+  // Increment the last invoice number and format it
+  const nextInvoiceNumber = `#${year}${month}${String(lastInvoiceNumberResult + 1).padStart(3, '0')}`;
+  return nextInvoiceNumber;
+}
+
+app.post('/billing', async(req, res) => {
   const billingData = req.body;
+  const invoicenumber = await generateInvoiceNumber();
+  console.log("nu",invoicenumber)
 
   for (const row of billingData.medicineRows) {
     const { medicinename, qty } = row;
@@ -267,9 +289,11 @@ app.post('/billing', (req, res) => {
   };
 
   // Insert data into MySQL table
-  const sql = `INSERT INTO Billing_Inventory
-    (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `
+      INSERT INTO Billing_Inventory
+        (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance, invoice_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
   db.query(sql, [
     JSON.stringify(tabletDetails), // Convert tabletDetails to JSON string
@@ -280,7 +304,8 @@ app.post('/billing', (req, res) => {
     billingData.doctorname,
     billingData.mobileno,
     billingData.cashgiven,
-    billingData.balance
+    billingData.balance,
+    invoicenumber,
   ], (err, result) => {
     if (err) throw err;
     console.log('Billing_Inventory data inserted:', result);
