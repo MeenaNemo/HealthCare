@@ -127,33 +127,37 @@ const ConsultationForm = () => {
       <h2> <b>Doctor Consultation Form</b></h2>
      
       {showForm && (
-        <form onSubmit={handleSubmit}>
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="firstName" className="form-label"><b>First Name</b></label>
-              <input
-                type="text"
-                className="form-control"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="lastName" className="form-label"><b>Last Name</b></label>
-              <input
-                type="text"
-                className="form-control"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-              />
-            </div>
+        <form onSubmit={handleSubmit} style={{ backgroundColor: 'white', border:'1px solid lightgray' }}>
+          <div style={{margin:'20px'}}>
+        <div className="row mb-3">
+          <div className="col-md-6">
+            <label htmlFor="firstName" className="form-label"><b>First Name</b></label>
+            <input
+              type="text"
+              className="form-control"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+            />
           </div>
-          <div className="mb-3">
+          <div className="col-md-6">
+            <label htmlFor="lastName" className="form-label"><b>Last Name</b></label>
+            <input
+              type="text"
+              className="form-control"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+      
+        <div className="row mb-3">
+          <div className="col-md-6">
             <label htmlFor="gender" className="form-label"><b>Gender</b></label>
             <select
               className="form-select"
@@ -169,7 +173,7 @@ const ConsultationForm = () => {
               <option value="other">Other</option>
             </select>
           </div>
-          <div className="mb-3">
+          <div className="col-md-6">
             <label htmlFor="dob" className="form-label"><b>Date of Birth</b></label>
             <input
               type="date"
@@ -181,8 +185,25 @@ const ConsultationForm = () => {
               required
             />
           </div>
-          <div className="mb-3" >
-            <label htmlFor="doctorName" className="form-label"><b>Consulting Doctor Name</b></label>
+        </div>
+        
+        <div className="row mb-3">
+          <div className="col-md-6">
+          <label htmlFor="consultingDoctorName" className="form-label"><b>Consulting Doctor Name</b></label>
+
+    <input
+      type="text"
+      className="form-control"
+      id="consultingDoctorName"
+      name="consultingDoctorName" // Changed the name attribute
+      // value={formData.consultingDoctorName}
+      value='Dr. Doctor Name' // Set your default value here
+      onChange={handleChange}
+      required
+    />
+          </div>
+          <div className="col-md-6">
+          <label htmlFor="doctorName" className="form-label"><b>Disease Name</b></label>
             <input
               type="text"
               className="form-control"
@@ -193,7 +214,22 @@ const ConsultationForm = () => {
               required
             />
           </div>
-          <div className="mb-3">
+        </div>
+
+        <div className="row mb-3">
+          <div className="col-md-6">
+          <label htmlFor="clinicCharge" className="form-label"><b>Clinic Charge</b></label>
+            <input
+              type="number"
+              className="form-control"
+              id="clinicCharge"
+              name="clinicCharge"
+              value={formData.clinicCharge}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="col-md-6">
             <label htmlFor="consultantCharge" className="form-label"><b>Consultant Charge</b></label>
             <input
               type="number"
@@ -205,25 +241,20 @@ const ConsultationForm = () => {
               required
             />
           </div>
-          <div className="mb-3">
-            <label htmlFor="clinicCharge" className="form-label"> <b>Clinic Charge</b></label>
-            <input
-              type="number"
-              className="form-control"
-              id="clinicCharge"
-              name="clinicCharge"
-              value={formData.clinicCharge}
-              onChange={handleChange}
-              required
-            />
+        </div>
+      
+        <div className="row">
+          <div className="col-md-12">
+            <button type="submit" className="btn" style={{ backgroundColor: 'teal', width: '200px' }}>Submit</button>
           </div>
-          <button type="submit" className="btn" style={{backgroundColor:'teal', marginLeft:'300px', width:'200px'}}>Submit</button>
-        </form>
+        </div>
+        </div>
+      </form>
+ 
       )}
 
 {!showForm && submittedData && (
         <div className="mt-10" style={{marginLeft:'200px', marginTop:'50px', }}>
-          {/* <img src='../Assets/e.jpeg'/> */}
           <h3> <b>Submitted Form Data</b></h3>
           <br/>
           <div style={{marginLeft:'50px'}}>

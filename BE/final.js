@@ -154,11 +154,11 @@ const createPurchaseTableQuery = `
     brandname VARCHAR(20),
     otherdetails VARCHAR(100),
     dosage VARCHAR(50),
-    purchaseprice INT,  
+    purchaseprice DECIMAL(10,2),  
     totalqty INT,
-    purchaseamount INT,
+    purchaseamount DECIMAL(10,2),
     expirydate DATE,
-    mrp INT,
+    mrp DECIMAL(10,2),
     time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, medicinename, dosage),
     INDEX (medicinename, dosage)
@@ -171,10 +171,10 @@ const createStockTableQuery = `
     medicinename VARCHAR(20), 
     brandname VARCHAR(20), 
     dosage VARCHAR(50),
-    purchaseprice INT,
+    purchaseprice DECIMAL(10,2),
     totalqty INT,
-    purchaseamount INT,
-    mrp INT,
+    purchaseamount DECIMAL(10,2),
+    mrp DECIMAL(10,2),
     purchasedate DATE,
     expirydate DATE,
     time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS Billing_Inventory (
 async function generateInvoiceNumber() {
   const currentDate = new Date();
   const year = currentDate.getFullYear();
-  const month = currentDate.toLocaleString('default', { month: 'short' });
+  const month = currentDate.toLocaleString('default', { month: 'short' }).toUpperCase();
 
   // Retrieve the last invoice number from your database
   const getLastInvoiceNumberQuery = 'SELECT MAX(CAST(SUBSTRING(invoice_number, 10) AS UNSIGNED)) as lastInvoiceNumber FROM Billing_Inventory';
@@ -258,54 +258,73 @@ async function generateInvoiceNumber() {
   return nextInvoiceNumber;
 }
 
-app.post('/billing', async(req, res) => {
-  const billingData = req.body;
-  const invoicenumber = await generateInvoiceNumber();
-  console.log("nu",invoicenumber)
+app.post('/billing', async (req, res) => {
+  try {
+    const billingData = req.body;
+    const invoicenumber = await generateInvoiceNumber();
+    console.log("Generated Invoice Number:", invoicenumber);
 
-  for (const row of billingData.medicineRows) {
-    const { medicinename, qty } = row;
+    for (const row of billingData.medicineRows) {
+      const { medicinename, qty } = row;
 
-    const updateStockQuery = 'UPDATE Stock_Inventory SET totalqty = totalqty - ? WHERE medicinename = ?';
-    db.query(updateStockQuery, [qty, medicinename], (err, results) => {
-      console.log("result", results)
-      if (err) {
-        console.error('Error updating Stock_Inventory quantity:', err);
-      }
-      console.log(`Stock_Inventory updated for ${medicinename}`);
-    });
-  }
+      const updateStockQuery = 'UPDATE Stock_Inventory SET totalqty = totalqty - ? WHERE medicinename = ?';
+      db.query(updateStockQuery, [qty, medicinename], (err, results) => {
+        console.log("Result of updating Stock_Inventory quantity:", results);
+        if (err) {
+          console.error('Error updating Stock_Inventory quantity:', err);
+        }
+        console.log(`Stock_Inventory updated for ${medicinename}`);
+      });
+    }
 
-  const tabletDetails = {
-    tablets: billingData.medicineRows.map((row) => ({
-      medicinename: row.medicinename,
-      qty: row.qty,
-      qtyprice: row.qtyprice,
-      total: row.total,
-    })),
-  };
+    const tabletDetails = {
+      tablets: billingData.medicineRows.map((row) => ({
+        medicinename: row.medicinename,
+        qty: row.qty,
+        qtyprice: row.qtyprice,
+        total: row.total,
+      })),
+    };
 
-  const sql = `
+    const sql = `
       INSERT INTO Billing_Inventory
         (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance, invoice_number)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-  db.query(sql, [
-    JSON.stringify(tabletDetails), 
-    billingData.subtotal,
-    billingData.discount,
-    billingData.grandtotal,
-    billingData.patientname,
-    billingData.doctorname,
-    billingData.mobileno,
-    billingData.cashgiven,
-    billingData.balance,
-    invoicenumber,
-  ], (err, result) => {
-    if (err) throw err;
-    console.log('Billing_Inventory data inserted:', result);
-    res.send('Billing_Inventory data inserted successfully!');
+    db.query(sql, [
+      JSON.stringify(tabletDetails),
+      billingData.subtotal,
+      billingData.discount,
+      billingData.grandtotal,
+      billingData.patientname,
+      billingData.doctorname,
+      billingData.mobileno,
+      billingData.cashgiven,
+      billingData.balance,
+      invoicenumber,
+    ], (err, result) => {
+      if (err) throw err;
+      console.log('Billing_Inventory data inserted:');
+      
+      // Send the generated invoice number in the response
+      res.json({ message: 'Billing_Inventory data inserted successfully!', invoicenumber });
+    });
+  } catch (error) {
+    console.error('Error processing billing data:', error);
+    res.status(500).json({ error: 'Error processing billing data' });
+  }
+});
+
+app.get('/billingdata', (req, res) => {
+  const sql = 'SELECT * FROM `Billing_Inventory`'; // Added backtick at the end of table name
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+      return;
+    }
+    res.json(results);
   });
 });
 
@@ -464,6 +483,18 @@ app.post('/purchase', (req, res) => {
         }
       });
     }
+  });
+});
+
+app.get('/allpurchase', (req, res) => {
+  const sql = 'SELECT * FROM Purchase_Inventory';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+      return;
+    }
+    res.json(results);
   });
 });
 

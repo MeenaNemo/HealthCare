@@ -10,7 +10,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import '../styles/stock.css'
 
-const StockDetailsPage = () => {
+const Purchase = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [medicineData, setMedicineData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,30 +19,31 @@ const StockDetailsPage = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedFromDate, setSelectedFromDate] = useState();
-  const [selectedToDate, setSelectedToDate] = useState();
+  const [selectedFromDate, setSelectedFromDate] = useState(null);
+  const [selectedToDate, setSelectedToDate] = useState(null);
+
   const itemsPerPage = 25;
-  
+
   const filteredData = medicineData.filter(item =>
     (item.medicinename && item.medicinename.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (!fromDate || moment(item.purchasedate).isSameOrAfter(fromDate)) &&
-    (!toDate || moment(item.purchasedate).isSameOrBefore(toDate))
+    (!fromDate || moment(item.time).isSameOrAfter(fromDate)) &&
+    (!toDate || moment(item.time).isSameOrBefore(toDate))
   );
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const dataOnCurrentPage = filteredData.slice(startIndex, endIndex);
 
-  const fetchStockData = async () => {
+  const fetchpurchaseData = async () => {
     try {
-      const response = await axios.get('/stock', {
+      const response = await axios.get('/allpurchase', {
         params: { medicinename: searchQuery }
       });
 
       setMedicineData(response.data);
       console.log(response.data);
     } catch (error) {
-      console.error('Error fetching stock data:', error);
+      console.error('Error fetching purchase data:', error);
       if (error.response) {
         console.error('Response status:', error.response.status);
         console.error('Response data:', error.response.data);
@@ -55,13 +56,13 @@ const StockDetailsPage = () => {
   };
 
   useEffect(() => {
-    fetchStockData();
+    fetchpurchaseData();
   }, [searchQuery]);
 
   useEffect(() => {
-    const fetchStockData = async () => {
+    const fetchpurchaseData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/stock');
+        const response = await axios.get('http://localhost:3000/allpurchase');
         setMedicineData(response.data);
 
       } catch (error) {
@@ -70,7 +71,7 @@ const StockDetailsPage = () => {
         setLoading(false);
       }
     };
-    fetchStockData();
+    fetchpurchaseData();
   }, []);
 
 
@@ -81,7 +82,7 @@ const StockDetailsPage = () => {
   };
 
   const handleNext = () => {
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const totalPages = Math.ceil(medicineData.length / itemsPerPage);
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
@@ -89,7 +90,6 @@ const StockDetailsPage = () => {
 
   const handleSearchChange = (query) => {
     setSearchQuery(query);
-    setCurrentPage(1);
   };
 
   const handleFromDateChange = (date, dateString) => {
@@ -105,27 +105,27 @@ const StockDetailsPage = () => {
     const worksheet = workbook.addWorksheet('StockData');
   
     worksheet.columns = [
-      { header: 'Purchase Date', key: 'purchasedate', width: 15 },
-      { header: 'Product Name', key: 'medicinename', width: 15 },
-      { header: 'Dosage', key: 'dosage', width: 15 },
-      { header: 'Brand Names', key: 'brandname', width: 15 },
-      { header: 'Purchase Price', key: 'purchaseprice', width: 15 },
-      { header: 'Purchase Amount', key: 'purchaseamount', width: 17 },
-      { header: 'MRP', key: 'mrp', width: 15 },
-      { header: 'Total Qty', key: 'totalqty', width: 15 },
+        { header: 'Medicine Name', key: 'medicinename', width: 15 },
+        { header: 'Brand Names', key: 'brandname', width: 15 },
+        { header: 'Dosage', key: 'dosage', width: 15 },
+        { header: 'Purchase price', key: 'purchaseprice', width: 15 },
+        { header: 'Total Qty', key: 'totalqty', width: 15 },
+        { header: 'Purchase Amount', key: 'purchaseamount', width: 17 },
+        { header: 'Expiry Date', key: 'expirydate', width: 15 },
+        { header: 'MRP', key: 'mrp', width: 15 },
+        { header: 'Purchase Date', key: 'time', width: 15 },
     ];
   
     const headerRow = worksheet.getRow(1);
   
-    // Loop through the columns and set the fill color for specific columns
     worksheet.columns.forEach((column) => {
       const cell = headerRow.getCell(column.key);
-      if (['purchasedate', 'medicinename', 'dosage', 'brandname', 'purchaseprice', 'purchaseamount', 'mrp', 'totalqty'].includes(column.key)) {
+      if (['Medicine Name', 'Brand Name', 'Dosage', 'Purchase price', 'Total Qty', 'Purchase Amount', 'Expiry Date', 'MRP', 'Purchase Date'].includes(column.key)) {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
           fgColor: {
-            argb: '#2a4577', // Blue color
+            argb: 'FF0000FF', // Blue color
           },
         };
       }
@@ -136,17 +136,19 @@ const StockDetailsPage = () => {
     });
   
     filteredData.forEach((item) => {
-      const formattedDate = item.purchasedate ? moment(item.purchasedate).format('YYYY-MM-DD') : 'N/A';
+      const formattedDate = item.time ? moment(item.time).format('YYYY-MM-DD') : 'N/A';
   
       const dataRow = worksheet.addRow({
-        purchasedate: formattedDate,
         medicinename: item.medicinename || 'N/A',
-        dosage: item.dosage || 'N/A',
         brandname: item.brandname || 'N/A',
+        dosage: item.dosage || 'N/A',
         purchaseprice: item.purchaseprice || 'N/A',
-        purchaseamount: item.purchaseamount || 'N/A',
-        mrp: item.mrp || 'N/A',
         totalqty: item.totalqty || 'N/A',
+        purchaseamount: item.purchaseamount || 'N/A',
+        expirydate: item.expirydate || 'N/A',
+        mrp: item.mrp || 'N/A',
+        purchasedate: formattedDate || 'N/A',
+
       });
   
       // Center-align data in each row
@@ -187,21 +189,21 @@ const StockDetailsPage = () => {
       document.body.removeChild(a);
     });
   };
-  
-  
+
+
   const downloadPDF = () => {
     const html2canvasOptions = {
       scale: 2,
       logging: false,
       allowTaint: true,
     };
-  
+
     const capture = document.querySelector('.stock-table');
     setLoader(true);
-  
+
     const fromDate = moment(selectedFromDate).format('YYYY-MM-DD');
     const toDate = moment(selectedToDate).format('YYYY-MM-DD');
-  
+
     html2canvas(capture, html2canvasOptions).then((canvas) => {
       const imgData = canvas.toDataURL('image/png');
       const jsPDFOptions = {
@@ -209,16 +211,16 @@ const StockDetailsPage = () => {
         unit: 'mm',
         format: 'a4',
       };
-  
+
       const pdf = new jsPDF(jsPDFOptions);
       const imageWidth = 210; // A4 width in mm
       const imageHeight = (canvas.height * imageWidth) / canvas.width;
-  
+
       let rowIndex = 0;
       const numberOfRows = filteredData.length;
-  
+
       let firstPage = true; // Flag to determine the first page
-  
+
       while (rowIndex < numberOfRows) {
         if (!firstPage) {
           pdf.addPage();
@@ -226,29 +228,28 @@ const StockDetailsPage = () => {
         } else {
           firstPage = false; // Update flag for subsequent pages
         }
-        pdf.setFont('helvetica', 'bold'); 
+        pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(16);
         pdf.setTextColor(43, 128, 176); // Blue color
         pdf.text(`Stock Details from ${fromDate}  to  ${toDate}`, 10, 10, null, null, 'left');
-    
+
         const headingHeight = 20; // Adjust this value based on the heading size and spacing
         const tableStartY = 0 + headingHeight; // Adjust the spacing between heading and table
         const currentPageData = filteredData.slice(rowIndex, rowIndex + itemsPerPage);
         const bodyData = currentPageData.map((currentData) => [
-          currentData.purchasedate ? moment(currentData.purchasedate).format('YYYY-MM-DD') : 'N/A',
           currentData.medicinename || 'N/A',
-          currentData.dosage || 'N/A',
           currentData.brandname || 'N/A',
+          currentData.dosage || 'N/A',
           currentData.purchaseprice || 'N/A',
-          currentData.purchaseamount || 'N/A',
-          currentData.mrp || 'N/A',
           currentData.totalqty || 'N/A',
+          currentData.purchaseamount || 'N/A',
           currentData.expirydate ? moment(currentData.expirydate).format('YYYY-MM-DD') : 'N/A',
+          currentData.mrp || 'N/A',
+          currentData.time ? moment(currentData.time).format('YYYY-MM-DD') : 'N/A',
         ]);
-  
+
         pdf.autoTable({
-          head: [['Purchase Date', 'Medicine Name', 'Dosage', 'Brand Name', 'Purchase Price', 'Purchase Amount', 'MRP', 'Total Qty', 'Expiry Date']],
-          body: bodyData,
+          head: [['Medicine Name', 'Brand Name', 'Dosage', 'Purchase Price', 'Total Qty', 'Purchase Amount', 'MRP',  'Expiry Date', 'Purchase Date']], body: bodyData,
           startY: tableStartY, // Adjust the starting Y position as needed
           theme: 'grid', // Apply grid theme for borders
           styles: {
@@ -267,47 +268,46 @@ const StockDetailsPage = () => {
           },
           alternateRowStyles: {
             fillColor: [224, 224, 224],
-            lineWidth:0.3// Alternate row background color
+            lineWidth: 0.3// Alternate row background color
           },
         });
-  
+
         rowIndex += itemsPerPage;
       }
-  
+
       setLoader(false);
       pdf.save('stock.pdf');
     });
   };
-  
-  
+
   return (
     <div>
       <div style={{
+        fontSize: '14px',
         fontFamily: 'serif',
-        
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
       }}>
         <div className="d-flex align-items-center justify-content-between">
-          <div style={{ marginLeft: '20px' }}>
+          <div style={{ margin: '20px' }}>
             <h2>
-              <b> STOCK DETAILS</b>
+              <b> Purchase History</b>
             </h2>
-            <h6 style={{ textAlign: 'center' }}>
 
-              View your stock list</h6>
           </div>
           <div >
             <button onClick={exportToExcel}>
-              <FontAwesomeIcon icon={faFileExport} />Export as Excel
+              <FontAwesomeIcon icon={faFileExport} /> Export to Excel
             </button>
             <button onClick={downloadPDF} disabled={!(loader === false)}>
-              {loader ? (<span>Downloading</span>) : (<span>Download as PDF</span>)}
+              {loader ? (<span>Downloading as PDF</span>) : (<span>Download as PDF</span>)}
             </button>
           </div>
         </div>
         <br />
         <div className="d-flex align-items-center justify-content-between">
 
-          <div className="search-bar" style={{ height: '30px' ,margin:'10px'}}>
+          <div className="search-bar" style={{ height: '30px', margin: '10px' }}>
             <FontAwesomeIcon icon={faSearch} />
             <input
               type="text"
@@ -317,21 +317,19 @@ const StockDetailsPage = () => {
             />
           </div>
           <div className='right-bottom'  >
-          From : <DatePicker  onChange={handleFromDateChange} className="bold-placeholder" /> <span></span>
-           To : <DatePicker onChange={handleToDateChange} className="bold-placeholder"  /> <span> </span>
+            From : <DatePicker onChange={handleFromDateChange} className="bold-placeholder" /> <span> </span>
+            To : <DatePicker onChange={handleToDateChange} className="bold-placeholder" /> <span> </span>
           </div>
 
         </div>
-        <div className="stock-table">
+        <div className="purchase-table">
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
             <div>
-              <h2 style={{marginLeft:'10px'}}>Stock details</h2>
               <table>
                 <thead>
                   <tr>
-                    <th>Purchase Date</th>
                     <th>Product Name</th>
                     <th>Dosage</th>
                     <th>Brand Name</th>
@@ -340,22 +338,24 @@ const StockDetailsPage = () => {
                     <th>MRP</th>
                     <th>Total Qty</th>
                     <th>Expiry Date</th>
+                    <th>Purchase Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {dataOnCurrentPage.map((item,index) => (
-                    <tr key={item.ID} style={{ backgroundColor: index % 2 === 0 ? '#b6b6b6' : 'white' }}>
-                      <td>{item.purchasedate ? moment(item.purchasedate).format('YYYY-MM-DD') : 'N/A'}</td>
-                      <td>{item.medicinename || 'N/A'}</td>
-                      <td>{item.dosage || 'N/A'}</td>
-                      <td>{item.brandname || 'N/A'}</td>
-                      <td>{item.purchaseprice || 'N/A'}</td>
-                      <td>{item.purchaseamount || 'N/A'}</td>
-                      <td>{item.mrp || 'N/A'}</td>
-                      <td>{item.totalqty || 'N/A'}</td>
-                      <td>{item.expirydate ? moment(item.expirydate).format('YYYY-MM-DD') : 'N/A'}</td>
-                    </tr>
-                  ))}
+                  {
+                    dataOnCurrentPage.map((item) => (
+                      <tr key={item.ID}>
+                        <td>{item.medicinename || 'N/A'}</td>
+                        <td>{item.dosage || 'N/A'}</td>
+                        <td>{item.brandname || 'N/A'}</td>
+                        <td>{item.purchaseprice || 'N/A'}</td>
+                        <td>{item.purchaseamount || 'N/A'}</td>
+                        <td>{item.mrp || 'N/A'}</td>
+                        <td>{item.totalqty || 'N/A'}</td>
+                        <td>{item.expirydate ? moment(item.expirydate).format('YYYY-MM-DD') : 'N/A'}</td>
+                        <td>{item.time ? moment(item.time).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -377,4 +377,4 @@ const StockDetailsPage = () => {
   );
 };
 
-export default StockDetailsPage;
+export default Purchase;

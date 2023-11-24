@@ -2,6 +2,7 @@ import { React, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+
 function AddMedicine() {
   const [formData, setFormData] = useState({
     medicinename: '',
@@ -10,17 +11,20 @@ function AddMedicine() {
     purchaseprice: '',
     totalqty: '',
     purchaseamount: 0,
-    dosage: '',
+    dosageUnit: '0',
     expirydate: '',
     mrp: ''
   });
 
   const [showPopup, setShowPopup] = useState(false);
+  
+  const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
 
   const labelStyle = {
     textAlign: 'left',
-  };
-
+      borderRadius: '10px', // Add border-radius for rounded corners
+    };
+    
   const handleChange = (event) => {
     const { id, value } = event.target;
   
@@ -68,6 +72,27 @@ function AddMedicine() {
       return updatedData;
     });
   };
+ 
+  const handleDosageUnitChange = (event) => {
+    const { value } = event.target;
+  
+    setFormData((prevData) => {
+      const currentDosage = String(prevData.dosage);
+      
+      // Remove existing unit, if any, before adding the new unit
+      const dosageWithoutUnit = currentDosage.replace(/[^\d]/g, '');
+      const newDosage = dosageWithoutUnit + value;
+
+      return {
+        ...prevData,
+        dosage: newDosage,
+        dosageUnit: value,
+      };
+    });
+
+    setDosageUnitPopupShown(true);
+  };
+  
 
   const handleCancel = (event) => {
     event.preventDefault();
@@ -75,7 +100,6 @@ function AddMedicine() {
       medicinename: '',
       brandname: '',
       otherdetails: '',
-
       purchaseprice: '',
       totalqty: '',
       purchaseamount: 0,
@@ -186,7 +210,7 @@ function AddMedicine() {
   return (
 
     <div className="container "style={{ 
-          fontFamily: 'serif'
+          fontFamily: 'serif' ,width: '80%', margin: '10px'
     }}>
       <div style={{margin:'10px'}}>
       <div className=' d-flex justify-content-between align-items-center mb-3 mt-4' style={{margin:'0px'}}>
@@ -194,7 +218,8 @@ function AddMedicine() {
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{backgroundColor:'white', border:'1px solid lightgray'}}>
+        <div style={{margin:'20px'}}>
         <div className="row">
           <div className="col-md-12">
             <div className="form-group" style={labelStyle}>
@@ -203,6 +228,7 @@ function AddMedicine() {
             </div>
           </div>
         </div>
+        
         <br />
 
         <div className="row">
@@ -225,13 +251,34 @@ function AddMedicine() {
           }));
         }}
         onBlur={(e) => {
-          // Ensure that dosage is always a string
+          // Ensure that dosage is always a string with the dosage unit
           setFormData((prevData) => ({
             ...prevData,
-            dosage: String(prevData.dosage).endsWith('mg') ? prevData.dosage : prevData.dosage + 'mg',
+            dosage: String(prevData.dosage).endsWith(formData.dosageUnit) ? prevData.dosage : prevData.dosage + prevData.dosageUnit,
           }));
         }}
-      />
+   
+        
+        
+      /><select
+      style={{ width: '50px' }} // Adjust the width as needed
+      className="form-select"
+      id="dosageUnit"
+      value={formData.dosageUnit}
+      onChange={(e) => {
+        handleDosageUnitChange(e);
+        // Manually trigger onBlur when the select box is changed
+        const dosageInput = document.getElementById('dosage');
+        if (dosageInput) {
+          dosageInput.dispatchEvent(new Event('blur'));
+        }
+      }}
+    >
+      <option value="mg">mg</option>
+      <option value="ml">ml</option>
+      <option value="gm">gm</option>
+    </select>
+    
     </div>
   </div>
 </div>
@@ -301,35 +348,44 @@ function AddMedicine() {
 
         <div className="row mt-3 mb-4">
           <div className="col-md-12 text-end">
-            <button type="submit" className="btn  me-2" onClick={handleCancel}>Cancel</button>
+            <button type="submit"  className="btn  me-2" onClick={handleCancel}>Cancel</button>
             <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn " onClick={handleSubmit} >Submit</button>
           </div>
         </div>
 
-      </form>
-      <div
-        className={`modal fade ${showPopup ? 'show' : ''}`}
-        style={{ display: showPopup ? 'block' : 'none' }}
-        tabIndex="-1"
-        role="dialog"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Medicine Added</h5>
-              <button type="button" className="btn-close" onClick={closePopup}></button>
-            </div>
-            <div className="modal-body">
-              <p>Medicine added successfully.</p>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-primary" onClick={closePopup}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        </div></form>
+        <div
+  className={`modal fade ${showPopup ? 'show' : ''}`}
+  style={{
+    display: showPopup ? 'block' : 'none',
+    position: 'fixed',
+    top: '10%',
+    left: '50%',
+    transform: 'translatex(-50%)',
+    zIndex: '10'
+     // Adjust the z-index as needed
+  }}
+  tabIndex="1"
+  role="dialog"
+>
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h5 className="modal-title">Medicine Added</h5>
+        <button type="button" className="btn-close" onClick={closePopup}></button>
       </div>
+      <div className="modal-body">
+        <p>Medicine added successfully.</p>
+      </div>
+      <div className="modal-footer">
+        <button type="button" className="btn btn-primary" onClick={closePopup}>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
       </div>
     </div>
   );

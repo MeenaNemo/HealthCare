@@ -4,6 +4,11 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import billbg from '../logo/ac.jpg'
 import ReactToPrint from 'react-to-print';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {faTimesCircle  } from '@fortawesome/free-solid-svg-icons';
+import '../styles/stock.css'
+
+
 
 
 function Billing() {
@@ -34,6 +39,12 @@ function Billing() {
     });
   }, []);
 
+  const currentDateFormatted = new Date().toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+  });
+
   const handleAddMedicine = () => {
     const newId = Date.now();
     setMedicineRows((prevRows) => [
@@ -63,9 +74,7 @@ function Billing() {
 
   const handleKeyPress = async (event, rowIndex, colIndex, id) => {
     
-  if (event.target.id === 'cashgiven' || event.target.id === 'discount') {
-    // Allow typing in the cash given input field
-    
+  if (event.target.id === 'cashgiven' || event.target.id === 'discount') {    
     return;
    
   }
@@ -76,7 +85,7 @@ function Billing() {
       event.preventDefault();
     }
 
-    if ((event.key === 'Enter' || event.key === 'Tab') && event.target.tagName.toLowerCase() === 'input') {
+    if (( event.key === 'Tab' || event.key === 'Enter') && event.target.tagName.toLowerCase() === 'input') {
       event.preventDefault();
       if (event.key === 'Tab' && event.target.tagName.toLowerCase() === 'input') {
         // Shift focus to the next input field in the same row or the first input field of the next row
@@ -98,6 +107,7 @@ function Billing() {
         }
       }
 
+      
       // Check if it's the DiscountTotal input field
       if (event.target.id === 'discount') {
         // Shift focus to the Patient Name input field
@@ -244,7 +254,6 @@ function Billing() {
           }
         }
 
-
         setMedicineRows((prevRows) =>
           prevRows.map((row) =>
             row.id === id ? { ...row, total } : row
@@ -362,19 +371,17 @@ function Billing() {
     try {
       const response = await axios.post('http://localhost:3000/billing', billingData);
       const generatedInvoiceNumber = response.data.invoicenumber;
-      console.log(generatedInvoiceNumber);
-      console.log('Billing data submitted successfully!', response.data);
+      console.log("Generated Invoice Number:", generatedInvoiceNumber);
+  
+      
+      
       setIsSubmitted(true);
-      setInvoiceNumber(generatedInvoiceNumber); 
+      setInvoiceNumber(generatedInvoiceNumber);
     } catch (error) {
       console.error('Error submitting billing data:', error);
     }
   };
-  const handleCancel = () => {
-    // Set isSubmitted to false when Cancel button is clicked
-    setIsSubmitted(false);
-  };
-
+  
   const handlePdf = () => {
     const capture = document.querySelector('.bill');
     setLoader(true);
@@ -423,7 +430,8 @@ const handleWhatsApp = () => {
   // Open the link in a new tab/window
   window.open(whatsappLink, '_blank');
 };
-const handleCance = () => {
+
+const handleCancel = () => {
   // Reset all the necessary state values to their initial values
   setMedicineRows([]);
   setSubtotal(0);
@@ -451,21 +459,22 @@ const handleCance = () => {
     <div>
       {!isSubmitted ? (
         <div className="container" style={{ 
-          // marginLeft:'-30px',
-          fontFamily: 'serif'
+          fontFamily: 'serif',          
         }}>
-        <div style={{marginLeft:'60px'}}>
+        <div style={{marginLeft:'20px'}}>
           <div className=' d-flex justify-content-between align-items-center mb-3' >
-            <h2 className="mb-0"  style={{marginTop:'40px'}}><b>Billing</b>
+            <h2 className="mb-0" ><b>Billing</b>
             </h2>
-
           </div>
+          <div style={{backgroundColor:'white', border:'1px solid lightgray'}}>
+
+         <div className='mt-4 ms-5'>   
           <div className="container mt-1">
             <div className='row'>
-              <div className='col-4 ms-2'><b>Medicine Name</b></div>
-              <div className='col-2 ms-1'><b>Quantity</b></div>
-              <div className='col-2 ms-1'><b>Price</b></div>
-              <div className='col-2 ms-1'><b>Total</b></div>
+              <div className='col-4 ms-2'><h5><b>Medicine Name</b></h5></div>
+              <div className='col-2 ms-1'><h5><b>Quantity</b></h5></div>
+              <div className='col-2 ms-1'><h5><b>Price</b></h5></div>
+              <div className='col-2 ms-1'><h5><b>Total</b></h5></div>
             </div>
 
             {medicineRows.map(({ id, refs }, rowIndex) => (
@@ -500,6 +509,10 @@ const handleCance = () => {
                     placeholder='Enter Qty'
                     ref={(el) => (inputRefs.current[id] ||= [])[1] = el}
                     onKeyPress={(e) => handleKeyPress(e, rowIndex, 1, id)}
+                    style={{
+                      WebkitAppearance: 'none', /* for WebKit browsers */
+                      MozAppearance: 'textfield' /* for Firefox */
+                    }}
                   />
                 </div>
                 <div className="col-2 ms-1">
@@ -509,9 +522,10 @@ const handleCance = () => {
                     className="form-control "
                     ref={(el) => (inputRefs.current[id] ||= [])[2] = el}
                     onKeyPress={(e) => handleKeyPress(e, rowIndex, 2, id)}
+                    readOnly // Add readOnly attribute to make the input non-editable
+                    // defaultValue={mrp || ''} 
                   />
                 </div>
-
                 <div className="col-2 ms-1">
                   <input
                     id={`total${id}`}
@@ -525,51 +539,55 @@ const handleCance = () => {
                 <div className="col-1 ms-1">
                   <button
                     type="button"
-                    className="btn-close"
-                    aria-label="Close"
+                    className="btn "
+                    style={{backgroundColor:'white', border:'1px solid lightgray'}}
+                    // aria-label="Close"
+                   
                     onClick={() => handleRemoveMedicine(id)}
-                  ></button>
+                  > 
+                  <FontAwesomeIcon icon={ faTimesCircle  } style={{color:'black'}} />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-
+<br/>
           <div className="row mt-1">
             <div className="col-6">
               <button type="button" className="btn mt-1 ms-3" style={{ backgroundColor: 'teal', color: 'white' }} onClick={handleAddMedicine}>
                 Add More Medicine
               </button>
             </div>
-            <div className="col-6">
-              <div className="row mt-1 me-5">
+            <div className="col-6" >
+              <div className="row mt-1 ">
                 <div className="col-12 text-center">
-                  <b><label className="me-3"  >Sub Total</label></b>
-                  <input id="subtotal" type="number" className="border-0 text-start" style={{ width: '100px' }} value={subtotal} readOnly />
+                  <b><label className="me-4"  >Sub Total</label></b>
+                  <input id="subtotal" type="number" className="border-0 text-start" style={{ width: '50px', background:'none' }} value={subtotal} readOnly />
                 </div>
               </div>
 
-              <div className="row mt-1 me-5">
+              <div className="row mt-1">
                 <div className="col-12 text-center">
-                  <b><label className="me-3" >Discount</label></b>
+                  <b><label className="me-4" >Discount</label></b>
                   <input
                     id="discount"
                     className="border-0 text-start p-1"
                     type="number"
                     value={discount}
                     onChange={handleDiscountChange}
-                    onKeyPress={(e) => handleKeyPress(e, 0, 0, 'discount')} style={{ width: '100px' }}
+                    onKeyPress={(e) => handleKeyPress(e, 0, 0, 'discount')} style={{ width: '50px',  background:'none' }}
                   />
                 </div>
               </div>
 
-              <div className="row mt-1 me-5">
+              <div className="row mt-1">
                 <div className="col-12 text-center ">
 
-                  <div className="p-1 d-inline-block text-start" style={{ backgroundColor: 'teal' }}>
+                  <div className="p-1 d-inline-block text-start" style={{ backgroundColor: 'teal', height:'30px' }}>
                     <b><label className="me-2 text-white"  >Grand Total</label></b>
                     <input
                       className="border-0 text-white text-start p-1"
-                      style={{ backgroundColor: 'teal', width: '100px' }}
+                      style={{ backgroundColor: 'teal', width: '40px', height:'20px' }}
                       id="grandtotal"
                       type="number"
                       value={grandtotal}
@@ -583,7 +601,15 @@ const handleCance = () => {
           <div >
             <div className='row ms-3 mt-3 '>
               <div className='col-3 '><b><label >Patient Name</label></b>  <input type='text' id='patientname' onKeyPress={(e) => handleKeyPress(e, 0, 0, 'patientname')} /> </div>
-              <div className='col-3'> <b><label>Doctor Name</label></b>  <input type='text' id='doctorname' onKeyPress={(e) => handleKeyPress(e, 0, 0, 'doctorname')} /> </div>
+              <div className='col-3'> <b><label>Doctor Name</label></b> 
+              <input 
+    type='text' 
+    id='doctorname' 
+    value='Dr. Doctor Name' // Set your default value here
+    onKeyPress={(e) => handleKeyPress(e, 0, 0, 'doctorname')} 
+  /> 
+              
+               </div>
               <div className='col-6'> <b><label htmlFor='mobileno'><b>Mobile No</b></label></b>
                 <div style={{ display: 'flex' }}>
                   <select id='countryCode' value={countryCode} onChange={handleCountryCodeChange}>
@@ -610,14 +636,16 @@ const handleCance = () => {
               <div className='col-2'><b><label>Balance</label></b>  <input type='text' id='balance' value={balance} readOnly style={{ width: '130px' }} />
               </div>
             </div>
-            <div className="row mt-1 mb-2 p-3 ">
-            <div className="col-md-12 text-end">
-              <button type="button" className="btn me-2" onClick={handleCance}>Cancel</button>
+            <div className="row mt-1 mb-2 p-3 me-5 ">
+            <div className="col-md-12 text-end ">
+              <button type="button" className="btn me-2" onClick={handleCancel}>Cancel</button>
               <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn" onClick={handleSubmit}>Submit</button>
             </div>
           </div>
           </div>
+</div>
          </div>
+</div>
         </div>
       ) : (
       <div className="container" id="dev" >
@@ -651,7 +679,7 @@ const handleCance = () => {
       <div className="bill" style={{ marginLeft:'180px', 
       marginTop:'40px', 
       backgroundColor:'white', 
-      width:'60%',
+      width:'65%',
       height: '800px',
       border:'1px solid black',
       backgroundImage: `url(${billbg})`, // Set your background image
@@ -659,17 +687,17 @@ const handleCance = () => {
       fontFamily: 'serif'
       }}>
       
-        <div style={{marginLeft:'410px', marginTop:'125px', height:'60px'}}>
+        <div style={{marginLeft:'70%', marginTop:'110px', height:'70px', lineHeight:'2px'}}>
           <div>
-          <h3>Invoice</h3>
+          <h3 style={{color:'darkblue'}}><b>Invoice</b></h3>
           <h6>Invoice No:{invoiceNumber}</h6>
-          <h6>Invoice Date:</h6>
+          <h6>Invoice Date: {currentDateFormatted}</h6>
           </div>
 
         </div>
         
-
-        <table border="2" style={{ width: '100%', borderCollapse: 'collapse' }}>
+<div style={{width:'100%', marginTop:'5%'}}>
+        <table style={{ width: '90%', margin:'auto', borderCollapse: 'collapse' }}>
           <thead >
             <tr  style={{ color:'white'}}>
               <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'}}>S.No</th>
@@ -691,25 +719,28 @@ const handleCance = () => {
             ))}
           </tbody>
         </table>
-        <div   className="d-flex align-items-center justify-content-between">
+
+        </div>
+
+        <div   className="d-flex align-items-center justify-content-between ms-5" style={{marginTop:'200px'}}>
     <div>
-      <div className="col-md-12 mt-3 text-start" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+      <div className="col-md-12 mt-3 text-start">
         Cash Given: {cashGiven}
       </div>
-      <div className="col-md-12 mt-3 text-start" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+      <div className="col-md-12 mt-3 text-start">
         Balance: {balance}
       </div>
     </div>
-    <div style={{marginRight:'20px'}}>
-      <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+    <div style={{marginRight:'40px'}}>
+      <div className="col-md-12 mt-3 text-end">
         Subtotal: {subtotal}
       </div>
 
-      <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+      <div className="col-md-12 mt-3 text-end">
         Discount: <span>{discount}</span>
       </div>
 
-      <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
+      <div className="col-md-12 mt-3 text-end">
         Grand Total: {grandtotal}
       </div>
     </div>
