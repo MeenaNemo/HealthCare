@@ -125,7 +125,6 @@ app.post('/login', async (req, res) => {
           throw new Error("Invalid credentials.");
         }
       
-        // Generate JWT token
         const token = jwt.sign({ user_id: user.user_id }, privateKey);
       
         res.status(200).json({
@@ -267,7 +266,6 @@ app.post('/billing', async(req, res) => {
   for (const row of billingData.medicineRows) {
     const { medicinename, qty } = row;
 
-    // Perform a query to update the stock in the database
     const updateStockQuery = 'UPDATE Stock_Inventory SET totalqty = totalqty - ? WHERE medicinename = ?';
     db.query(updateStockQuery, [qty, medicinename], (err, results) => {
       console.log("result", results)
@@ -278,7 +276,6 @@ app.post('/billing', async(req, res) => {
     });
   }
 
-  // Structure the tablet details as a JSON object
   const tabletDetails = {
     tablets: billingData.medicineRows.map((row) => ({
       medicinename: row.medicinename,
@@ -288,7 +285,6 @@ app.post('/billing', async(req, res) => {
     })),
   };
 
-  // Insert data into MySQL table
   const sql = `
       INSERT INTO Billing_Inventory
         (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance, invoice_number)
@@ -296,7 +292,7 @@ app.post('/billing', async(req, res) => {
     `;
 
   db.query(sql, [
-    JSON.stringify(tabletDetails), // Convert tabletDetails to JSON string
+    JSON.stringify(tabletDetails), 
     billingData.subtotal,
     billingData.discount,
     billingData.grandtotal,
@@ -330,7 +326,6 @@ app.get('/allstock', (req, res) => {
       return;
     }
 
-    // Check if results are empty or undefined
     if (!results || results.length === 0) {
       res.status(404).json({ error: 'Medicine not found' });
       return;
@@ -399,7 +394,6 @@ app.post('/purchase', (req, res) => {
       res.status(500).send('Internal Server Error');
     } else {
       console.log('Data inserted into Purchase_Inventory table successfully');
-      // Proceed with updating or inserting into Stock_Inventory table
       const selectStockQuery = 'SELECT * FROM Stock_Inventory WHERE medicinename = ? AND dosage = ?';
 
       db.query(selectStockQuery, [medicinename, dosage], (selectErr, selectResults) => {
@@ -410,7 +404,6 @@ app.post('/purchase', (req, res) => {
           const existingQuantity = selectResults[0].totalqty;
           const updatedQuantity = existingQuantity + totalqty;
 
-          // Update quantity, purchase price, purchase amount, purchase date, and expiry date in Stock_Inventory table
           const updateStockQuery = `
             UPDATE Stock_Inventory 
             SET totalqty = ?, 
@@ -442,7 +435,6 @@ app.post('/purchase', (req, res) => {
             }
           });
         } else {
-          // Insert a new record into Stock_Inventory table
           const insertStockQuery = `
             INSERT INTO Stock_Inventory 
               (medicinename, dosage, brandname, purchaseprice, totalqty, purchaseamount, purchasedate, expirydate, mrp) 
@@ -511,7 +503,6 @@ app.get('/getMRP', (req, res) => {
     }
   });
 });
-// Add this endpoint to your existing Express.js server
 
 app.get('/suggestions', (req, res) => {
   const partialName = req.query.partialName;
@@ -523,7 +514,7 @@ app.get('/suggestions', (req, res) => {
   }
 
   const tabletSuggestionsQuery = 'SELECT medicinename, dosage FROM Stock_Inventory WHERE medicinename LIKE ?';
-  const searchTerm = `%${partialName}%`; // Prepare the search term with wildcards
+  const searchTerm = `%${partialName}%`; 
 
   db.query(tabletSuggestionsQuery, [searchTerm], (err, results) => {
     if (err) {

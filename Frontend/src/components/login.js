@@ -77,7 +77,7 @@ const Login = () => {
 
   return (
     <div style={styles.loginContainer} >
-      <div className="col-md-3" style={{height:'300px', marginTop:'-150px', marginLeft:'150px'}}>
+      <div className="col-md-3" style={{height:'300px', marginTop:'-150px', marginLeft:'180px'}}>
         <div style={styles.card}> 
         {/* className="card shadow" */}
           <div className="card-body">
@@ -85,15 +85,15 @@ const Login = () => {
          <img
               src={logoImage} 
               alt="Profile"
-              style={{ width: '1o0px', height: '100px', marginLeft: '100px', borderRadius: '100%'}}
+              style={{ width: '1o0px', height: '100px', marginLeft: '120px', borderRadius: '100%'}}
             />
             <br/> <br/>
-            <h2 className="card-title text-center mb-4">Log in to your account</h2>
+            <h2 className="card-title text-center mb-4"> <b>Log in to your account  </b></h2>
             <h6 style={{ color: 'GrayText', textAlign: 'center' }}>Welcome back! Please enter your details</h6>
             <br/>
             <form onSubmit={handleLogin}>
               <div className="form-group">
-                <label>Email/Mobile number</label>
+                <label><b>Email/Mobile number</b></label>
                 <input
                   type="text"
                   name="loginIdentifier"
@@ -106,7 +106,7 @@ const Login = () => {
               </div>
               <br/>
               <div className="form-group">
-                <label>Password</label>
+                <label><b>Password</b></label>
                 <input
                   type="password"
                   name="password"

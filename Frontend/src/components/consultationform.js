@@ -1,6 +1,5 @@
 import React, { useState, useEffect  } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import bgImage from '../logo/y.jpeg';
 
 
 const ConsultationForm = () => {
@@ -64,7 +63,6 @@ const ConsultationForm = () => {
     </div>
         `;
     
-        // Open a new window and populate it with the printable data
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
           <html>
@@ -122,21 +120,17 @@ const ConsultationForm = () => {
       };
 
   return (
-    <div className="container" style={{ 
-
-      backgroundImage: `url(${bgImage})`, 
-      backgroundSize: '100%',
-      marginLeft:'-50px',
+    <div className="container" style={{
       fontFamily: 'serif'
     }}>
-      <div style={{marginLeft:'100px', marginRight:'100px', marginBottom:'-200px'}}>
+      <div style={{ marginRight:'100px', marginBottom:'-200px', marginTop:'25px'}}>
       <h2> <b>Doctor Consultation Form</b></h2>
      
       {showForm && (
         <form onSubmit={handleSubmit}>
           <div className="row mb-3">
             <div className="col-md-6">
-              <label htmlFor="firstName" className="form-label">First Name</label>
+              <label htmlFor="firstName" className="form-label"><b>First Name</b></label>
               <input
                 type="text"
                 className="form-control"
@@ -148,7 +142,7 @@ const ConsultationForm = () => {
               />
             </div>
             <div className="col-md-6">
-              <label htmlFor="lastName" className="form-label">Last Name</label>
+              <label htmlFor="lastName" className="form-label"><b>Last Name</b></label>
               <input
                 type="text"
                 className="form-control"
@@ -160,7 +154,7 @@ const ConsultationForm = () => {
             </div>
           </div>
           <div className="mb-3">
-            <label htmlFor="gender" className="form-label">Gender</label>
+            <label htmlFor="gender" className="form-label"><b>Gender</b></label>
             <select
               className="form-select"
               id="gender"
@@ -176,7 +170,7 @@ const ConsultationForm = () => {
             </select>
           </div>
           <div className="mb-3">
-            <label htmlFor="dob" className="form-label">Date of Birth</label>
+            <label htmlFor="dob" className="form-label"><b>Date of Birth</b></label>
             <input
               type="date"
               className="form-control"
@@ -187,8 +181,8 @@ const ConsultationForm = () => {
               required
             />
           </div>
-          <div className="mb-3">
-            <label htmlFor="doctorName" className="form-label">Consulting Doctor Name</label>
+          <div className="mb-3" >
+            <label htmlFor="doctorName" className="form-label"><b>Consulting Doctor Name</b></label>
             <input
               type="text"
               className="form-control"
@@ -200,7 +194,7 @@ const ConsultationForm = () => {
             />
           </div>
           <div className="mb-3">
-            <label htmlFor="consultantCharge" className="form-label">Consultant Charge</label>
+            <label htmlFor="consultantCharge" className="form-label"><b>Consultant Charge</b></label>
             <input
               type="number"
               className="form-control"
@@ -212,7 +206,7 @@ const ConsultationForm = () => {
             />
           </div>
           <div className="mb-3">
-            <label htmlFor="clinicCharge" className="form-label">Clinic Charge</label>
+            <label htmlFor="clinicCharge" className="form-label"> <b>Clinic Charge</b></label>
             <input
               type="number"
               className="form-control"
@@ -228,9 +222,12 @@ const ConsultationForm = () => {
       )}
 
 {!showForm && submittedData && (
-        <div className="mt-10">
+        <div className="mt-10" style={{marginLeft:'200px', marginTop:'50px', }}>
           {/* <img src='../Assets/e.jpeg'/> */}
-          <h3>Submitted Form Data:</h3>
+          <h3> <b>Submitted Form Data</b></h3>
+          <br/>
+          <div style={{marginLeft:'50px'}}>
+
           <p>Full Name: {submittedData.firstName} {submittedData.lastName || ''}</p>
           <p>Age: {submittedData.age}</p>
           <p>Gender: {submittedData.gender}</p>
@@ -240,6 +237,7 @@ const ConsultationForm = () => {
           <p>Clinic Charge: {submittedData.clinicCharge}</p>
           <p>OP Number: {submittedData.opNumber}</p>
           <button onClick={handlePrint} className="btn btn-secondary">Print</button>
+          </div>
         </div>
       )}
 

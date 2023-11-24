@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import bgImage from '../logo/y.jpeg';
+import billbg from '../logo/ac.jpg'
 import ReactToPrint from 'react-to-print';
 
 
@@ -21,6 +21,7 @@ function Billing() {
   const [countryCode, setCountryCode] = useState('+91');
   const [suggestions, setSuggestions] = useState('');
   const componentRef = useRef();
+  const [invoiceNumber, setInvoiceNumber] = useState('');
 
 
   useEffect(() => {
@@ -300,8 +301,6 @@ function Billing() {
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
   
- 
-  
   const handleSubmit = async () => {
     // Check if at least one medicine row is filled
     const isAnyFieldFilled = medicineRows.some((row) => {
@@ -362,8 +361,11 @@ function Billing() {
   
     try {
       const response = await axios.post('http://localhost:3000/billing', billingData);
+      const generatedInvoiceNumber = response.data.invoicenumber;
+      console.log(generatedInvoiceNumber);
       console.log('Billing data submitted successfully!', response.data);
       setIsSubmitted(true);
+      setInvoiceNumber(generatedInvoiceNumber); 
     } catch (error) {
       console.error('Error submitting billing data:', error);
     }
@@ -371,8 +373,6 @@ function Billing() {
   const handleCancel = () => {
     // Set isSubmitted to false when Cancel button is clicked
     setIsSubmitted(false);
-  
-    
   };
 
   const handlePdf = () => {
@@ -400,7 +400,6 @@ function Billing() {
       setLoader(false);
       doc.save('bill.pdf');
 }); };
-
   
 const handleWhatsApp = () => {
   const phoneNumber = `${countryCode}${mobileNo}`;
@@ -448,19 +447,11 @@ const handleCance = () => {
   setIsSubmitted(false);
 };
 
-
-
   return (
     <div>
       {!isSubmitted ? (
         <div className="container" style={{ 
-          // display: 'flex',
-          // alignItems: 'center',
-          // justifyContent: 'center',
-          height: '100vh',
-          backgroundImage: `url(${bgImage})`, // Set your background image
-          backgroundSize: '100%',
-          marginLeft:'-30px',
+          // marginLeft:'-30px',
           fontFamily: 'serif'
         }}>
         <div style={{marginLeft:'60px'}}>
@@ -506,7 +497,7 @@ const handleCance = () => {
                     id={`qty${id}`}
                     type="number"
                     className="form-control"
-                    placeholder='qty'
+                    placeholder='Enter Qty'
                     ref={(el) => (inputRefs.current[id] ||= [])[1] = el}
                     onKeyPress={(e) => handleKeyPress(e, rowIndex, 1, id)}
                   />
@@ -628,13 +619,8 @@ const handleCance = () => {
           </div>
          </div>
         </div>
-      ) : (<div className="container" id="dev">
-      <div className="bill" style={{ textAlign: 'center' }}>
-        <div className="d-flex align-items-center">
-          <h4 className="text-xl font-weight-bold mb-0">
-            <b>ALAGAR CLINIC</b>
-          </h4>
-        </div>
+      ) : (
+      <div className="container" id="dev" >
         <div className="col-md-12 text-end" style={{ marginTop: '20px' }}>
           <button
             type="button"
@@ -662,37 +648,59 @@ const handleCance = () => {
                 content={() => componentRef.current}
               />
         </div>
+      <div className="bill" style={{ marginLeft:'180px', 
+      marginTop:'40px', 
+      backgroundColor:'white', 
+      width:'60%',
+      height: '800px',
+      border:'1px solid black',
+      backgroundImage: `url(${billbg})`, // Set your background image
+      backgroundSize: '100% 100%',
+      fontFamily: 'serif'
+      }}>
+      
+        <div style={{marginLeft:'410px', marginTop:'125px', height:'60px'}}>
+          <div>
+          <h3>Invoice</h3>
+          <h6>Invoice No:{invoiceNumber}</h6>
+          <h6>Invoice Date:</h6>
+          </div>
 
-        <table border="2" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-          <thead style={{ backgroundColor: '#f2f2f2' }}>
-            <tr>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>S.No</th>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Product Description</th>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Price</th>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Qty</th>
-              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Total</th>
+        </div>
+        
+
+        <table border="2" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead >
+            <tr  style={{ color:'white'}}>
+              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'}}>S.No</th>
+              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Product Description</th>
+              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Price</th>
+              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Qty</th>
+              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Total</th>
             </tr>
           </thead>
           <tbody>
-            {submittedData.map((data) => (
+            {submittedData.map((data, index) => (
               <tr key={data.id} style={{ borderBottom: '1px solid #ddd' }}>
-                <td style={{ padding: '10px', textAlign: 'left' }}>{data.id}</td>
-                <td style={{ padding: '10px', textAlign: 'left' }}>{data.medicinename}</td>
-                <td style={{ padding: '10px', textAlign: 'left' }}>{data.qtyprice}</td>
-                <td style={{ padding: '10px', textAlign: 'left' }}>{data.qty}</td>
-                <td style={{ padding: '10px', textAlign: 'left' }}>{data.total}</td>
+                <td style={{ padding: '10px', textAlign:'center' }}>{index + 1}</td>
+                <td style={{ padding: '10px', textAlign:'center' }}>{data.medicinename}</td>
+                <td style={{ padding: '10px', textAlign:'center' }}>{data.qtyprice}</td>
+                <td style={{ padding: '10px', textAlign:'center' }}>{data.qty}</td>
+                <td style={{ padding: '10px', textAlign:'center' }}>{data.total}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-
+        <div   className="d-flex align-items-center justify-content-between">
+    <div>
       <div className="col-md-12 mt-3 text-start" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
         Cash Given: {cashGiven}
       </div>
       <div className="col-md-12 mt-3 text-start" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
         Balance: {balance}
       </div>
+    </div>
+    <div style={{marginRight:'20px'}}>
       <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
         Subtotal: {subtotal}
       </div>
@@ -704,10 +712,17 @@ const handleCance = () => {
       <div className="col-md-12 mt-3 text-end" style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px' }}>
         Grand Total: {grandtotal}
       </div>
-
+    </div>
+  </div>
+ 
+      </div>
       <button type="button" className="btn me-2" style={{ backgroundColor: 'green', color: 'white' }} onClick={handleCancel}>
         Cancel
       </button>
+
+
+
+     
     </div>
   )}
     </div>

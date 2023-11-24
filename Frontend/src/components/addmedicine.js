@@ -1,9 +1,6 @@
 import { React, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import bgImage from '../logo/y.jpeg';
-
-
 
 function AddMedicine() {
   const [formData, setFormData] = useState({
@@ -24,12 +21,8 @@ function AddMedicine() {
     textAlign: 'left',
   };
 
-
   const handleChange = (event) => {
     const { id, value } = event.target;
-  
-    // Add a regular expression to check for special characters
-    const specialCharacterRegex = /^[a-zA-Z0-9\s]*$/;
   
     const numericValue = parseFloat(value);
   
@@ -75,9 +68,6 @@ function AddMedicine() {
       return updatedData;
     });
   };
-  
-  
-
 
   const handleCancel = (event) => {
     event.preventDefault();
@@ -110,18 +100,22 @@ function AddMedicine() {
         const inputElement = document.getElementById(key);
         inputElement.style.border = '1px solid red';
   
-        // Create and append error message
-        const errorMessage = document.createElement('p');
-        errorMessage.className = 'error-message-container';
-        errorMessage.textContent = `Please fill this field.`;
+        // Check if the error message already exists
+        const errorMessageContainer = inputElement.parentNode.querySelector('.error-message-container');
+        if (!errorMessageContainer) {
+          // Create and append error message if it doesn't exist
+          const errorMessage = document.createElement('p');
+          errorMessage.className = 'error-message-container';
+          errorMessage.textContent = `Please fill this field.`;
   
-        // Set a fixed height for the error message container
-        const errorMessageContainer = document.createElement('div');
-        errorMessageContainer.style.height = '10px'; // Adjust the height as needed
-        errorMessageContainer.appendChild(errorMessage);
+          // Set a fixed height for the error message container
+          const errorMessageContainer = document.createElement('div');
+          errorMessageContainer.style.height = '10px'; // Adjust the height as needed
+          errorMessageContainer.appendChild(errorMessage);
   
-        // Append the error message container to the parent of the input field
-        inputElement.parentNode.appendChild(errorMessageContainer);
+          // Append the error message container to the parent of the input field
+          inputElement.parentNode.appendChild(errorMessageContainer);
+        }
       });
       return;
     }
@@ -159,8 +153,6 @@ function AddMedicine() {
       console.error('Error submitting data: ' + error);
     }
   };
-  
-  
 
   const closePopup = (event) => {
 
@@ -194,14 +186,7 @@ function AddMedicine() {
   return (
 
     <div className="container "style={{ 
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      backgroundImage: `url(${bgImage})`, // Set your background image
-      backgroundSize: '100%',
-      marginLeft:'-50px',
-      fontFamily: 'serif'
+          fontFamily: 'serif'
     }}>
       <div style={{margin:'10px'}}>
       <div className=' d-flex justify-content-between align-items-center mb-3 mt-4' style={{margin:'0px'}}>
