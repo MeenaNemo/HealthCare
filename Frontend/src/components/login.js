@@ -3,23 +3,6 @@ import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import logoImage from '../logo/logo.jpg'; // Adjust the path as needed
 
-const styles = {
-  
-  loginContainer: {
-    background: `url('../Assets/e.jpeg') `, // Replace 'path_to_your_image.jpg' with the actual path to your image
-    backgroundSize: '100%  100%', // Set width to 50% and auto height to maintain aspect ratio
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'center',
-    minHeight: '100vh', 
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    borderRadius: '15px',
-  }
-};
-
 const Login = () => {
   const history = useHistory();
 
@@ -27,8 +10,6 @@ const Login = () => {
     loginIdentifier: '',
     password: ''
   });
-  const [error, setError] = useState('');
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,87 +22,83 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:3000/login', loginData);
       console.log(response.data);
-      if(response.data.status === 200){
-        alert("Login Successful!")
-        localStorage.setItem('user', JSON.stringify(response.data.data))
+      if (response.data.status === 200) {
+        alert("Login Successful!");
+        localStorage.setItem('user', JSON.stringify(response.data.data));
         history.push('/sidebar');
         window.location.reload();
       }
       // Handle successful login - set token in local storage and redirect
     } catch (error) {
       console.error('Login failed:', error);
-      if (error.response && error.response.status === 400) {
+      if (error.response && error.response.status === 401) {
         const errorMessage = error.response.data.message;
-        if (errorMessage === "Invalid credentials.") {
-          alert('Invalid email/mobile number or password.');
-        } else if (errorMessage === "Invalid email/mobile number.") {
-          alert('Invalid email/mobile number.');
-        } else if (errorMessage === "Invalid password.") {
-          alert('Invalid password.'); 
+        if (errorMessage === "Invalid username or password") {
+          alert('Invalid username or password');
+        } else if (errorMessage === "Invalid username") {
+          alert('Invalid username or password');
+        } else if (errorMessage === "Invalid password") {
+          alert('Invalid password.');
         } else {
-          setError(errorMessage); // Update error state with the general error message
+          alert('An unexpected error occurred. Please try again.');
         }
-      } else if (error.response) {
-        // Handle other specific response errors here if needed
-        console.error('An error occurred:', error.response.data);
-        alert('Error: ' + error.response.data); // Display specific error message from server response
       } else {
-               console.error('An unexpected error occurred:', error);
-        alert('Invalid username and password');
+        console.error('An unexpected error occurred:', error);
+        alert('An unexpected error occurred. Please try again.');
       }
-    
-  };
-  
-   
+    }
   };
 
   return (
-    <div style={styles.loginContainer} >
-      <div className="col-md-3" style={{height:'300px', marginTop:'-150px', marginLeft:'180px'}}>
-        <div style={styles.card}> 
-        {/* className="card shadow" */}
-          <div className="card-body">
-         <div> {error && <div className="alert alert-danger" role="alert">{error}</div>}</div>
-         <img
-              src={logoImage} 
-              alt="Profile"
-              style={{ width: '1o0px', height: '100px', marginLeft: '120px', borderRadius: '100%'}}
-            />
-            <br/> <br/>
-            <h2 className="card-title text-center mb-4"> <b>Log in to your account  </b></h2>
-            <h6 style={{ color: 'GrayText', textAlign: 'center' }}>Welcome back! Please enter your details</h6>
-            <br/>
-            <form onSubmit={handleLogin}>
-              <div className="form-group">
-                <label><b>Email/Mobile number</b></label>
-                <input
-                  type="text"
-                  name="loginIdentifier"
-                  placeholder="Email or Mobile Number"
-                  className="form-control"
-                  value={loginData.loginIdentifier}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <br/>
-              <div className="form-group">
-                <label><b>Password</b></label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  className="form-control"
-                  value={loginData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <br/>
-              <button type="submit" className="btn btn-info btn-block w-100 " >Sign in</button>
-            </form>
-          </div>
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{
+        backgroundImage: `url('../Assets/e.jpeg')`,
+        backgroundSize: '100% 100%',
+        minHeight: '100vh',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <div className=" p-4 border-0 shadow" style={{ minWidth: '300px', maxWidth: '400px' }}>
+        <div className="text-center mb-4">
+          <img
+            src={logoImage}
+            alt="Profile"
+            style={{ width: '100px', height: '100px', borderRadius: '50%' }}
+          />
+          <h2 className="mt-3 mb-0"> <b>Log in to your account</b></h2>
+          <p className="text-secondary">Welcome back! Please enter your details</p>
         </div>
+        <form onSubmit={handleLogin}>
+          <div className="mb-3">
+            <label htmlFor="loginIdentifier" className="form-label"><b>Email/Mobile number</b></label>
+            <input
+              type="text"
+              id="loginIdentifier"
+              name="loginIdentifier"
+              placeholder="Email or Mobile Number"
+              className="form-control"
+              value={loginData.loginIdentifier}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label"><b>Password</b></label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Password"
+              className="form-control"
+              value={loginData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="text-center">
+            <button type="submit" className="btn btn-info">Sign in</button>
+          </div>        </form>
       </div>
     </div>
   );

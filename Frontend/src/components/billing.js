@@ -5,7 +5,7 @@ import html2canvas from 'html2canvas';
 import billbg from '../logo/ac.jpg'
 import ReactToPrint from 'react-to-print';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faTimesCircle  } from '@fortawesome/free-solid-svg-icons';
+import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import '../styles/stock.css'
 
 
@@ -59,11 +59,19 @@ function Billing() {
   };
 
   const handleMedicineNameChange = async (event, id) => {
+
     const inputValue = event.target.value;
+    const sanitizedValue = inputValue.replace(/^\d*/, '');
+
+  // Update the input value without leading numbers
+  event.target.value = sanitizedValue;
+
     try {
       const response = await axios.get(`http://localhost:3000/suggestions?partialName=${inputValue}`);
       const fetchedSuggestions = response.data.suggestions;
+      console.log ("sug", fetchedSuggestions)
       setSuggestions(fetchedSuggestions);
+
 
       // Handle selection logic for dosage and other details
       // ...
@@ -72,12 +80,74 @@ function Billing() {
     }
   };
 
-  const handleKeyPress = async (event, rowIndex, colIndex, id) => {
-    
-  if (event.target.id === 'cashgiven' || event.target.id === 'discount') {    
-    return;
-   
+  const handleQuantity = async (event, rowIndex, colIndex, id) => {
+
+    const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
+    const qtyprice = parseFloat(inputRefs.current[id]?.[2].value) || 0;
+    const total = qty * qtyprice;
+    const totalInput = inputRefs.current[id]?.[3];
+    if (totalInput) {
+      totalInput.value = total.toFixed(2);
+    }
+
+    const tabletname = inputRefs.current[id]?.[0].value || '';
+    const { medicinename, dosage } = extractMedicineInfo(tabletname);
+
+    try {
+      const response = await axios.get(`http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`);
+      const availableQuantity = response.data.availableQuantity;
+
+      const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
+      if (qty > availableQuantity) {
+        alert(`Available Quantity: ${availableQuantity}`);
+        const qtyInput = inputRefs.current[id] && inputRefs.current[id][1];
+        const priceInput = inputRefs.current[id] && inputRefs.current[id][2];
+
+        if (qtyInput) {
+          qtyInput.value = '';
+          priceInput.value = '';
+          totalInput.value = '';
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching available quantity:', error);
+    }
+
+
+    setMedicineRows((prevRows) =>
+      prevRows.map((row) =>
+        row.id === id ? { ...row, total } : row
+      )
+    );
+
+    const newSubtotal = medicineRows.reduce((acc, row) => acc + (row.total || 0), 0).toFixed(2);
+    setSubtotal(newSubtotal);
+
+    const newGrandTotal = (newSubtotal - discount).toFixed(2);
+    setGrandTotal(newGrandTotal);
   }
+
+  const extractMedicineInfo = (tabletname) => {
+    // Define a regular expression pattern to match dosage (digits followed by "mg," "ml," or "gm")
+    const dosagePattern = /\b(\d+(?:mg|ml|gm))\b/g;
+  
+    const dosageMatch = tabletname.match(dosagePattern);
+    const dosage = dosageMatch ? dosageMatch[0] : '';
+  
+    const medicinename = tabletname.replace(dosagePattern, '').trim();
+  
+    return { medicinename, dosage };
+  };
+
+  const handleKeyPress = async (event, rowIndex, colIndex, id) => {
+
+    const medicineNameInput = inputRefs.current[id]?.[0];
+    const empty = medicineNameInput?.value || '';
+
+    if (empty.trim() === '') {
+      return; // Do nothing if the medicinename is empty
+    }
+
     const isValidKey = /^[a-zA-Z0-9\s]*$/.test(event.key);
     const isWithinLength = mobileNo.length < 10;
 
@@ -85,119 +155,13 @@ function Billing() {
       event.preventDefault();
     }
 
-    if (( event.key === 'Tab' || event.key === 'Enter') && event.target.tagName.toLowerCase() === 'input') {
+    if (event.target.tagName.toLowerCase() === 'input') {
       event.preventDefault();
-      if (event.key === 'Tab' && event.target.tagName.toLowerCase() === 'input') {
-        // Shift focus to the next input field in the same row or the first input field of the next row
-        const nextRowIndex = rowIndex + (event.shiftKey ? -1 : 1);
-        const nextColIndex = colIndex + (event.shiftKey ? -1 : 1);
-  
-        if (nextColIndex >= 0 && nextColIndex <= 3) {
-          // Shift focus to the next input field in the same row
-          const nextInput = inputRefs.current[id]?.[nextColIndex];
-          if (nextInput) {
-            nextInput.focus();
-          }
-        } else if (nextRowIndex >= 0 && nextRowIndex < medicineRows.length) {
-          // Shift focus to the first input field of the next row
-          const nextInput = inputRefs.current[medicineRows[nextRowIndex].id]?.[0];
-          if (nextInput) {
-            nextInput.focus();
-          }
-        }
-      }
-
-      
-      // Check if it's the DiscountTotal input field
-      if (event.target.id === 'discount') {
-        // Shift focus to the Patient Name input field
-        const patientNameInput = document.getElementById('patientname');
-        if (patientNameInput) {
-          patientNameInput.focus();
-          return;
-        }
-      }
-
-      // Check if it's the Patient Name input field
-      if (event.target.id === 'patientname') {
-        // Shift focus to the Doctor Name input field
-        const doctorNameInput = document.getElementById('doctorname');
-        if (doctorNameInput) {
-          doctorNameInput.focus();
-          return;
-        }
-      }
-
-      // Check if it's the Doctor Name input field
-      if (event.target.id === 'doctorname') {
-        // Shift focus to the Mobile Number input field
-        const mobileNoInput = document.getElementById('mobileno');
-        if (mobileNoInput) {
-          mobileNoInput.focus();
-          return;
-        }
-      }
-
-      // Check if it's the Mobile Number input field
-      if (event.target.id === 'mobileno') {
-        // Shift focus to the Cash input field
-        const cashInput = document.getElementById('cashgiven');
-        if (cashInput) {
-          cashInput.focus();
-          return;
-        }
-      }
-
-      // Check if it's the Cash input field
-      if (event.target.id === 'cashgiven') {
-        // Shift focus to the Balance input field
-        const balanceInput = document.getElementById('balance');
-        if (balanceInput) {
-          balanceInput.focus();
-          return;
-        }
-      }
-
-      // Check if it's the last row and last column
-      const isLastRow = rowIndex === medicineRows.length - 1;
-      const isLastColumn = colIndex === 3;
-
-      if (isLastRow && isLastColumn) {
-        // Shift focus to the DiscountTotal input field
-        const discountTotalInput = document.getElementById('discount');
-        if (discountTotalInput) {
-          discountTotalInput.focus();
-          return;
-        }
-      }
-
-      // Continue with the existing logic for navigating through medicine rows
-      if (isLastColumn) {
-        // Shift focus to the first input field of the next row
-        const nextRowIndex = rowIndex + 1;
-        const nextInput = inputRefs.current[medicineRows[nextRowIndex].id]?.[0];
-        if (nextInput) {
-          nextInput.focus();
-        }
-      } else {
-        // Shift focus to the next input field in the same row
-        const nextColIndex = colIndex + 1;
-        const nextInput = inputRefs.current[id]?.[nextColIndex];
-        if (nextInput) {
-          nextInput.focus();
-        }
-      }
-
-      // Calculate and update the total when qty and qtyPrice are entered
       if (colIndex === 0 || colIndex === 1 || colIndex === 2) {
-        const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
-        const qtyprice = parseFloat(inputRefs.current[id]?.[2].value) || 0;
-
-        const total = qty * qtyprice;
         const tabletname = inputRefs.current[id]?.[0].value || '';
-        const dosage = tabletname.split(' ')[1] || '';
-        const medicinename = tabletname.split(' ')[0] || '';
+        const { medicinename, dosage } = extractMedicineInfo(tabletname);
 
+    
         if (event.target.id === `medicinename${id}`) {
           try {
             const response = await axios.get(`http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`);
@@ -207,19 +171,22 @@ function Billing() {
               const expiredDate = new Date(expired);
               const expiredDateString = expiredDate.toISOString().split('T')[0]; // Extracts the date portion
 
-              alert(`Medicine expired on ${expiredDateString} !`);
+              alert(`${medicinename} ${dosage} expired on ${expiredDateString} !`);
               const medicineNameInput = inputRefs.current[id]?.[0];
               if (medicineNameInput) {
                 medicineNameInput.value = '';
               }
+
             }
 
           } catch (error) {
-            console.error('Error fetching medicine details:', error);
-            alert(`Medicine "${medicinename}" not available in the database.`);
-            const medicineNameInput = inputRefs.current[id]?.[0];
-            if (medicineNameInput) {
-              medicineNameInput.value = '';
+
+            if (event.target.id !== '') {
+              alert(`"${medicinename}" not available .`);
+              const medicineNameInput = inputRefs.current[id]?.[0];
+              if (medicineNameInput) {
+                medicineNameInput.value = '';
+              }
             }
           }
 
@@ -236,42 +203,14 @@ function Billing() {
             console.error('Error fetching MRP:', error);
           }
 
-          try {
-            const response = await axios.get(`http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`);
-            const availableQuantity = response.data.availableQuantity;
 
-            const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
-            // Compare entered quantity with available quantity
-            if (qty > availableQuantity) {
-              alert(`Quantity not available. Available Quantity: ${availableQuantity}`);
-              const qtyInput = inputRefs.current[id] && inputRefs.current[id][1];
-              if (qtyInput) {
-                qtyInput.value = '';
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching available quantity:', error);
-          }
         }
 
-        setMedicineRows((prevRows) =>
-          prevRows.map((row) =>
-            row.id === id ? { ...row, total } : row
-          )
-        );
 
-        const totalInput = inputRefs.current[id]?.[3];
-        if (totalInput) {
-          totalInput.value = total.toFixed(2);
-        }
       }
 
 
-      const newSubtotal = medicineRows.reduce((acc, row) => acc + (row.total || 0), 0);
-      setSubtotal(newSubtotal);
 
-      const newGrandTotal = newSubtotal - discount;
-      setGrandTotal(newGrandTotal);
     }
   };
 
@@ -279,14 +218,14 @@ function Billing() {
     const newCashGiven = event.target.value;
     setCashGiven(newCashGiven);
   };
-  
+
   useEffect(() => {
     if (cashGiven !== '' && grandtotal !== '') {
       const newCashGiven = parseFloat(cashGiven) || 0;
       const newBalance = newCashGiven - grandtotal;
       setBalance(newBalance);
     }
-  }, [cashGiven, grandtotal]); 
+  }, [cashGiven, grandtotal]);
 
   const handleCountryCodeChange = (e) => {
     setCountryCode(e.target.value);
@@ -299,7 +238,7 @@ function Billing() {
   };
 
   const handleDiscountChange = (event) => {
-    const newDiscountTotal = parseFloat(event.target.value) || 0;
+    const newDiscountTotal = parseFloat(event.target.value) || '';
     setDiscountTotal(newDiscountTotal);
 
     const newGrandTotal = subtotal - newDiscountTotal;
@@ -309,16 +248,16 @@ function Billing() {
   const handleRemoveMedicine = (id) => {
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
-  
+
   const handleSubmit = async () => {
-    // Check if at least one medicine row is filled
-    const isAnyFieldFilled = medicineRows.some((row) => {
-      const isFilled = inputRefs.current[row.id].some((input) => !!input.value.trim());
+    // Check if at least one row is fully filled
+    const isAnyRowFilled = medicineRows.some((row) => {
+      const isFilled = inputRefs.current[row.id].every((input) => !!input.value.trim() || input === inputRefs.current[row.id][0]);
       return isFilled;
     });
   
-    if (!isAnyFieldFilled) {
-      alert('Please fill in at least one input field.');
+    if (!isAnyRowFilled) {
+      alert('Please fill in all input fields for at least one row.');
       return;
     }
   
@@ -329,8 +268,8 @@ function Billing() {
         const qtyprice = parseFloat(inputRefs.current[row.id][2].value) || '';
         const total = qty * qtyprice;
   
-        // Skip rows where at least one field is empty
-        if (!medicinename || !qty || !qtyprice) {
+        // Skip rows where all fields are empty
+        if (!medicinename && !qty && !qtyprice) {
           return null;
         }
   
@@ -344,17 +283,19 @@ function Billing() {
           total: total.toFixed(2),
         };
       })
-      // Filter out rows that were skipped (where at least one field is empty)
+      // Filter out rows that were skipped (where all fields are empty)
       .filter((row) => row !== null);
   
     setSubmittedData(updatedMedicineRows);
   
+    // Calculate subtotal, grand total, and other necessary data
     const newSubtotal = updatedMedicineRows.reduce((acc, row) => acc + parseFloat(row.total || 0), 0);
     setSubtotal(newSubtotal);
   
     const newGrandTotal = newSubtotal - discount;
     setGrandTotal(newGrandTotal);
   
+    // Prepare billing data
     const billingData = {
       medicineRows: updatedMedicineRows,
       subtotal: newSubtotal,
@@ -368,13 +309,13 @@ function Billing() {
       medicinename: updatedMedicineRows.map((row) => row.medicinename),
     };
   
+    // Send data to the backend
     try {
       const response = await axios.post('http://localhost:3000/billing', billingData);
       const generatedInvoiceNumber = response.data.invoicenumber;
       console.log("Generated Invoice Number:", generatedInvoiceNumber);
   
-      
-      
+      // Update state or perform other actions as needed
       setIsSubmitted(true);
       setInvoiceNumber(generatedInvoiceNumber);
     } catch (error) {
@@ -382,6 +323,16 @@ function Billing() {
     }
   };
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
   const handlePdf = () => {
     const capture = document.querySelector('.bill');
     setLoader(true);
@@ -390,7 +341,7 @@ function Billing() {
       logging: false,
       allowTaint: true,
     };
-
+  
     html2canvas(capture, html2canvasOptions).then((canvas) => {
       const imgData = canvas.toDataURL('image/png');
       const jsPDFOptions = {
@@ -398,365 +349,434 @@ function Billing() {
         unit: 'mm',
         format: 'a4',
       };
-
+  
       const doc = new jsPDF(jsPDFOptions);
       const imageWidth = 180;
       const imageHeight = (canvas.height * imageWidth) / canvas.width;
-
-      doc.addImage(imgData, 'PNG', 0, 0, imageWidth, imageHeight);
+  
+      // Calculate center alignment
+      const marginLeft = (doc.internal.pageSize.width - imageWidth) / 2;
+      const marginTop = (doc.internal.pageSize.height - imageHeight) / 2;
+  
+      doc.addImage(imgData, 'PNG', marginLeft, marginTop, imageWidth, imageHeight);
       setLoader(false);
       doc.save('bill.pdf');
-}); };
-  
-const handleWhatsApp = () => {
-  const phoneNumber = `${countryCode}${mobileNo}`;
-  let message = `Hello! Your bill details:\n`;
-  message += `Subtotal: ${subtotal}\n`;
-  message += `Discount: ${discount}\n`;
-  message += `Grand Total: ${grandtotal}\n\nPurchased Tablets:\n`;
-
-  // Construct a table-like representation for medicine details
-  message += 'S.No | Medicine Name | Qty | Price | Total\n';
-  message += '--------------------------------------------\n';
-
-  submittedData.forEach((data, index) => {
-    const { medicinename, qty, qtyprice, total } = data;
-    message += `${index + 1} | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
-  });
-
-  // Create a link with the WhatsApp message format
-  const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-
-  // Open the link in a new tab/window
-  window.open(whatsappLink, '_blank');
-};
-
-const handleCancel = () => {
-  // Reset all the necessary state values to their initial values
-  setMedicineRows([]);
-  setSubtotal(0);
-  setGrandTotal(0);
-  setMobileNo('');
-  setCashGiven(0);
-  setBalance(0);
-  setCountryCode('+91');
-  setDiscountTotal(0);
-  // setLoader(false);
-  
-
-  // Clear input values using refs
-  Object.values(inputRefs.current).forEach((refs) => {
-    refs.forEach((ref) => {
-      if (ref) {
-        ref.value = '';
-      }
     });
-  });
-  setIsSubmitted(false);
-};
+  };
+
+  const handleWhatsApp = () => {
+    const phoneNumber = `${countryCode}${mobileNo}`;
+    let message = `Hello! Your bill details:\n`;
+    message += `Subtotal: ${subtotal}\n`;
+    message += `Discount: ${discount}\n`;
+    message += `Grand Total: ${grandtotal}\n\nPurchased Tablets:\n`;
+
+    // Construct a table-like representation for medicine details
+    message += 'S.No | Medicine Name | Qty | Price | Total\n';
+    message += '--------------------------------------------\n';
+
+    submittedData.forEach((data, index) => {
+      const { medicinename, qty, qtyprice, total } = data;
+      message += `${index + 1} | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
+    });
+
+    // Create a link with the WhatsApp message format
+    const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    // Open the link in a new tab/window
+    window.open(whatsappLink, '_blank');
+  };
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleCancel = () => {
+    // Reset all the necessary state values to their initial values
+    // setMedicineRows([]);
+    setSubtotal(0);
+    setGrandTotal(0);
+    setMobileNo('');
+    setCashGiven(0);
+    setBalance(0);
+    setCountryCode('+91');
+    setDiscountTotal(0);
+    // setLoader(false);
+
+
+    // Clear input values using refs
+    Object.values(inputRefs.current).forEach((refs) => {
+      refs.forEach((ref) => {
+        if (ref) {
+          ref.value = '';
+        }
+      });
+    });
+    setIsSubmitted(false);
+  };
 
   return (
+    <>
+    <style>
+        {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .bill, .bill * {
+              visibility: visible;
+            }
+            .bill {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              text-align: center;
+            }
+
+            /* Center content on the printed page */
+            @page {
+              size: A4;
+              margin: 0;
+              margin: 20mm;
+            }
+            @media print {
+              html, body {
+                height: 100%;
+                margin: 0;
+              }
+              body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12pt;
+              }
+              .bill {
+                width: 100%;
+                margin: 0;
+                padding: 20px; /* Add padding for better visibility */
+              }
+
+              /* Increase font size */
+              .bill {
+                font-size: 14px; /* Adjust the font size as needed */
+              }
+              /* Adjust font size for specific elements */
+              .bill h3 {
+                font-size: 20px; /* Adjust the font size as needed */
+              }
+              .bill table {
+                font-size: 12px; /* Adjust the font size as needed */
+              }
+            }
+          }
+        `}
+      </style>
     <div>
       {!isSubmitted ? (
-        <div className="container" style={{ 
-          fontFamily: 'serif',          
+        <div className="container" style={{
+          fontFamily: 'serif',
         }}>
-        <div style={{marginLeft:'20px'}}>
-          <div className=' d-flex justify-content-between align-items-center mb-3' >
-            <h2 className="mb-0" ><b>Billing</b>
-            </h2>
-          </div>
-          <div style={{backgroundColor:'white', border:'1px solid lightgray'}}>
-
-         <div className='mt-4 ms-5'>   
-          <div className="container mt-1">
-            <div className='row'>
-              <div className='col-4 ms-2'><h5><b>Medicine Name</b></h5></div>
-              <div className='col-2 ms-1'><h5><b>Quantity</b></h5></div>
-              <div className='col-2 ms-1'><h5><b>Price</b></h5></div>
-              <div className='col-2 ms-1'><h5><b>Total</b></h5></div>
+          <div style={{ marginLeft: '20px' }}>
+            <div className=' d-flex justify-content-between align-items-center mb-3' >
+              <h2 className="mb-0" ><b>Billing</b>
+              </h2>
             </div>
+            <div style={{ backgroundColor: 'white', border: '1px solid lightgray' }}>
 
-            {medicineRows.map(({ id, refs }, rowIndex) => (
-              <div className="row mt-2" key={id}>
-                <div className="col-4">
-                  <input
-                    id={`medicinename${id}`}
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter Name"
-                    onChange={(e) => handleMedicineNameChange(e, id)}
-                    ref={(el) => (inputRefs.current[id] ||= [])[0] = el}
-                    onKeyPress={(e) => handleKeyPress(e, rowIndex, 0, id)}
-                    list="medicineSuggestions"
-                  />
-                  {suggestions.length > 0 && (
-                    <datalist id="medicineSuggestions">
-                      {suggestions.map((suggestion, index) => (
-                        <option
-                          key={index}
-                          value={`${suggestion.medicinename} ${suggestion.dosage}`}
+              <div className='mt-4 ms-5'>
+                <div className="container mt-1">
+                  <div className='row'>
+                    <div className='col-4 ms-2'><h5><b>Medicine Name</b></h5></div>
+                    <div className='col-2 ms-1'><h5><b>Quantity</b></h5></div>
+                    <div className='col-2 ms-1'><h5><b>Price</b></h5></div>
+                    <div className='col-2 ms-1'><h5><b>Total</b></h5></div>
+                  </div>
+
+                  {medicineRows.map(({ id, refs }, rowIndex) => (
+                    <div className="row mt-2" key={id}>
+                      <div className="col-4">
+                        <input
+                          id={`medicinename${id}`}
+                          type="text"
+                          className="form-control"
+                          placeholder="Enter Name"
+                          onChange={(e) => handleMedicineNameChange(e, id)}
+                          ref={(el) => (inputRefs.current[id] ||= [])[0] = el}
+                          onBlur={(e) => handleKeyPress(e, rowIndex, 0, id)}
+                          list="medicineSuggestions"
                         />
-                      ))}
-                    </datalist>
-                  )}
-                </div>
-                <div className="col-2 ms-1">
-                  <input
-                    id={`qty${id}`}
-                    type="number"
-                    className="form-control"
-                    placeholder='Enter Qty'
-                    ref={(el) => (inputRefs.current[id] ||= [])[1] = el}
-                    onKeyPress={(e) => handleKeyPress(e, rowIndex, 1, id)}
-                    style={{
-                      WebkitAppearance: 'none', /* for WebKit browsers */
-                      MozAppearance: 'textfield' /* for Firefox */
-                    }}
-                  />
-                </div>
-                <div className="col-2 ms-1">
-                  <input
-                    id={`qtyprice${id}`}
-                    type="number"
-                    className="form-control "
-                    ref={(el) => (inputRefs.current[id] ||= [])[2] = el}
-                    onKeyPress={(e) => handleKeyPress(e, rowIndex, 2, id)}
-                    readOnly // Add readOnly attribute to make the input non-editable
-                    // defaultValue={mrp || ''} 
-                  />
-                </div>
-                <div className="col-2 ms-1">
-                  <input
-                    id={`total${id}`}
-                    type="text"
-                    className="form-control "
-                    ref={(el) => (inputRefs.current[id] ||= [])[3] = el}
-                    onKeyPress={(e) => handleKeyPress(e, rowIndex, 3, id)}
-                  />
-                </div>
+                        {suggestions.length > 0 && (
+                          <datalist id="medicineSuggestions">
+                            {suggestions.map((suggestion, index) => (
+                              <option
+                                key={index}
+                                value={`${suggestion.medicinename} ${suggestion.dosage}`}
+                              />
+                            ))}
+                          </datalist>
+                        )}
+                      </div>
+                      <div className="col-2 ms-1">
+                        <input
+                          id={`qty${id}`}
+                          type="number"
+                          className="form-control"
+                          placeholder='Enter Qty'
+                          ref={(el) => (inputRefs.current[id] ||= [])[1] = el}
+                          onBlur={(e) => handleQuantity(e, rowIndex, 1, id)}
+                          style={{
+                            WebkitAppearance: 'none', /* for WebKit browsers */
+                            MozAppearance: 'textfield' /* for Firefox */
+                          }}
+                        />
+                      </div>
+                      <div className="col-2 ms-1">
+                        <input
+                          id={`qtyprice${id}`}
+                          type="number"
+                          className="form-control "
+                          ref={(el) => (inputRefs.current[id] ||= [])[2] = el}
+                          onBlur={(e) => handleKeyPress(e, rowIndex, 2, id)}
+                          readOnly // Add readOnly attribute to make the input non-editable
+                        // defaultValue={mrp || ''} 
+                        />
+                      </div>
+                      <div className="col-2 ms-1">
+                        <input
+                          id={`total${id}`}
+                          type="text"
+                          className="form-control "
+                          ref={(el) => (inputRefs.current[id] ||= [])[3] = el}
+                          onBlur={(e) => handleQuantity(e, rowIndex, 3, id)}
+                        />
+                      </div>
 
-                <div className="col-1 ms-1">
-                  <button
-                    type="button"
-                    className="btn "
-                    style={{backgroundColor:'white', border:'1px solid lightgray'}}
-                    // aria-label="Close"
-                   
-                    onClick={() => handleRemoveMedicine(id)}
-                  > 
-                  <FontAwesomeIcon icon={ faTimesCircle  } style={{color:'black'}} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-<br/>
-          <div className="row mt-1">
-            <div className="col-6">
-              <button type="button" className="btn mt-1 ms-3" style={{ backgroundColor: 'teal', color: 'white' }} onClick={handleAddMedicine}>
-                Add More Medicine
-              </button>
-            </div>
-            <div className="col-6" >
-              <div className="row mt-1 ">
-                <div className="col-12 text-center">
-                  <b><label className="me-4"  >Sub Total</label></b>
-                  <input id="subtotal" type="number" className="border-0 text-start" style={{ width: '50px', background:'none' }} value={subtotal} readOnly />
-                </div>
-              </div>
+                      <div className="col-1 ms-1">
+                        <button
+                          type="button"
+                          className="btn "
+                          style={{ backgroundColor: 'white', border: '1px solid lightgray' }}
+                          // aria-label="Close"
 
-              <div className="row mt-1">
-                <div className="col-12 text-center">
-                  <b><label className="me-4" >Discount</label></b>
-                  <input
-                    id="discount"
-                    className="border-0 text-start p-1"
-                    type="number"
-                    value={discount}
-                    onChange={handleDiscountChange}
-                    onKeyPress={(e) => handleKeyPress(e, 0, 0, 'discount')} style={{ width: '50px',  background:'none' }}
-                  />
+                          onClick={() => handleRemoveMedicine(id)}
+                        >
+                          <FontAwesomeIcon icon={faTimesCircle} style={{ color: 'black' }} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+                <br />
+                <div className="row mt-1">
+                  <div className="col-6">
+                    <button type="button" className="btn mt-1 ms-3" style={{ backgroundColor: 'teal', color: 'white' }} onClick={handleAddMedicine}>
+                      Add More Medicine
+                    </button>
+                  </div>
+                  <div className="col-6" >
+                    <div className="row mt-1 ">
+                      <div className="col-12 text-center">
+                        <b><label className="me-4"  >Sub Total</label></b>
+                        <input id="subtotal" type="number" className="border-0 text-start" style={{ width: '70px', background: 'none' }} value={subtotal} readOnly />
+                      </div>
+                    </div>
 
-              <div className="row mt-1">
-                <div className="col-12 text-center ">
+                    <div className="row mt-1">
+                      <div className="col-12 text-center">
+                        <b><label className="me-4" >Discount</label></b>
+                        <input
+                          id="discount"
+                          className="border-0 text-start p-1"
+                          type="number"
+                          value={discount}
+                          onChange={handleDiscountChange}
+                          onBlur={(e) => handleKeyPress(e, 0, 0, 'discount')} style={{ width: '70px', background: 'none' }}
+                        />
+                      </div>
+                    </div>
 
-                  <div className="p-1 d-inline-block text-start" style={{ backgroundColor: 'teal', height:'30px' }}>
-                    <b><label className="me-2 text-white"  >Grand Total</label></b>
-                    <input
-                      className="border-0 text-white text-start p-1"
-                      style={{ backgroundColor: 'teal', width: '40px', height:'20px' }}
-                      id="grandtotal"
-                      type="number"
-                      value={grandtotal}
-                      readOnly
-                    />
+                    <div className="row mt-1">
+                      <div className="col-12 text-center ">
+
+                        <div className="p-1 d-inline-block text-start" style={{ backgroundColor: 'teal', height: '30px' }}>
+                          <b><label className="me-2 text-white"  >Grand Total</label></b>
+                          <input
+                            className="border-0 text-white text-start p-1"
+                            style={{ backgroundColor: 'teal', width: '80px', height: '20px' }}
+                            id="grandtotal"
+                            type="number"
+                            value={grandtotal}
+                            readOnly
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div >
+                  <div className='row ms-3 mt-3 '>
+                    <div className='col-3 '><b><label >Patient Name</label></b>  <input type='text' id='patientname' onBlur={(e) => handleKeyPress(e, 0, 0, 'patientname')} /> </div>
+                    <div className='col-3'> <b><label>Doctor Name</label></b>
+                      <input
+                        type='text'
+                        id='doctorname'
+                        value='Dr G.Vasudevan' // Set your default value here
+                        onBlur={(e) => handleKeyPress(e, 0, 0, 'doctorname')}
+                      />
+
+                    </div>
+                    <div className='col-6'> <b><label htmlFor='mobileno'><b>Mobile No</b></label></b>
+                      <div style={{ display: 'flex' }}>
+                        <select id='countryCode' value={countryCode} onChange={handleCountryCodeChange}>
+                          <option value='+91'>+91 (India)</option>
+                          <option value='+1'>+1 (US)</option>
+                          <option value='+44'>+44 (UK)</option>
+                        </select>
+                        <input
+                          type='tel'
+                          id='mobileno'
+                          value={mobileNo}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: '5px' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='row ms-3  mt-3 '>
+                    <div className='col-4'></div>
+                    <div className='col-2'><b><label>Invoice Date</label></b> <input
+          type='text'
+          className='form-control border-0'
+          defaultValue={currentDateFormatted}  readOnly style={{ width: '130px' }}
+        /></div>        
+                    <div className='col-2'><b><label>Cash Given</label></b>  <input type='number' id='cashgiven' value={cashGiven} onChange={handleCashGivenChange} onBlur={(e) => handleKeyPress(e, 0, 0, 'cashgiven')} style={{ width: '130px' }} /></div>
+
+                    <div className='col-2'><b><label>Balance</label></b>  <input type='text' id='balance' value={balance} readOnly style={{ width: '130px' }} />
+                    </div>
+                  </div>
+                  <div className="row mt-1 mb-2 p-3 me-5 ">
+                    <div className="col-md-12 text-end ">
+                      <button type="button" className="btn me-2" onClick={handleCancel}  style={{ backgroundColor: 'teal', color: 'white' }} >Cancel</button>
+                      <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn" onClick={handleSubmit}>Submit</button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div >
-            <div className='row ms-3 mt-3 '>
-              <div className='col-3 '><b><label >Patient Name</label></b>  <input type='text' id='patientname' onKeyPress={(e) => handleKeyPress(e, 0, 0, 'patientname')} /> </div>
-              <div className='col-3'> <b><label>Doctor Name</label></b> 
-              <input 
-    type='text' 
-    id='doctorname' 
-    value='Dr. Doctor Name' // Set your default value here
-    onKeyPress={(e) => handleKeyPress(e, 0, 0, 'doctorname')} 
-  /> 
-              
-               </div>
-              <div className='col-6'> <b><label htmlFor='mobileno'><b>Mobile No</b></label></b>
-                <div style={{ display: 'flex' }}>
-                  <select id='countryCode' value={countryCode} onChange={handleCountryCodeChange}>
-                    <option value='+91'>+91 (India)</option>
-                    <option value='+1'>+1 (US)</option>
-                    <option value='+44'>+44 (UK)</option>
-                  </select>
-                  <input
-                    type='tel'
-                    id='mobileno'
-                    value={mobileNo}
-                    onChange={handleInputChange}
-                    style={{ marginLeft: '5px' }}
-                  />
+        </div>
+      ) : (
+        <div className="container" id="dev" >
+          <div className="col-md-12 text-end" style={{ marginTop: '20px' }}>
+            <button
+              type="button"
+              style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
+              className="btn"
+              onClick={handleWhatsApp}
+            >
+              WhatsApp
+            </button>
+            <button
+              type="button"
+              style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
+              className="btn"
+              onClick={handlePdf}
+              disabled={!(loader === false)}
+            >
+              Download PDF
+            </button>
+
+            <button
+          type="button"
+          style={{ backgroundColor: 'teal', color: 'white' }}
+          className="btn"
+          onClick={handlePrint}
+        >
+          Print
+        </button>
+
+           
+          </div>
+          <div className="bill" style={{
+            marginLeft: '180px',
+            marginTop: '40px',
+            backgroundColor: 'white',
+            width: '65%',
+            height: '800px',
+            border: '1px solid black',
+            backgroundImage: `url(${billbg})`, // Set your background image
+            backgroundSize: '100% 100%',
+            fontFamily: 'serif'
+          }}>
+
+            <div style={{ marginLeft: '70%', marginTop: '110px', height: '70px', lineHeight: '2px' }}>
+              <div>
+                <h3 style={{ color: 'darkblue' }}><b>Invoice</b></h3>
+                <h6>Invoice No:{invoiceNumber}</h6>
+                <h6>Invoice Date: {currentDateFormatted}</h6>
+              </div>
+
+            </div>
+
+            <div style={{ width: '100%', marginTop: '5%' }}>
+              <table style={{ width: '90%', margin: 'auto', borderCollapse: 'collapse' }}>
+                <thead >
+                  <tr style={{ color: 'white' }}>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>S.No</th>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Medicine Name</th>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Price</th>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Qty</th>
+                    <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {submittedData.map((data, index) => (
+                    <tr key={data.id} style={{ borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{index + 1}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{data.medicinename}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{data.qtyprice}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{data.qty}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>{data.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
+
+            <div className="d-flex align-items-center justify-content-between ms-5" style={{ marginTop: '200px' }}>
+              <div>
+                <div className="col-md-12 mt-3 text-start">
+                  Cash Given: {cashGiven}
+                </div>
+                <div className="col-md-12 mt-3 text-start">
+                  Balance: {balance}
+                </div>
+              </div>
+              <div style={{ marginRight: '40px' }}>
+                <div className="col-md-12 mt-3 text-end">
+                  Subtotal: {subtotal}
+                </div>
+
+                <div className="col-md-12 mt-3 text-end">
+                  Discount: <span>{discount}</span>
+                </div>
+
+                <div className="col-md-12 mt-3 text-end">
+                  Grand Total: {grandtotal}
                 </div>
               </div>
             </div>
 
-            <div className='row ms-3  mt-3 '>
-              <div className='col-6'></div>
-              
-              <div className='col-2'><b><label>Cash Given</label></b>  <input type='number' id='cashgiven' value={cashGiven} onChange={handleCashGivenChange} onKeyPress={(e) => handleKeyPress(e, 0, 0, 'cashgiven')} style={{ width: '130px' }} /></div>
-              
-              <div className='col-2'><b><label>Balance</label></b>  <input type='text' id='balance' value={balance} readOnly style={{ width: '130px' }} />
-              </div>
-            </div>
-            <div className="row mt-1 mb-2 p-3 me-5 ">
-            <div className="col-md-12 text-end ">
-              <button type="button" className="btn me-2" onClick={handleCancel}>Cancel</button>
-              <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn" onClick={handleSubmit}>Submit</button>
-            </div>
           </div>
-          </div>
-</div>
-         </div>
-</div>
-        </div>
-      ) : (
-      <div className="container" id="dev" >
-        <div className="col-md-12 text-end" style={{ marginTop: '20px' }}>
-          <button
-            type="button"
-            style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
-            className="btn"
-            onClick={handleWhatsApp}
-          >
-            WhatsApp
+          <button type="button" className="btn me-2" style={{ backgroundColor: 'green', color: 'white' }} onClick={handleCancel}>
+            Cancel
           </button>
-          <button
-            type="button"
-            style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
-            className="btn"
-            onClick={handlePdf}
-            disabled={!(loader === false)}
-          >
-            Download PDF
-          </button>
-          <ReactToPrint
-                trigger={() => (
-                  <button type="button" className="btn" style={{ backgroundColor: 'teal', color: 'white' }}>
-                    Print
-                  </button>
-                )}
-                content={() => componentRef.current}
-              />
         </div>
-      <div className="bill" style={{ marginLeft:'180px', 
-      marginTop:'40px', 
-      backgroundColor:'white', 
-      width:'65%',
-      height: '800px',
-      border:'1px solid black',
-      backgroundImage: `url(${billbg})`, // Set your background image
-      backgroundSize: '100% 100%',
-      fontFamily: 'serif'
-      }}>
-      
-        <div style={{marginLeft:'70%', marginTop:'110px', height:'70px', lineHeight:'2px'}}>
-          <div>
-          <h3 style={{color:'darkblue'}}><b>Invoice</b></h3>
-          <h6>Invoice No:{invoiceNumber}</h6>
-          <h6>Invoice Date: {currentDateFormatted}</h6>
-          </div>
-
-        </div>
-        
-<div style={{width:'100%', marginTop:'5%'}}>
-        <table style={{ width: '90%', margin:'auto', borderCollapse: 'collapse' }}>
-          <thead >
-            <tr  style={{ color:'white'}}>
-              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'}}>S.No</th>
-              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Product Description</th>
-              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Price</th>
-              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Qty</th>
-              <th style={{ padding: '10px', textAlign:'center',  borderBottom: '1px solid #ddd', backgroundColor: '#2A4577'  }}>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {submittedData.map((data, index) => (
-              <tr key={data.id} style={{ borderBottom: '1px solid #ddd' }}>
-                <td style={{ padding: '10px', textAlign:'center' }}>{index + 1}</td>
-                <td style={{ padding: '10px', textAlign:'center' }}>{data.medicinename}</td>
-                <td style={{ padding: '10px', textAlign:'center' }}>{data.qtyprice}</td>
-                <td style={{ padding: '10px', textAlign:'center' }}>{data.qty}</td>
-                <td style={{ padding: '10px', textAlign:'center' }}>{data.total}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        </div>
-
-        <div   className="d-flex align-items-center justify-content-between ms-5" style={{marginTop:'200px'}}>
-    <div>
-      <div className="col-md-12 mt-3 text-start">
-        Cash Given: {cashGiven}
-      </div>
-      <div className="col-md-12 mt-3 text-start">
-        Balance: {balance}
-      </div>
+      )}
     </div>
-    <div style={{marginRight:'40px'}}>
-      <div className="col-md-12 mt-3 text-end">
-        Subtotal: {subtotal}
-      </div>
-
-      <div className="col-md-12 mt-3 text-end">
-        Discount: <span>{discount}</span>
-      </div>
-
-      <div className="col-md-12 mt-3 text-end">
-        Grand Total: {grandtotal}
-      </div>
-    </div>
-  </div>
- 
-      </div>
-      <button type="button" className="btn me-2" style={{ backgroundColor: 'green', color: 'white' }} onClick={handleCancel}>
-        Cancel
-      </button>
-
-
-
-     
-    </div>
-  )}
-    </div>
+    </>
   );
 }
 

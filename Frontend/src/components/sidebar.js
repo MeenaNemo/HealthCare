@@ -63,7 +63,7 @@ const Sidebar = () => {
     const [showBillingHis, setShowBillingHis] = useState(false);
 
     const handleStockDetailsToggle = () => {
-        if (user && user.user.user_role === 'Admin') {
+        if (user && user.user.user_role === 'Staff' || user.user.user_role === 'Admin') {
             setShowBilling(false);
             setShowStockDetails(!showStockDetails);
             setShowAddMedicine(false);
@@ -74,7 +74,9 @@ const Sidebar = () => {
     };
 
     const handleBillingToggle = () => {
-        if (user && user.user.user_role === 'staff' || user.user.user_role === 'Admin') {
+        setShowBilling(prevState => !prevState);
+
+        if (user && user.user.user_role === 'Staff' || user.user.user_role === 'Admin') {
             setShowBilling(!showBilling);
             setShowStockDetails(false);
             setShowAddMedicine(false);
@@ -138,8 +140,7 @@ const Sidebar = () => {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 setUser(parsedUser);
-
-
+                setShowBilling(true);
             } catch (error) {
                 console.error('Error parsing user data:', error);
             }
@@ -158,18 +159,25 @@ const Sidebar = () => {
         <div className="d-flex justify-content-between"  >
             <div className=' shadow-sm p-3 bg-white rounded '
                 style={{
+                    width:'28%',
                     height: '100vh',
                     fontFamily: 'serif',
                 }}
             >
-                <div className="d-flex align-items-center" style={{ height: '50px' }}>
+                <div className="d-flex align-items-center" >
+                    <div>
                     <img
                         src={logoImage}
                         alt="Profile"
-                        style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }}
+                        style={{ width: '60px', height: '60px', borderRadius: '50%',marginTop:'-10px', marginRight: '10px' }}
                     />
-                    <h4 className="text-xl font-weight-bold mb-0 "><b>ALAGAR CLINIC</b></h4>
-                </div>
+                    </div>  
+                    <div style={{fontSize:'12px', lineHeight:'1px'}}>
+                    <h4 className="ms-3 "><b>ALAGAR CLINIC</b></h4>
+                <p>Plot No-1, Fenner Colony, Virattipattu, Madurai-16</p>
+                <p style={{marginLeft:'48px'}}><b>Contact:</b>88072 62725</p>
+                    </div>                   
+                </div>               
                 <br />
                 <button
                     style={{ backgroundColor: 'white', width: '250px' }}
@@ -185,11 +193,19 @@ const Sidebar = () => {
                 <br />
                 <div className={`collapse${isOpen ? ' show' : ''}`} style={{ marginLeft: '50px' }}>
                     <ul className="list-unstyled">
-                        {user && (user.user.user_role === 'staff' || user.user.user_role === 'Admin') && (
+                        {user && (user.user.user_role === 'Staff' || user.user.user_role === 'Admin') && (
                             <li className="mb-2">
                                 <a href="#" className="text-decoration-none text-dark" onClick={handleBillingToggle}>
-                                    <FontAwesomeIcon icon={faCashRegister} className="me-2" /> Billing
+                                    <FontAwesomeIcon icon={faCashRegister} className="me-2" /><b>Billing</b> 
 
+                                </a>
+                            </li>
+                        )}
+
+                        {user && user.user.user_role === 'Staff' && (
+                            <li className="mb-2">
+                                <a href="#" className="text-decoration-none text-dark" onClick={handleStockDetailsToggle}>
+                                    <FontAwesomeIcon icon={faBoxes} className="me-2" /> <b>Stock Details</b>
                                 </a>
                             </li>
                         )}
@@ -199,7 +215,7 @@ const Sidebar = () => {
                         {user && user.user.user_role === 'Admin' && (
                             <li className="mb-2">
                                 <a href="#" className="text-decoration-none text-dark" onClick={handleAddMedicineToggle}>
-                                    <FontAwesomeIcon icon={faPlus} className="me-2" /> Add Medicine
+                                    <FontAwesomeIcon icon={faPlus} className="me-2" /><b>Add Medicine</b> 
 
                                 </a>
                             </li>
@@ -210,7 +226,7 @@ const Sidebar = () => {
                         {user && user.user.user_role === 'Admin' && (
                             <li className="mb-2">
                                 <a href="#" className="text-decoration-none text-dark" onClick={handleFormToggle}>
-                                    <FontAwesomeIcon icon={faFileMedical} className="me-2" /> Consultation Form
+                                    <FontAwesomeIcon icon={faFileMedical} className="me-2" /><b>Consultation Form</b> 
 
                                 </a>
                             </li>
@@ -221,17 +237,15 @@ const Sidebar = () => {
                         {user && user.user.user_role === 'Admin' && (
                             <li className="mb-2">
                                 <a href="#" className="text-decoration-none text-dark" onClick={handleStockDetailsToggle}>
-                                    <FontAwesomeIcon icon={faBoxes} className="me-2" /> Stock Details
+                                    <FontAwesomeIcon icon={faBoxes} className="me-2" /><b>Stock Details</b> 
                                 </a>
                             </li>
                         )}
-
                         <br/>
-
                         {user && user.user.user_role === 'Admin' && (
                             <li className="mb-2">
                                 <a href="#" className="text-decoration-none text-dark" onClick={handlePurchaseToggle}>
-                                    <FontAwesomeIcon icon={faFileMedical} className="me-2" /> Purchase Details
+                                    <FontAwesomeIcon icon={faFileMedical} className="me-2" /> <b>Purchase History</b>
                                 </a>
                             </li>
                         )}
@@ -255,55 +269,57 @@ const Sidebar = () => {
                 </div>
             </div>
 
-            <div>
-                <div className="stock-details-content" style={{ display: showStockDetails ? 'block' : 'none', width: '100vh', height: '100vh' }}>
+            <div style={{width:'70%'}}>
+                <div >
+                
+                <div className="stock-details-content" style={{ display: showStockDetails ? 'block' : 'none'}}>
                     {showStockDetails && (
-                        <div className="stock-details-content" style={{ marginLeft: '-400px', height: '100vh' }}>
+                        <div className="stock-details-content" >
                             <StockDetailsPage />
                         </div>
                     )}
                 </div>
 
-                <div className="stock-details-content" style={{ display: showBilling ? 'block' : 'none', width: '100vh', height: '100vh' }}>
+                <div className="billing-content" style={{ display: showBilling ? 'block' : 'none' }}>
                     {showBilling && (
-                        <div className="stock-details-content" style={{ marginLeft: '-400px', height: '100vh' }}>
+                        <div className="billing-content" >
                             <Billing />
                         </div>
                     )}
                 </div>
 
-                <div className="stock-details-content" style={{ display: showAddMedicine ? 'block' : 'none', width: '100vh', height: '100vh' }}>
+                <div className="stock-details-content" style={{ display: showAddMedicine ? 'block' : 'none' }}>
                     {showAddMedicine && (
-                        <div className="stock-details-content" style={{ marginLeft: '-350px', height: '100vh' }}>
+                        <div className="stock-details-content" >
                             <AddMedicine />
                         </div>
                     )}
                 </div>
 
-                <div className="stock-details-content" style={{ display: showForm ? 'block' : 'none', width: '100vh', height: '100vh' }}>
+                <div className="stock-details-content" style={{ display: showForm ? 'block' : 'none'}}>
                     {showForm && (
-                        <div className="stock-details-content" style={{ marginLeft: '-350px', height: '100vh' }}>
+                        <div className="stock-details-content" >
                             <ConsultationForm />
                         </div>
                     )}
                 </div>
 
-                <div className="stock-details-content" style={{ display: showPurchase ? 'block' : 'none', width: '100vh', height: '100vh' }}>
+                <div className="stock-details-content" style={{ display: showPurchase ? 'block' : 'none'}}>
                     {showPurchase && (
-                        <div className="stock-details-content" style={{ marginLeft: '-390px', height: '100vh' }}>
+                        <div className="stock-details-content" >
                             <Purchase />
                         </div>
                     )}
                 </div>
 
-                <div className="stock-details-content" style={{ display: showBillingHis ? 'block' : 'none', width: '100vh', height: '100vh' }}>
+                <div className="stock-details-content" style={{ display: showBillingHis ? 'block' : 'none' }}>
                     {showBillingHis && (
-                        <div className="stock-details-content" style={{ marginLeft: '-390px', height: '100vh' }}>
+                        <div className="stock-details-content" >
                             <BillingHis />
                         </div>
                     )}
                 </div>
-
+                </div>
             </div>
         </div>
     );

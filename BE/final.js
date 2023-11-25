@@ -109,32 +109,32 @@ app.post('/login', async (req, res) => {
   
       db.query(getUserQuery, [loginIdentifier, loginIdentifier], async (error, results) => {
         if (error) {
-          throw new Error("Database error: " + error.message);
+          return res.status(500).json({ message: 'Database error' });
         }
-      
+    
         if (results.length === 0) {
-          throw new Error("Invalid credentials.");
+          return res.status(401).json({ message: 'Invalid username' });
         }
-      
+    
         const user = results[0];
         const passwordMatch = await bcrypt.compare(password, user.user_password);
-      
+    
         if (!passwordMatch) {
-          const errorMessage = `No user found for loginIdentifier: ${loginIdentifier}`;
-          console.error(errorMessage);
-          throw new Error("Invalid credentials.");
+          return res.status(401).json({ message: 'Invalid password' });
         }
-      
+
+        if ((results.length === 0) && (!passwordMatch) ) {
+          return res.status(401).json({ message: 'Invalid username and password' });
+        }
+       
         const token = jwt.sign({ user_id: user.user_id }, privateKey);
-      
         res.status(200).json({
-          "status": 200,
-          "data": { token, user },
-          "message": "Login successful",
-          "error": false
-        });
+              "status": 200,
+              "data": { token, user },
+              "message": "Login successful",
+              "error": false
+            });
       });
-      
     } catch (error) {
       res.status(400).json({ "status": 400, "message": error.message, "error": true });
     }
@@ -237,11 +237,12 @@ CREATE TABLE IF NOT EXISTS Billing_Inventory (
 
 async function generateInvoiceNumber() {
   const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = currentDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+  const year = currentDate.getFullYear().toString().slice(2); // Extract the last two digits of the year
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Month is zero-indexed, so add 1
+  const day = String(currentDate.getDate()).padStart(2, '0'); // Day of the month
 
   // Retrieve the last invoice number from your database
-  const getLastInvoiceNumberQuery = 'SELECT MAX(CAST(SUBSTRING(invoice_number, 10) AS UNSIGNED)) as lastInvoiceNumber FROM Billing_Inventory';
+  const getLastInvoiceNumberQuery = 'SELECT MAX(CAST(SUBSTRING(invoice_number, 7) AS UNSIGNED)) as lastInvoiceNumber FROM Billing_Inventory';
  
   const lastInvoiceNumberResult = await new Promise((resolve, reject) => {
     db.query(getLastInvoiceNumberQuery, (err, result) => {
@@ -254,7 +255,7 @@ async function generateInvoiceNumber() {
   });
 
   // Increment the last invoice number and format it
-  const nextInvoiceNumber = `#${year}${month}${String(lastInvoiceNumberResult + 1).padStart(3, '0')}`;
+  const nextInvoiceNumber = `${year}${month}${day}${String(lastInvoiceNumberResult + 1).padStart(5, '0')}`;
   return nextInvoiceNumber;
 }
 
@@ -559,7 +560,19 @@ app.get('/suggestions', (req, res) => {
 });
 
 
+app.get('/billingdata/:invoice_number', (req, res) => {
+  const { invoice_number } = req.params; // Extract the invoice_number parameter from the URL
+  const sql = 'SELECT * FROM `Billing_Inventory` WHERE invoice_number = ?'; // Query to fetch data by invoice_number
 
+  db.query(sql, [invoice_number], (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+      return;
+    }
+    res.json(results);
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

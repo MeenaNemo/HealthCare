@@ -25,7 +25,9 @@ const Purchase = () => {
   const itemsPerPage = 25;
 
   const filteredData = medicineData.filter(item =>
+
     (item.medicinename && item.medicinename.toLowerCase().includes(searchQuery.toLowerCase())) &&
+
     (!fromDate || moment(item.time).isSameOrAfter(fromDate)) &&
     (!toDate || moment(item.time).isSameOrBefore(toDate))
   );
@@ -102,7 +104,7 @@ const Purchase = () => {
 
   const exportToExcel = () => {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('StockData');
+    const worksheet = workbook.addWorksheet('PurchaseData');
   
     worksheet.columns = [
         { header: 'Medicine Name', key: 'medicinename', width: 15 },
@@ -198,7 +200,7 @@ const Purchase = () => {
       allowTaint: true,
     };
 
-    const capture = document.querySelector('.stock-table');
+    const capture = document.querySelector('.purchase-table');
     setLoader(true);
 
     const fromDate = moment(selectedFromDate).format('YYYY-MM-DD');
@@ -224,14 +226,13 @@ const Purchase = () => {
       while (rowIndex < numberOfRows) {
         if (!firstPage) {
           pdf.addPage();
-          pdf.text(`Page ${Math.ceil((rowIndex + 1) / itemsPerPage)}`, 10, 10); // Add page number
         } else {
           firstPage = false; // Update flag for subsequent pages
         }
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(16);
         pdf.setTextColor(43, 128, 176); // Blue color
-        pdf.text(`Stock Details from ${fromDate}  to  ${toDate}`, 10, 10, null, null, 'left');
+        pdf.text(`Purchase Details from ${fromDate}  to  ${toDate}`, 10, 10, null, null, 'left');
 
         const headingHeight = 20; // Adjust this value based on the heading size and spacing
         const tableStartY = 0 + headingHeight; // Adjust the spacing between heading and table
@@ -276,7 +277,7 @@ const Purchase = () => {
       }
 
       setLoader(false);
-      pdf.save('stock.pdf');
+      pdf.save('purchase.pdf');
     });
   };
 
@@ -330,7 +331,8 @@ const Purchase = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>Product Name</th>
+                   <th>Purchase Date</th>
+                    <th>Medicine Name</th>
                     <th>Dosage</th>
                     <th>Brand Name</th>
                     <th>Purchase Price</th>
@@ -338,13 +340,13 @@ const Purchase = () => {
                     <th>MRP</th>
                     <th>Total Qty</th>
                     <th>Expiry Date</th>
-                    <th>Purchase Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {
                     dataOnCurrentPage.map((item) => (
                       <tr key={item.ID}>
+                        <td>{item.time ? moment(item.time).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
                         <td>{item.medicinename || 'N/A'}</td>
                         <td>{item.dosage || 'N/A'}</td>
                         <td>{item.brandname || 'N/A'}</td>
@@ -353,7 +355,6 @@ const Purchase = () => {
                         <td>{item.mrp || 'N/A'}</td>
                         <td>{item.totalqty || 'N/A'}</td>
                         <td>{item.expirydate ? moment(item.expirydate).format('YYYY-MM-DD') : 'N/A'}</td>
-                        <td>{item.time ? moment(item.time).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
                       </tr>
                     ))}
                 </tbody>

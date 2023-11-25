@@ -20,10 +20,7 @@ function AddMedicine() {
   
   const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
 
-  const labelStyle = {
-    textAlign: 'left',
-      borderRadius: '10px', // Add border-radius for rounded corners
-    };
+ 
     
   const handleChange = (event) => {
     const { id, value } = event.target;
@@ -209,22 +206,21 @@ function AddMedicine() {
 
   return (
 
-    <div className="container "style={{ 
-          fontFamily: 'serif' ,width: '80%', margin: '10px'
+    <div className="container"style={{ 
+          fontFamily: 'serif' ,width: '100%', margin: '10px'
     }}>
-      <div style={{margin:'10px'}}>
-      <div className=' d-flex justify-content-between align-items-center mb-3 mt-4' style={{margin:'0px'}}>
-        <h2 className="mb-0"> <b>Add Medicine</b>
-        </h2>
-      </div>
+      <div className="m-3">
+      <div className="d-flex justify-content-between align-items-center mb-3 mt-4">
+  <h2 className="mb-0"><b>Add Medicine</b></h2>
+</div>
 
       <form onSubmit={handleSubmit} style={{backgroundColor:'white', border:'1px solid lightgray'}}>
-        <div style={{margin:'20px'}}>
+      <div className="m-4">
         <div className="row">
-          <div className="col-md-12">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-12 col-12 col-sm-12">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="medicinename">Medicine Name</label></b>
-              <input type="text" className="form-control" id="medicinename" value={formData.medicinename} onChange={handleChange} onKeyDown={handleKeyDown} />
+              <input type="text" className="form-control col-md-6 col-lg-4" id="medicinename" value={formData.medicinename} onChange={handleChange} onKeyDown={handleKeyDown} />
             </div>
           </div>
         </div>
@@ -232,8 +228,8 @@ function AddMedicine() {
         <br />
 
         <div className="row">
-        <div className="col-md-6">
-  <div className="form-group" style={labelStyle}>
+        <div className="col-md-6 col-12">
+  <div className="form-group  text-left rounded-3" >
     <b><label htmlFor="dosage">Dosage</label></b>
     <div className="input-group">
       <input
@@ -261,8 +257,8 @@ function AddMedicine() {
         
         
       /><select
-      style={{ width: '50px' }} // Adjust the width as needed
-      className="form-select"
+    // Adjust the width as needed
+    className="form-select w-50"
       id="dosageUnit"
       value={formData.dosageUnit}
       onChange={(e) => {
@@ -283,8 +279,8 @@ function AddMedicine() {
   </div>
 </div>
 
-          <div className="col-md-6">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-6 col-12">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="brandName">Brand Name</label></b>
               <input type="text" className="form-control" id="brandname" value={formData.brandname} onChange={handleChange} onKeyDown={handleKeyDown} />
             </div>
@@ -294,8 +290,8 @@ function AddMedicine() {
 
 
         <div className="row">
-          <div className="col-md-12">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-12 col-12 col-sm-12">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="medicineName">Other Details</label></b>
               <input type="text" className="form-control" id="otherdetails" value={formData.otherdetails} onChange={handleChange} onKeyDown={handleKeyDown} />
             </div>
@@ -304,22 +300,22 @@ function AddMedicine() {
         </div>
 
         <div className="row">
-          <div className="col-md-4">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-4 col-12 col-sm-4">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="purchaseprice">Purchase Price</label></b>
               <input type="number" className="form-control" id="purchaseprice" value={formData.purchaseprice} onChange={handleChange} onKeyDown={handleKeyDown} />
             </div>
           </div>
 
-          <div className="col-md-4">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-4 col-12 col-sm-4">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="totalqty">Total Qty</label></b>
               <input type="number" className="form-control" id="totalqty" value={formData.totalqty} onChange={handleChange} onKeyDown={handleKeyDown} />
             </div>
           </div>
 
-          <div className="col-md-4">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-4 col-12 col-sm-4">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="purchaseamount">Purchase Amount</label></b>
               <input type="number" className="form-control" id="purchaseamount" value={formData.purchaseamount} readOnly onKeyDown={handleKeyDown} />
             </div>
@@ -329,16 +325,16 @@ function AddMedicine() {
 
         <div className="row">
 
-          <div className="col-md-4">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-4 col-12 col-sm-4">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="expirydate">Expiry Date</label></b>
               <input type="date" className="form-control" id="expirydate" value={formData.expirydate} onChange={handleChange} onKeyDown={handleKeyDown} placeholder="Select a date"
               />
             </div>
           </div>
 
-          <div className="col-md-4">
-            <div className="form-group" style={labelStyle}>
+          <div className="col-md-4 col-12 col-sm-4">
+            <div className="form-group  text-left rounded-3">
               <b><label htmlFor="mrp">MRP</label></b>
               <input type="number" className="form-control" id="mrp" value={formData.mrp} onChange={handleChange} onKeyDown={handleKeyDown} />
             </div>
@@ -346,25 +342,22 @@ function AddMedicine() {
         </div>
         <br />
 
-        <div className="row mt-3 mb-4">
+        <div className="row">
           <div className="col-md-12 text-end">
-            <button type="submit"  className="btn  me-2" onClick={handleCancel}>Cancel</button>
-            <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn " onClick={handleSubmit} >Submit</button>
+          <button type="submit" className="btn btn-sm me-2" onClick={handleCancel}  style={{backgroundColor:'teal', color:'white'}}>
+           Cancel
+             </button>
+            <button type="button" className="btn btn-sm" onClick={handleSubmit} style={{backgroundColor:'teal', color:'white'}}>
+                Submit
+               </button>
+
           </div>
         </div>
 
         </div></form>
         <div
   className={`modal fade ${showPopup ? 'show' : ''}`}
-  style={{
-    display: showPopup ? 'block' : 'none',
-    position: 'fixed',
-    top: '10%',
-    left: '50%',
-    transform: 'translatex(-50%)',
-    zIndex: '10'
-     // Adjust the z-index as needed
-  }}
+ 
   tabIndex="1"
   role="dialog"
 >

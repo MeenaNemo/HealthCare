@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { DatePicker } from 'antd';
 import moment from 'moment';
 import html2canvas from 'html2canvas';
-import ExcelJS from 'exceljs';
+import exportToExcel from 'exceljs';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import '../styles/stock.css'
+import '../styles/stock.css';
+import billbg from '../logo/ac.jpg'
+
 
 const BillingHis = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,7 +21,9 @@ const BillingHis = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [print, setPrint] = useState(false);
+  const [invoiceData, setInvoiceData] = useState(null); // State to store the fetched invoice data
+  const captureRef = useRef(null);
   const itemsPerPage = 25;
 
   const filteredData = medicineData.filter(item =>
@@ -34,23 +38,14 @@ const BillingHis = () => {
 
   const fetchbillingData = async () => {
     try {
-      const response = await axios.get('/billingdata', {
-        params: { mobileno: searchQuery }
-      });
-
+      const response = await axios.get('http://localhost:3000/billingdata');
       setMedicineData(response.data);
 
     } catch (error) {
-      console.error('Error fetching billing data:', error);
-      if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Request error:', error.message);
-      }
-    };
+      setError('Error fetching data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -58,17 +53,6 @@ const BillingHis = () => {
   }, [searchQuery]);
 
   useEffect(() => {
-    const fetchbillingData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/billingdata');
-        setMedicineData(response.data);
-
-      } catch (error) {
-        setError('Error fetching data');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchbillingData();
   }, []);
 
@@ -97,65 +81,6 @@ const BillingHis = () => {
   const handleToDateChange = (date, dateString) => {
     setToDate(dateString);
   };
-
-  const exportToExcel = () => {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('billingData');
-
-    worksheet.columns = [
-      { header: 'Tablet Details', key: 'tabletdetails', width: 15 },
-      { header: 'Grand Total', key: 'grandtotal', width: 15 },
-      { header: 'Patient Name', key: 'patientname', width: 17 },
-      { header: 'Doctor Name', key: 'doctorname', width: 15 },
-      { header: 'Mobile Number', key: 'mobileno', width: 15 },
-      { header: 'Cash Given', key: 'cashgiven', width: 15 },
-      { header: 'Invoice Number', key: 'invoice_number', width: 15 },
-      { header: 'Date', key: 'createdate', width: 15 },
-    ];
-
-    worksheet.getRow(1).alignment = { horizontal: 'center' };
-    worksheet.getRow(1).font = { bold: true };
-
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      align: 'center',
-      fgColor: {
-        argb: 'FFADD8E6'
-      },
-    };
-
-    filteredData.forEach((item) => {
-      const formattedDate = item.createdate ? moment(item.time).format('YYYY-MM-DD') : 'N/A';
-      worksheet.addRow({
-        tabletdetails: item.tabletdetails || 'N/A',
-        subtotal: item.subtotal || 'N/A',
-        discount: item.discount || 'N/A',
-        grandtotal: item.grandtotal || 'N/A',
-        patientname: item.patientname || 'N/A',
-        doctorname: item.doctorname || 'N/A',
-        mobileno: item.mobileno || 'N/A',
-        cashgiven: item.cashgiven || 'N/A',
-        balance: item.balance || 'N/A',
-        invoice_number: item.invoice_number || 'N/A',
-        createdate: formattedDate || 'N/A',
-
-      });
-    });
-
-    workbook.xlsx.writeBuffer().then((buffer) => {
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'billing.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-  };
-
 
   const downloadPDF = () => {
     const html2canvasOptions = {
@@ -241,6 +166,60 @@ const BillingHis = () => {
     });
   };
 
+  const handlePrintByInvoice = async (invoiceNumber) => {
+    try {
+      // Fetch invoice data
+      const response = await axios.get(`http://localhost:3000/billingdata/${invoiceNumber}`);
+      const invoiceData = response.data;
+      setInvoiceData(response.data);
+      console.log("tablet", invoiceData)
+
+
+      let medicineName = '';
+      if (invoiceData[0].tabletdetails) {
+        const tablets = JSON.parse(invoiceData[0].tabletdetails).tablets;
+        if (tablets && tablets.length > 0) {
+          medicineName = tablets[0].medicinename;
+          console.log("name", medicineName)
+        }
+      }
+
+      const capture = document.querySelector('.oldbill');
+      setLoader(true);
+      const html2canvasOptions = {
+        scale: 2,
+        logging: false,
+        allowTaint: true,
+      };
+
+      html2canvas(capture, html2canvasOptions).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const jsPDFOptions = {
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+        };
+
+        const doc = new jsPDF(jsPDFOptions);
+        const imageWidth = 180;
+        const imageHeight = (canvas.height * imageWidth) / canvas.width;
+
+        doc.addImage(imgData, 'PNG', 0, 0, imageWidth, imageHeight);
+
+        // Add fetched invoiceData to the PDF
+        doc.text(JSON.stringify(invoiceData), 10, 10); // Example: Add the data as text
+
+        setLoader(false);
+        setPrint(true);
+        doc.save('oldbill.pdf');
+      });
+    } catch (error) {
+      console.error('Error fetching or processing invoice data:', error);
+    }
+  };
+
+
+
   return (
     <div>
       <div style={{
@@ -252,7 +231,7 @@ const BillingHis = () => {
         <div className="d-flex align-items-center justify-content-between">
           <div style={{ margin: '20px' }}>
             <h2>
-              <b> BILLING DETAILS</b>
+              <b>Billing History</b>
             </h2>
 
           </div>
@@ -291,21 +270,23 @@ const BillingHis = () => {
               <table>
                 <thead>
                   <tr>
-                  <th>Created Date</th>
-                  <th>Invoice Number</th>
-                  <th>Patient Name</th>
-                  <th>Mobile Number</th>
-                  <th>Grand Total</th>
+                    <th class="text-center">Created Date</th>
+                    <th class="text-center">Invoice Number</th>
+                    <th class="text-center">Patient Name</th>
+                    <th class="text-center">Mobile Number</th>
+                    <th class="text-center">Grand Total</th>
+                    <th class="text-center">Bill</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dataOnCurrentPage.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.createdate ? moment(item.createdate).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
-                      <td>{item.invoice_number || 'N/A'}</td>
-                      <td>{item.patientname || 'N/A'}</td>
-                      <td>{item.mobileno || 'N/A'}</td>
-                      <td>{item.grandtotal || 'N/A'}</td>
+                      <td class="text-center">{item.createdate ? moment(item.createdate).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
+                      <td class="text-center">{item.invoice_number || 'N/A'}</td>
+                      <td class="text-center">{item.patientname || 'N/A'}</td>
+                      <td class="text-center">{item.mobileno || 'N/A'}</td>
+                      <td class="text-center">{item.grandtotal || 'N/A'}</td>
+                      <td class="text-center"><button onClick={() => handlePrintByInvoice(item.invoice_number)}>Print</button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -316,6 +297,7 @@ const BillingHis = () => {
 
         </div>
 
+
         <div className="pagination">
           <button onClick={handlePrevious} disabled={currentPage === 1}>
             Previous
@@ -325,6 +307,103 @@ const BillingHis = () => {
             Next
           </button>
         </div>
+      </div>
+
+      <div>
+         {
+          invoiceData && (
+            <div className="oldbill" style={{
+              marginLeft: '180px',
+              marginTop: '40px',
+              backgroundColor: 'white',
+              width: '65%',
+              height: '800px',
+              border: '1px solid black',
+              backgroundImage: `url(${billbg})`, // Set your background image
+              backgroundSize: '100% 100%',
+              fontFamily: 'serif'
+            }}>
+              {/* Map over invoiceData if it's not null */}
+              <div >
+                <div style={{ marginLeft: '70%', marginTop: '110px', height: '70px', lineHeight: '2px' }}>
+                  <div>
+                    <h3 style={{ color: 'darkblue' }}><b>Invoice</b></h3>
+                    <h6>Invoice No: {invoiceData[0].invoice_number}</h6>
+                    <h6>Invoice Date: </h6>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ width: '100%', marginTop: '5%' }}>
+                <table style={{ width: '90%', margin: 'auto', borderCollapse: 'collapse' }}>
+                  <thead >
+                    <tr style={{ color: 'white' }}>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>S.No</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Product Description</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Qty</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Price</th>
+                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoiceData.map((data, index) => {
+                      // Parse the table details string into a JavaScript object
+                      const tablets = JSON.parse(data.tabletdetails).tablets;
+
+                      return (
+                        <React.Fragment key={data.id}>
+                          {tablets && tablets.length > 0 ? (
+                            tablets.map((tablet, tabletIndex) => (
+                              <tr key={`${data.id}-${tabletIndex}`} style={{ borderBottom: '1px solid #ddd' }}>
+                                <td style={{ padding: '10px', textAlign: 'center' }}>{index * tablets.length + tabletIndex + 1}</td>
+                                <td style={{ padding: '10px', textAlign: 'center' }}>{tablet.medicinename}</td>
+                                <td style={{ padding: '10px', textAlign: 'center' }}>{tablet.qty}</td>
+                                <td style={{ padding: '10px', textAlign: 'center' }}>{tablet.qtyprice}</td>
+                                <td style={{ padding: '10px', textAlign: 'center' }}>{tablet.total}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="5" style={{ padding: '10px', textAlign: 'center' }}>No data available</td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+
+                </table>
+
+              </div>
+
+
+              <div className="d-flex align-items-center justify-content-between ms-5" style={{ marginTop: '200px' }}>
+                <div>
+                  <div className="col-md-12 mt-3 text-start">
+                    Cash Given: {invoiceData[0].cashgiven}
+                  </div>
+                  <div className="col-md-12 mt-3 text-start">
+                    Balance: {invoiceData[0].balance}
+                  </div>
+                </div>
+                <div style={{ marginRight: '40px' }}>
+                  <div className="col-md-12 mt-3 text-end">
+                    Subtotal: {invoiceData[0].subtotal}
+                  </div>
+
+                  <div className="col-md-12 mt-3 text-end">
+                    Discount: <span>{invoiceData[0].discount}</span>
+                  </div>
+
+                  <div className="col-md-12 mt-3 text-end">
+                    Grand Total: {invoiceData[0].grandtotal}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )
+        }
       </div>
     </div>
   );

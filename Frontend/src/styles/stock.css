@@ -4,16 +4,6 @@ body {
   background-color: #f9f9f9;
 }
 
-
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
 .ant-picker input {
   height: 30px; 
   border: 1px solid #ddd; 
@@ -88,7 +78,7 @@ th {
   background-color: #f2f2f2;
 }
 
-bt {
+button {
   padding: 12px;
   margin: 5px;
   cursor: pointer;
