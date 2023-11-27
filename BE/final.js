@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const axios = require('axios');
+const multer = require('multer');
 const app = express();
 const port = 3000;
 const cors = require('cors');
@@ -8,6 +9,8 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid').v4;
+const path = require('path');
+const fs = require('fs'); 
 
 
 app.use(cors());
@@ -22,6 +25,26 @@ const db = mysql.createPool({
   database: 'Alagar_Clinic',
 });
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = 'uploads/';
+
+    // Create the 'uploads' directory if it doesn't exist
+    fs.mkdir(uploadPath, { recursive: true }, function (err) {
+      if (err) {
+        console.error("Error creating directory:", err);
+      }
+      cb(null, uploadPath);
+    });
+  },
+  filename: function (req, file, cb) {
+    cb(null, uuid() + path.extname(file.originalname)); // Unique filename for uploaded files
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// Create User_Inventory table if not exists
 const createUsersTableQuery = `
   CREATE TABLE IF NOT EXISTS User_Inventory (
     user_id  VARCHAR(36) PRIMARY KEY,
@@ -41,28 +64,26 @@ db.query(createUsersTableQuery, (error, result) => {
   if (error) {
     throw new Error("Error creating User_Inventory table: " + error.message);
   }
-
   console.log("User_Inventory table created successfully");
 });
 
 const privateKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCKYCCU+icNr+dlESZOSomuTvi7Sv5HXbV2+RGzNWNGhnQYLGSPYFh3NRZ7HuP3C1M+sI2vX1UGb/AXlucw+pDLQpungBOyyi9zwsyzgBvdeZRFNj3V9tn3CQaEPTXbBFwSszmpPZvdk58L/YCru3G2XPdFNpKnv0Q7yiiiMWIX0wIDAQAB"; 
 
-app.post('/register', async (req, res) => {
+app.post('/register', upload.single('user_profile_photo'), async (req, res) => {
   try {
     const reqData = req.body;
+    const filePath = req.file ? req.file.path : null;
 
     if (Object.keys(reqData).length === 0) {
       throw new Error("Please provide data.");
     }
 
+    // Check if email already exists
     const existingEmailQuery = 'SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?';
-
-    db.query(existingEmailQuery, [reqData.user_email, reqData.user_mobile_number], async (error, results) => 
-     {
+    db.query(existingEmailQuery, [reqData.user_email], async (error, results) => {
       if (error) {
         throw new Error("Database error: " + error.message);
       }
-
       if (results[0].count > 0) {
         throw new Error("Email already exists.");
       }
@@ -72,19 +93,22 @@ app.post('/register', async (req, res) => {
       const user = 'userid-' + uuid();
 
       const insertUserQuery = `
-      INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp, user_profile_photo)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-      const values = [user, 
-        reqData.user_first_name, 
+        INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp, user_profile_photo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const values = [
+        user,
+        reqData.user_first_name,
         reqData.user_last_name,
-         reqData.user_email, 
-         reqData.user_mobile_number,
-         reqData.user_role,
-         enpPassword,
-          token,
-          new Date(), 
-          reqData.user_profile_photo];
+        reqData.user_email,
+        reqData.user_mobile_number,
+        reqData.user_role,
+        enpPassword,
+        token,
+        new Date(),
+        filePath, // Store the file path in the database
+      ];
 
       db.query(insertUserQuery, values, (error, result) => {
         if (error) {
@@ -98,6 +122,7 @@ app.post('/register', async (req, res) => {
     res.status(400).json({ "status": 400, "message": error.message, "error": true });
   }
 });
+
 
 app.post('/login', async (req, res) => {
     try {
@@ -259,22 +284,24 @@ async function generateInvoiceNumber() {
   return nextInvoiceNumber;
 }
 
+
+
 app.post('/billing', async (req, res) => {
   try {
     const billingData = req.body;
+    const medData = req.body.medicinename;
+    const {medicinename, dosage} = extractMedicineInfo(medData);
+   
     const invoicenumber = await generateInvoiceNumber();
-    console.log("Generated Invoice Number:", invoicenumber);
 
     for (const row of billingData.medicineRows) {
-      const { medicinename, qty } = row;
+      const { qty } = row;
 
-      const updateStockQuery = 'UPDATE Stock_Inventory SET totalqty = totalqty - ? WHERE medicinename = ?';
-      db.query(updateStockQuery, [qty, medicinename], (err, results) => {
-        console.log("Result of updating Stock_Inventory quantity:", results);
+      const updateStockQuery = 'UPDATE Stock_Inventory SET totalqty = totalqty - ? WHERE medicinename = ? and dosage = ?';
+      db.query(updateStockQuery, [qty, medicinename, dosage], (err, results) => {
         if (err) {
           console.error('Error updating Stock_Inventory quantity:', err);
         }
-        console.log(`Stock_Inventory updated for ${medicinename}`);
       });
     }
 
@@ -305,10 +332,7 @@ app.post('/billing', async (req, res) => {
       billingData.balance,
       invoicenumber,
     ], (err, result) => {
-      if (err) throw err;
-      console.log('Billing_Inventory data inserted:');
-      
-      // Send the generated invoice number in the response
+      if (err) throw err;      
       res.json({ message: 'Billing_Inventory data inserted successfully!', invoicenumber });
     });
   } catch (error) {
