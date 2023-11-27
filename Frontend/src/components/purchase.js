@@ -21,16 +21,35 @@ const Purchase = () => {
   const [error, setError] = useState(null);
   const [selectedFromDate, setSelectedFromDate] = useState(null);
   const [selectedToDate, setSelectedToDate] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+
 
   const itemsPerPage = 25;
 
-  const filteredData = medicineData.filter(item =>
+  const filterData = () => {
+    return medicineData.filter((item) => {
+      console.log('fromDate:', fromDate);
+    console.log('toDate:', toDate);
+      const isSearched = item.medicinename.toLowerCase().includes(searchQuery.toLowerCase());
+      const itemDate = moment(item.time).startOf('day');
 
-    (item.medicinename && item.medicinename.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      const isWithinDateRange =
+        (!fromDate || itemDate.isSameOrAfter(moment(fromDate).startOf('day'))) &&
+        (!toDate || itemDate.isSameOrBefore(moment(toDate).endOf('day')));
+  
+      return isSearched && isWithinDateRange;
+                  
+    });
+  };
 
-    (!fromDate || moment(item.time).isSameOrAfter(fromDate)) &&
-    (!toDate || moment(item.time).isSameOrBefore(toDate))
-  );
+  useEffect(() => {
+    fetchpurchaseData();
+  }, [searchQuery, fromDate, toDate, medicineData]);
+  
+  useEffect(() => {
+    const filtered = filterData();
+    setFilteredData(filtered);
+  }, [searchQuery, fromDate, toDate, medicineData]);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -56,10 +75,6 @@ const Purchase = () => {
       }
     };
   };
-
-  useEffect(() => {
-    fetchpurchaseData();
-  }, [searchQuery]);
 
   useEffect(() => {
     const fetchpurchaseData = async () => {
@@ -191,7 +206,6 @@ const Purchase = () => {
       document.body.removeChild(a);
     });
   };
-
 
   const downloadPDF = () => {
     const html2canvasOptions = {
@@ -331,30 +345,30 @@ const Purchase = () => {
               <table>
                 <thead>
                   <tr>
-                   <th>Purchase Date</th>
-                    <th>Medicine Name</th>
-                    <th>Dosage</th>
-                    <th>Brand Name</th>
-                    <th>Purchase Price</th>
-                    <th>Purchase Amount</th>
-                    <th>MRP</th>
-                    <th>Total Qty</th>
-                    <th>Expiry Date</th>
+                   <th className='text-center'>Purchase Date</th>
+                    <th className='text-center'>Medicine Name</th>
+                    <th className='text-center'>Dosage</th>
+                    <th className='text-center'>Brand Name</th>
+                    <th className='text-center'>Purchase Price</th>
+                    <th className='text-center'>Purchase Amount</th>
+                    <th className='text-center'>MRP</th>
+                    <th className='text-center'>Total Qty</th>
+                    <th className='text-center'>Expiry Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {
                     dataOnCurrentPage.map((item) => (
                       <tr key={item.ID}>
-                        <td>{item.time ? moment(item.time).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
-                        <td>{item.medicinename || 'N/A'}</td>
-                        <td>{item.dosage || 'N/A'}</td>
-                        <td>{item.brandname || 'N/A'}</td>
-                        <td>{item.purchaseprice || 'N/A'}</td>
-                        <td>{item.purchaseamount || 'N/A'}</td>
-                        <td>{item.mrp || 'N/A'}</td>
-                        <td>{item.totalqty || 'N/A'}</td>
-                        <td>{item.expirydate ? moment(item.expirydate).format('YYYY-MM-DD') : 'N/A'}</td>
+                        <td className='text-center'>{item.time ? moment(item.time).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
+                        <td className='text-center'>{item.medicinename || 'N/A'}</td>
+                        <td className='text-center'>{item.dosage || 'N/A'}</td>
+                        <td className='text-center'>{item.brandname || 'N/A'}</td>
+                        <td className='text-center'>{item.purchaseprice || 'N/A'}</td>
+                        <td className='text-center'>{item.purchaseamount || 'N/A'}</td>
+                        <td className='text-center'>{item.mrp || 'N/A'}</td>
+                        <td className='text-center'>{item.totalqty || 'N/A'}</td>
+                        <td className='text-center'>{item.expirydate ? moment(item.expirydate).format('YYYY-MM-DD') : 'N/A'}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -379,3 +393,6 @@ const Purchase = () => {
 };
 
 export default Purchase;
+
+
+

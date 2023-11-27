@@ -11,7 +11,8 @@ function AddMedicine() {
     purchaseprice: '',
     totalqty: '',
     purchaseamount: 0,
-    dosageUnit: '0',
+    dosage:'',
+    dosageUnit: '',
     expirydate: '',
     mrp: ''
   });
@@ -101,6 +102,7 @@ function AddMedicine() {
       totalqty: '',
       purchaseamount: 0,
       dosage: '',
+      dosageUnit:'mg',
       expirydate: '',
       mrp: ''
     });
@@ -157,6 +159,7 @@ function AddMedicine() {
       // Proceed with submitting data to the database
       await axios.post('http://localhost:3000/purchase', formData);
       setShowPopup(true);
+      console.log("Form Submitted!");
   
       // Reset form data after successful submission
       setFormData({
@@ -167,6 +170,7 @@ function AddMedicine() {
         totalqty: '',
         purchaseamount: 0,
         dosage: '',
+        dosageUnit:'',
         expirydate: '',
         mrp: '',
       });
@@ -344,10 +348,10 @@ function AddMedicine() {
 
         <div className="row">
           <div className="col-md-12 text-end">
-          <button type="submit" className="btn btn-sm me-2" onClick={handleCancel}  style={{backgroundColor:'teal', color:'white'}}>
+          <button type="submit" className="btn btn-sm me-2" onClick={handleCancel}>
            Cancel
              </button>
-            <button type="button" className="btn btn-sm" onClick={handleSubmit} style={{backgroundColor:'teal', color:'white'}}>
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit}>
                 Submit
                </button>
 
@@ -357,9 +361,9 @@ function AddMedicine() {
         </div></form>
         <div
   className={`modal fade ${showPopup ? 'show' : ''}`}
- 
   tabIndex="1"
   role="dialog"
+  // style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
 >
   <div className="modal-dialog modal-dialog-centered">
     <div className="modal-content">
@@ -378,6 +382,7 @@ function AddMedicine() {
     </div>
   </div>
 </div>
+
 
       </div>
     </div>
