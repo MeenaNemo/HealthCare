@@ -1,361 +1,470 @@
-import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import logoImage from '../logo/logo.jpg';
-import profileImg from '../logo/profile.jpg'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignOutAlt, faCashRegister, faPlus, faBoxes, faFileMedical } from '@fortawesome/free-solid-svg-icons';
-import StockDetailsPage from './stock';
-import AddMedicine from './addmedicine';
-import Billing from './billing';
-import ConsultationForm from './consultationform';
-import Purchase from './purchase';
-import BillingHis from './billinghistory';
-import RegistrationForm from './registration';
-import { BiChevronUp, BiChevronDown } from 'react-icons/bi';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
+import logoImage from "../logo/logo.jpg";
+import profileImg from "../logo/profile.jpg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faSignOutAlt,
+  faCashRegister,
+  faPlus,
+  faBoxes,
+  faFileMedical,
+} from "@fortawesome/free-solid-svg-icons";
+import StockDetailsPage from "./stock";
+import AddMedicine from "./addmedicine";
+import Billing from "./billing";
+import ConsultationForm from "./consultationform";
+import Purchase from "./purchase";
+import BillingHis from "./billinghistory";
+import RegistrationForm from "./registration";
+import { BiChevronUp, BiChevronDown } from "react-icons/bi"; // Import necessary icons
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const UserProfile = ({ user, onLogout }) => {
-    const history = useHistory();
+  const history = useHistory();
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        history.push('/');
-        window.location.reload();
-        onLogout();
-    };
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    history.push("/");
+    window.location.reload();
+    onLogout();
+  };
 
-    return (
-        <div className="flex-grow-0" style={{ fontFamily: 'serif' }}>
-            <div className="d-flex align-items-center ">
-                {/* {user && user.user.user_profile_photo && ( */}
-                    <img
-                        // src={user.user.user_profile_photo}
-                        src={profileImg}
-                        alt="Profile"
-                        style={{ width: '50px', height: '60px', marginRight: '5px', borderRadius: '50%', marginBottom: '15px' }}
-                    />
-                {/* )} */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <div style={{ lineHeight: '2px' }}>
-                        <h6>
-                            <b> {user ? ` ${user.user.user_role} ` : 'Guest'}</b>
-                        </h6>
-                        <h6>
-                            <b> {` ${user.user.user_first_name} ${user.user.user_last_name} `}</b>
-                        </h6>
-                        <p style={{ fontSize: '14px' }}>{user ? user.user.user_email : ''}</p>
-                    </div>
-                    <div style={{ marginTop: '-20px' }}>
-                        <button className="btn btn-icon" onClick={handleLogout}>
-                            <FontAwesomeIcon icon={faSignOutAlt} />
-                        </button>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="flex-grow-0" style={{ fontFamily: "serif" }}>
+      <div className="d-flex align-items-center ">
+        {/* {user && user.user.user_profile_photo && ( */}
+        <img
+          // src={user.user.user_profile_photo}
+          src={profileImg}
+          alt="Profile"
+          style={{
+            width: "50px",
+            height: "60px",
+            marginRight: "5px",
+            borderRadius: "50%",
+            marginBottom: "15px",
+          }}
+        />
+        {/* )} */}
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ lineHeight: "2px" }}>
+            <h6>
+              <b> {user ? ` ${user.user.user_role} ` : "Guest"}</b>
+            </h6>
+            <h6>
+              <b>
+                {" "}
+                {` ${user.user.user_first_name} ${user.user.user_last_name} `}
+              </b>
+            </h6>
+            <p style={{ fontSize: "14px" }}>
+              {user ? user.user.user_email : ""}
+            </p>
+          </div>
+          <div style={{ marginTop: "-20px" }}>
+            <button className="btn btn-icon" onClick={handleLogout}>
+              <FontAwesomeIcon icon={faSignOutAlt} />
+            </button>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
-
 const Sidebar = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [user, setUser] = useState(null);
-    const [showStockDetails, setShowStockDetails] = useState(false);
-    const [showBilling, setShowBilling] = useState(false);
-    const [showAddMedicine, setShowAddMedicine] = useState(false);
-    const [showForm, setShowForm] = useState(false);
-    const [showPurchase, setShowPurchase] = useState(false);
-    const [showBillingHis, setShowBillingHis] = useState(false);
-    const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-    const history = useHistory();
+  const [isOpen, setIsOpen] = useState(true);
+  const [user, setUser] = useState(null);
+  const [showStockDetails, setShowStockDetails] = useState(false);
+  const [showBilling, setShowBilling] = useState(false);
+  const [showAddMedicine, setShowAddMedicine] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [showPurchase, setShowPurchase] = useState(false);
+  const [showBillingHis, setShowBillingHis] = useState(false);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const history = useHistory();
 
-    const handleRegistrationFormToggle = () => {
-        if (user && user.user.user_role === 'Doctor') {
-            setShowRegistrationForm(!showRegistrationForm);
-            // Hide other sections if needed when RegistrationForm is toggled
-            setShowBilling(false);
-            setShowStockDetails(false);
-            setShowAddMedicine(false);
-            setShowForm(false);
-            setShowPurchase(false);
-            setShowBillingHis(false);
-        }
-    };
+  const handleRegistrationFormToggle = () => {
+    if (user && user.user.user_role === "Doctor") {
+      setShowRegistrationForm(!showRegistrationForm);
+      // Hide other sections if needed when RegistrationForm is toggled
+      setShowBilling(false);
+      setShowStockDetails(false);
+      setShowAddMedicine(false);
+      setShowForm(false);
+      setShowPurchase(false);
+      setShowBillingHis(false);
+    }
+  };
 
-    const handleStockDetailsToggle = () => {
-        if (user && user.user.user_role === 'Pharmacist' || user.user.user_role === 'Doctor') {
-            setShowBilling(false);
-            setShowStockDetails(!showStockDetails);
-            setShowAddMedicine(false);
-            setShowForm(false);
-            setShowPurchase(false);
-            setShowBillingHis(false);
-        }
-    };
+  const handleStockDetailsToggle = () => {
+    if (
+      (user && user.user.user_role === "Pharmacist") ||
+      user.user.user_role === "Doctor"
+    ) {
+      setShowBilling(false);
+      setShowStockDetails(!showStockDetails);
+      setShowAddMedicine(false);
+      setShowForm(false);
+      setShowPurchase(false);
+      setShowBillingHis(false);
+    }
+  };
 
-    const handleBillingToggle = () => {
-        setShowBilling(prevState => !prevState);
+  const handleBillingToggle = () => {
+    setShowBilling((prevState) => !prevState);
 
-        if (user && user.user.user_role === 'Pharmacist' || user.user.user_role === 'Doctor') {
-            setShowBilling(!showBilling);
-            setShowStockDetails(false);
-            setShowAddMedicine(false);
-            setShowForm(false);
-            setShowPurchase(false);
-            setShowBillingHis(false);
-        }
-    };
+    if (
+      (user && user.user.user_role === "Pharmacist") ||
+      user.user.user_role === "Doctor"
+    ) {
+      setShowBilling(!showBilling);
+      setShowStockDetails(false);
+      setShowAddMedicine(false);
+      setShowForm(false);
+      setShowPurchase(false);
+      setShowBillingHis(false);
+    }
+  };
 
-    const handleAddMedicineToggle = () => {
-        if (user && user.user.user_role === 'Doctor') {
-            setShowBilling(false);
-            setShowStockDetails(false);
-            setShowAddMedicine(!showAddMedicine);
-            setShowForm(false);
-            setShowPurchase(false);
-            setShowBillingHis(false);
-        }
-    };
+  const handleAddMedicineToggle = () => {
+    if (user && user.user.user_role === "Doctor") {
+      setShowBilling(false);
+      setShowStockDetails(false);
+      setShowAddMedicine(!showAddMedicine);
+      setShowForm(false);
+      setShowPurchase(false);
+      setShowBillingHis(false);
+    }
+  };
 
-    const handleFormToggle = () => {
-        if (user && user.user.user_role === 'Doctor') {
-            setShowBilling(false);
-            setShowStockDetails(false);
-            setShowAddMedicine(false);
-            setShowForm(!showForm);
-            setShowPurchase(false);
-            setShowBillingHis(false);
-        }
-    };
+  const handleFormToggle = () => {
+    if (user && user.user.user_role === "Doctor") {
+      setShowBilling(false);
+      setShowStockDetails(false);
+      setShowAddMedicine(false);
+      setShowForm(!showForm);
+      setShowPurchase(false);
+      setShowBillingHis(false);
+    }
+  };
 
-    const handlePurchaseToggle = () => {
-        if (user && user.user.user_role === 'Doctor') {
-            setShowBilling(false);
-            setShowStockDetails(false);
-            setShowAddMedicine(false);
-            setShowForm(false);
-            setShowPurchase(!showPurchase);
-            setShowBillingHis(false);
-        }
-    };
+  const handlePurchaseToggle = () => {
+    if (user && user.user.user_role === "Doctor") {
+      setShowBilling(false);
+      setShowStockDetails(false);
+      setShowAddMedicine(false);
+      setShowForm(false);
+      setShowPurchase(!showPurchase);
+      setShowBillingHis(false);
+    }
+  };
 
-    const handleBillingHisToggle = () => {
-        if (user && user.user.user_role === 'Doctor') {
-            setShowBilling(false);
-            setShowStockDetails(false);
-            setShowAddMedicine(false);
-            setShowForm(false);
-            setShowPurchase(false);
-            setShowBillingHis(!showBillingHis);
-        }
-    };
+  const handleBillingHisToggle = () => {
+    if (user && user.user.user_role === "Doctor") {
+      setShowBilling(false);
+      setShowStockDetails(false);
+      setShowAddMedicine(false);
+      setShowForm(false);
+      setShowPurchase(false);
+      setShowBillingHis(!showBillingHis);
+    }
+  };
 
-    const handleToggle = () => {
-        setIsOpen(!isOpen);
-    };
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                const parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser);
-                setShowBilling(true);
-            } catch (error) {
-                console.error('Error parsing user data:', error);
-            }
-        }
-    }, []);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setShowBilling(true);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+  }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        history.push('/');
-        window.location.reload();
-    };
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    history.push("/");
+    window.location.reload();
+  };
 
-    return (
-        <div className="d-flex justify-content-between"  >
-            <div className=' shadow-sm p-3 bg-white rounded '
+  return (
+    <div className="container-fluid">
+      <div className="row ">
+        <div className="col-lg-3">
+          <div className="shadow-sm p-3 w-100 h-100 bg-white rounded">
+            <div className="d-flex align-items-center mb-3">
+              <img
+                src={logoImage}
+                alt="Profile"
                 style={{
-                    width:'28%',
-                    height: '100vh',
-                    fontFamily: 'serif',
+                  width: "60px",
+                  height: "60px",
+                  borderRadius: "50%",
+                  marginRight: "10px",
                 }}
-            >
-                <div className="d-flex align-items-center" >
-                    <div>
-                    <img
-                        src={logoImage}
-                        alt="Profile"
-                        style={{ width: '60px', height: '60px', borderRadius: '50%',marginTop:'-10px', marginRight: '10px' }}
-                    />
-                    </div>  
-                    <div style={{fontSize:'12px', lineHeight:'1px'}}>
-                    <h4 className="ms-3 "><b>ALAGAR CLINIC</b></h4>
-                <p>Plot No-1, Fenner Colony, Virattipattu, Madurai-16</p>
-                <p style={{marginLeft:'48px'}}><b>Contact:</b>88072 62725</p>
-                    </div>                   
-                </div>               
-                <br />
-                <button
-                    style={{ backgroundColor: 'white', width: '250px' }}
-                    className="btn text-dark d-flex align-items-center "
-                    onClick={handleToggle}
-                    type="button"
-                    id="dropdownMenuButton"
-                    aria-expanded={isOpen}
-                >
-                    <b>MENU</b> {' '}
-                    {isOpen ? <BiChevronUp /> : <BiChevronDown />}
-                </button>
-                <br />
-                <div className={`collapse${isOpen ? ' show' : ''}`} style={{ marginLeft: '50px' }}>
-                    <ul className="list-unstyled">
-                        {user && (user.user.user_role === 'Pharmacist' || user.user.user_role === 'Doctor') && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handleBillingToggle}>
-                                    <FontAwesomeIcon icon={faCashRegister} className="me-2" /><b>Billing</b> 
+              />
+              <div>
+                <h4 className="ms-0">
+                  <b>ALAGAR CLINIC</b>
+                </h4>
+                <p className="mb-0" style={{ fontSize: "12px" }}>
+                  Plot No-1, Fenner Colony, Virattipattu, Madurai-16.{" "}
+                  <b>Contact:</b> 88072 62725
+                </p>
+              </div>
+            </div>
 
-                                </a>
-                            </li>
-                        )}
+            <div className="col-12 ">
+              <button
+                className="btn text-dark w-100 mb-3 text "
+                style={{ backgroundColor: "teal", color: "white" }}
+                onClick={handleToggle}
+                type="button"
+                aria-expanded={isOpen}
+              >
+                <b style={{ color: "white" }}>MENU</b>{" "}
+                {isOpen ? <BiChevronUp /> : <BiChevronDown />}
+              </button>
+              <div className={`collapse${isOpen ? " show" : ""} `}>
+                <div className="d-flex justify-content-center">
+                  <ul
+                    className="list-unstyled mb-3"
+                    style={{ lineHeight: "21px" }}
+                  >
+                    {user &&
+                      (user.user.user_role === "Pharmacist" ||
+                        user.user.user_role === "Doctor") && (
+                        <li className="mb-2">
+                          <a
+                            href="#"
+                            className="text-decoration-none text-dark"
+                            onClick={handleBillingToggle}
+                          >
+                            <FontAwesomeIcon
+                              icon={faCashRegister}
+                              className="me-3"
+                            />
+                            <b>Billing</b>
+                          </a>
+                        </li>
+                      )}
 
-                        {user && user.user.user_role === 'Pharmacist' && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handleStockDetailsToggle}>
-                                    <FontAwesomeIcon icon={faBoxes} className="me-2" /> <b>Stock Details</b>
-                                </a>
-                            </li>
-                        )}
-
-                        <br/>
-
-                        {user && user.user.user_role === 'Doctor' && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handleAddMedicineToggle}>
-                                    <FontAwesomeIcon icon={faPlus} className="me-2" /><b>Add Medicine</b> 
-
-                                </a>
-                            </li>
-                        )}
-
-                        <br/>
-
-                        {user && user.user.user_role === 'Doctor' && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handleFormToggle}>
-                                    <FontAwesomeIcon icon={faFileMedical} className="me-2" /><b>Consultation Form</b> 
-
-                                </a>
-                            </li>
-                        )}
-
-                        <br/>
-
-                        {user && user.user.user_role === 'Doctor' && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handleStockDetailsToggle}>
-                                    <FontAwesomeIcon icon={faBoxes} className="me-2" /><b>Stock Details</b> 
-                                </a>
-                            </li>
-                        )}
-                        <br/>
-                        {user && user.user.user_role === 'Doctor' && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handlePurchaseToggle}>
-                                    <FontAwesomeIcon icon={faFileMedical} className="me-2" /> <b>Purchase History</b>
-                                </a>
-                            </li>
-                        )}
-                        <br/>
-
-                        {user && user.user.user_role === 'Doctor' && (
-                            <li className="mb-2">
-                                <a href="#" className="text-decoration-none text-dark" onClick={handleBillingHisToggle}>
-                                    <FontAwesomeIcon icon={faBoxes} className="me-2" /><b>Billing History</b>  
-                                </a>
-                            </li>
-                        )}
-
-{user && user.user.user_role === 'Doctor' && (
-                    <li className="mb-2">
-                        <a href="#" className="text-decoration-none text-dark" onClick={handleRegistrationFormToggle}>
-                            <FontAwesomeIcon icon={faFileMedical} className="me-2" /><b>Registration Form</b>
+                    {user && user.user.user_role === "Pharmacist" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handleStockDetailsToggle}
+                        >
+                          <FontAwesomeIcon icon={faBoxes} className="me-3" />{" "}
+                          <b>Stock Details</b>
                         </a>
-                    </li>
-                )}
-                        <br/>
-                    </ul>
+                      </li>
+                    )}
+
+                    <br />
+
+                    {user && user.user.user_role === "Doctor" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handleAddMedicineToggle}
+                        >
+                          <FontAwesomeIcon icon={faPlus} className="me-3" />
+                          <b>Add Medicine</b>
+                        </a>
+                      </li>
+                    )}
+
+                    <br />
+
+                    {user && user.user.user_role === "Doctor" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handleFormToggle}
+                        >
+                          <FontAwesomeIcon
+                            icon={faFileMedical}
+                            className="me-3"
+                          />
+                          <b>Consultation Form</b>
+                        </a>
+                      </li>
+                    )}
+
+                    <br />
+
+                    {user && user.user.user_role === "Doctor" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handleStockDetailsToggle}
+                        >
+                          <FontAwesomeIcon icon={faBoxes} className="me-3" />
+                          <b>Stock Details</b>
+                        </a>
+                      </li>
+                    )}
+                    <br />
+                    {user && user.user.user_role === "Doctor" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handlePurchaseToggle}
+                        >
+                          <FontAwesomeIcon
+                            icon={faFileMedical}
+                            className="me-3"
+                          />{" "}
+                          <b>Purchase History</b>
+                        </a>
+                      </li>
+                    )}
+                    <br />
+
+                    {user && user.user.user_role === "Doctor" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handleBillingHisToggle}
+                        >
+                          <FontAwesomeIcon icon={faBoxes} className="me-3" />
+                          <b>Billing History</b>
+                        </a>
+                      </li>
+                    )}
+                    <br />
+                    {user && user.user.user_role === "Doctor" && (
+                      <li className="mb-2">
+                        <a
+                          href="#"
+                          className="text-decoration-none text-dark"
+                          onClick={handleRegistrationFormToggle}
+                        >
+                          <FontAwesomeIcon
+                            icon={faFileMedical}
+                            className="me-4"
+                          />
+                          <b>Registration Form</b>
+                        </a>
+                      </li>
+                    )}
+                  </ul>
                 </div>
-                <hr /> 
+                <hr />
                 <div>
-                    {user && <UserProfile user={user} onLogout={handleLogout} />}
+                  {user && <UserProfile user={user} onLogout={handleLogout} />}
                 </div>
+              </div>
             </div>
 
-            <div style={{width:'70%'}}>
-                <div >
-                
-                <div className="stock-details-content" style={{ display: showStockDetails ? 'block' : 'none'}}>
-                    {showStockDetails && (
-                        <div className="stock-details-content" >
-                            <StockDetailsPage />
-                        </div>
-                    )}
-                </div>
+            {/* <hr />
 
-                <div className="billing-content" style={{ display: showBilling ? 'block' : 'none' }}>
-                    {showBilling && (
-                        <div className="billing-content" >
-                            <Billing />
-                        </div>
-                    )}
-                </div>
-
-                <div className="stock-details-content" style={{ display: showAddMedicine ? 'block' : 'none' }}>
-                    {showAddMedicine && (
-                        <div className="stock-details-content" >
-                            <AddMedicine />
-                        </div>
-                    )}
-                </div>
-
-                <div className="stock-details-content" style={{ display: showForm ? 'block' : 'none'}}>
-                    {showForm && (
-                        <div className="stock-details-content" >
-                            <ConsultationForm />
-                        </div>
-                    )}
-                </div>
-
-                <div className="stock-details-content" style={{ display: showPurchase ? 'block' : 'none'}}>
-                    {showPurchase && (
-                        <div className="stock-details-content" >
-                            <Purchase />
-                        </div>
-                    )}
-                </div>
-
-                <div className="stock-details-content" style={{ display: showBillingHis ? 'block' : 'none' }}>
-                    {showBillingHis && (
-                        <div className="stock-details-content" >
-                            <BillingHis />
-                        </div>
-                    )}
-                </div>
-
-                <div className="registration-form-content" style={{ display: showRegistrationForm ? 'block' : 'none' }}>
-                {showRegistrationForm && (
-                    <div className="registration-form-content">
-                        <RegistrationForm />
-                    </div>
-                )}
-            </div>
-                </div>
-            </div>
+            <div>
+              {user && <UserProfile user={user} onLogout={handleLogout} />}
+            </div> */}
+          </div>
         </div>
-    );
+
+        <div className="col-lg-9 col-12">
+          <div className="row">
+            <div className="col">
+              <div
+                className="stock-details-content"
+                style={{ display: showStockDetails ? "block" : "none" }}
+              >
+                {showStockDetails && (
+                  <div className="stock-details-content">
+                    <StockDetailsPage />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="billing-content"
+                style={{ display: showBilling ? "block" : "none" }}
+              >
+                {showBilling && (
+                  <div className="billing-content">
+                    <Billing />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="stock-details-content"
+                style={{ display: showAddMedicine ? "block" : "none" }}
+              >
+                {showAddMedicine && (
+                  <div className="stock-details-content">
+                    <AddMedicine />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="stock-details-content"
+                style={{ display: showForm ? "block" : "none" }}
+              >
+                {showForm && (
+                  <div className="stock-details-content">
+                    <ConsultationForm />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="stock-details-content"
+                style={{ display: showPurchase ? "block" : "none" }}
+              >
+                {showPurchase && (
+                  <div className="stock-details-content">
+                    <Purchase />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="stock-details-content"
+                style={{ display: showBillingHis ? "block" : "none" }}
+              >
+                {showBillingHis && (
+                  <div className="stock-details-content">
+                    <BillingHis />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="registration-form-content"
+                style={{ display: showRegistrationForm ? "block" : "none" }}
+              >
+                {showRegistrationForm && (
+                  <div className="registration-form-content">
+                    <RegistrationForm />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Sidebar;
-

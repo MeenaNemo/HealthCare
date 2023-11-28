@@ -9,6 +9,9 @@ import Billing from "./components/billing";
 import Purchase from "./components/purchase";
 import BillingHis from "./components/billinghistory";
 import RegistrationForm from "./components/registration";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 
 const App = () => {
   return (

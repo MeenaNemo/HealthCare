@@ -1,31 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { DatePicker } from 'antd';
-import moment from 'moment';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import '../styles/stock.css';
-import billbg from '../logo/ac.jpg'
-import ReactToPrint from 'react-to-print';
-
-
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { DatePicker } from "antd";
+import moment from "moment";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import "../styles/stock.css";
+import billbg from "../logo/ac.jpg";
 
 const BillingHis = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [medicineData, setMedicineData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [print, setPrint] = useState(false);
-  const [invoiceData, setInvoiceData] = useState('');
-  const componentRef = useRef();
-
+  const [isviewed, setisViewed] = useState(false);
+  const [invoiceData, setInvoiceData] = useState("");
   const itemsPerPage = 25;
+  const [loader, setLoader] = useState(false);
 
   const filteredData = medicineData.filter((item) =>
     (item.mobileno && item.mobileno.toLowerCase().includes(searchQuery.toLowerCase())) &&
@@ -38,11 +34,10 @@ const BillingHis = () => {
 
   const fetchbillingData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/billingdata');
+      const response = await axios.get("http://localhost:3000/billingdata");
       setMedicineData(response.data);
-
     } catch (error) {
-      setError('Error fetching data');
+      setError("Error fetching data");
     } finally {
       setLoading(false);
     }
@@ -55,7 +50,6 @@ const BillingHis = () => {
   useEffect(() => {
     fetchbillingData();
   }, []);
-
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -82,146 +76,226 @@ const BillingHis = () => {
     setToDate(dateString);
   };
 
-  const downloadPDF = async (invoiceNumber) => {
+  const view = async (invoiceNumber) => {
     try {
-      const response = await axios.get(`http://localhost:3000/billingdata/${invoiceNumber}`);
+      const response = await axios.get(
+        `http://localhost:3000/billingdata/${invoiceNumber}`
+      );
       const invoiceData = response.data;
-
-      const capture = document.querySelector('.oldbill');
-
-      html2canvas(capture).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const doc = new jsPDF('p', 'mm', 'a4');
-
-        doc.addImage(imgData, 'PNG', 0, 0, 210, 297); // Adjust image dimensions as needed
-
-        const fileName = `invoice_${invoiceNumber}.pdf`;
-        doc.save(fileName);
-      });
+      setInvoiceData(invoiceData);
+      setisViewed(true);
     } catch (error) {
-      console.error('Error fetching or processing invoice data:', error);
+      console.error("Error fetching or processing invoice data:", error);
     }
   };
 
+  const downloadPDF = () => {
+    setLoader(true);
 
-  
+    const html2canvasOptions = {
+      scale: 2,
+      logging: false,
+      allowTaint: true,
+    };
+
+    const capture = document.querySelector(".oldbill");
+
+    html2canvas(capture, html2canvasOptions).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const jsPDFOptions = {
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      };
+
+      const doc = new jsPDF(jsPDFOptions);
+      const imageWidth = 330;
+      const imageHeight = 300;
+
+      doc.addImage(imgData, "PNG", 0, 0, imageWidth, imageHeight);
+
+      const invoiceNumber = invoiceData[0].invoice_number;
+      const fileName = `invoice_${invoiceNumber}.pdf`;
+
+      doc.save(fileName);
+      setLoader(false);
+    });
+  };
 
   return (
-    <div>
-      <div style={{
-        fontSize: '14px',
-        fontFamily: 'serif',
-        backgroundSize: '100% 100%',
-        backgroundRepeat: 'no-repeat',
-      }}>
-        <div className="d-flex align-items-center justify-content-between">
-          <div style={{ margin: '20px' }}>
-            <h2>
-              <b>Billing History</b>
-            </h2>
-
-          </div>
-
-        </div>
-        <br />
-        <div className="d-flex align-items-center justify-content-between">
-
-        <div className="search-bar" style={{ height: '30px' ,marginLeft:'10px'}}>
-            <FontAwesomeIcon icon={faSearch} />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(event) => handleSearchChange(event.target.value)}
-            />
-          </div>
-
-          <div className='right-bottom'  >
-            From : <DatePicker onChange={handleFromDateChange} className="bold-placeholder" /> <span> </span>
-            To : <DatePicker onChange={handleToDateChange} className="bold-placeholder" /> <span> </span>
-          </div>
-
-        </div>
-        <div className="billing-table">
-          {dataOnCurrentPage.length === 0 ? (
-            <p>No search results found</p>
-          ) : (
-            <div>
-              <table>
-                <thead>
-                  <tr>
-                    <th className="text-center">Created Date</th>
-                    <th className="text-center">Invoice Number</th>
-                    <th className="text-center">Patient Name</th>
-                    <th className="text-center">Mobile Number</th>
-                    <th className="text-center">Grand Total</th>
-                    <th className="text-center">Bill</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dataOnCurrentPage.map((item) => (
-                    <tr key={item.id}>
-                      <td className="text-center">{item.createdate ? moment(item.createdate).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</td>
-                      <td className="text-center">{item.invoice_number || 'N/A'}</td>
-                      <td className="text-center">{item.patientname || 'N/A'}</td>
-                      <td className="text-center">{item.mobileno || 'N/A'}</td>
-                      <td className="text-center">{item.grandtotal || 'N/A'}</td>
-
-                      
-                      <td className="text-center">
-            <ReactToPrint
-              trigger={() => (
-                <button
-                  type="button"
-                  className="btn"
-                  style={{ backgroundColor: 'teal', color: 'white' }}
-                >
-                  Print
-                </button>
-              )}
-              content={() => componentRef.current}
-              onBeforePrint={() => downloadPDF(item.invoice_number)}
-              forwardedRef={componentRef} // Pass the forwardedRef here
-
-            />
-          </td>
-                        
-                        {/* <button onClick={() => downloadPDF(item.invoice_number)}> Print </button> */}
-                        
-                        
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-
-        <div className="pagination">
-          <button onClick={handlePrevious} disabled={currentPage === 1}>
-            Previous
-          </button>
-          <span> {currentPage} of {Math.ceil(filteredData.length / itemsPerPage)}</span>
-          <button onClick={handleNext} disabled={currentPage === Math.ceil(filteredData.length / itemsPerPage)}>
-            Next
-          </button>
-        </div>
-      </div>
+    <>
       <div>
-        {
-          invoiceData && (
+        {!isviewed ? (
+          <div
+            style={{
+              fontSize: "14px",
+              fontFamily: "serif",
+              backgroundSize: "100% 100%",
+              backgroundRepeat: "no-repeat",
+            }}
+          >
+            <div className="d-flex align-items-center justify-content-between">
+              <div style={{ margin: "20px" }}>
+                <h2>
+                  <b>Billing History</b>
+                </h2>
+              </div>
+            </div>
+            <br />
+            <div className="d-flex align-items-center justify-content-between">
+              <div
+                className="search-bar"
+                style={{ height: "30px", marginLeft: "10px" }}
+              >
+                <FontAwesomeIcon icon={faSearch} />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(event) => handleSearchChange(event.target.value)}
+                />
+              </div>
 
-            <div className="oldbill mt-5" style={{ marginLeft: '180px', marginTop: '40px' }}  ref={componentRef}>
-              <div className="p-4 bg-white border border-dark" style={{ width: '65%', height: '800px', backgroundImage: `url(${billbg})`, backgroundSize: '100% 100%', fontFamily: 'serif' }}>
+              <div className="right-bottom">
+                From :{" "}
+                <DatePicker
+                  onChange={handleFromDateChange}
+                  className="bold-placeholder"
+                />{" "}
+                <span> </span>
+                To :{" "}
+                <DatePicker
+                  onChange={handleToDateChange}
+                  className="bold-placeholder"
+                />{" "}
+                <span> </span>
+              </div>
+            </div>
+            <div className="billing-table">
+              {dataOnCurrentPage.length === 0 ? (
+                <p>No search results found</p>
+              ) : (
+                <div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th className="text-center">Created Date</th>
+                        <th className="text-center">Invoice Number</th>
+                        <th className="text-center">Patient Name</th>
+                        <th className="text-center">Mobile Number</th>
+                        <th className="text-center">Grand Total</th>
+                        <th className="text-center">Bill</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dataOnCurrentPage.map((item) => (
+                        <tr key={item.id}>
+                          <td className="text-center">
+                            {item.createdate
+                              ? moment(item.createdate).format("YYYY-MM-DD")
+                              : "N/A" || "N/A"}
+                          </td>
+                          <td className="text-center">
+                            {item.invoice_number || "N/A"}
+                          </td>
+                          <td className="text-center">
+                            {item.patientname || "N/A"}
+                          </td>
+                          <td className="text-center">
+                            {item.mobileno || "N/A"}
+                          </td>
+                          <td className="text-center">
+                            {item.grandtotal || "N/A"}
+                          </td>
+                          <td className="text-center">
+                            <button onClick={() => view(item.invoice_number)}>
+                              {" "}
+                              view{" "}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="pagination">
+              <button onClick={handlePrevious} disabled={currentPage === 1}>
+                Previous
+              </button>
+              <span>
+                {" "}
+                {currentPage} of {Math.ceil(filteredData.length / itemsPerPage)}
+              </span>
+              <button
+                onClick={handleNext}
+                disabled={
+                  currentPage === Math.ceil(filteredData.length / itemsPerPage)
+                }
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        ) : (
+          invoiceData && (
+            <div
+              className="oldbill mt-5"
+              style={{ marginLeft: "180px", marginTop: "40px" }}
+            >
+              <div
+                className="p-4 bg-white border border-dark"
+                style={{
+                  width: "65%",
+                  height: "800px",
+                  backgroundImage: `url(${billbg})`,
+                  backgroundSize: "100% 100%",
+                  fontFamily: "serif",
+                }}
+              >
+                <div>
+                  <button
+                    type="button"
+                    style={{
+                      backgroundColor: "teal",
+                      color: "white",
+                      marginRight: "10px",
+                      fontFamily: "Arial, sans-serif",
+                      fontSize: "16px",
+                    }}
+                    className="btn"
+                    onClick={downloadPDF}
+                    disabled={!(loader === false)}
+                  >
+                    Download as PDF
+                  </button>
+                </div>
 
                 <div className="mt-5">
                   <div className="d-flex justify-content-end">
-                    <div className="mt-5" style={{ marginLeft: '40%', marginTop: '110px', height: '70px' }}>
+                    <div
+                      className="mt-5"
+                      style={{
+                        marginLeft: "40%",
+                        marginTop: "110px",
+                        height: "70px",
+                      }}
+                    >
                       <div>
-                        <h3 style={{ color: 'darkblue' }}><b>Invoice</b></h3>
+                        <h3 style={{ color: "darkblue" }}>
+                          <b>Invoice</b>
+                        </h3>
                         <h6>Invoice No: {invoiceData[0].invoice_number}</h6>
-                        <h6>Invoice Date: {invoiceData[0].createdate ? moment(invoiceData[0].createdate).format('YYYY-MM-DD') : 'N/A' || 'N/A'}</h6>
+                        <h6>
+                          Invoice Date:{" "}
+                          {invoiceData[0].createdate
+                            ? moment(invoiceData[0].createdate).format(
+                                "YYYY-MM-DD"
+                              )
+                            : "N/A" || "N/A"}
+                        </h6>
                       </div>
                     </div>
                   </div>
@@ -232,32 +306,57 @@ const BillingHis = () => {
                     <table className="table table-bordered">
                       <thead className="bg-primary text-white">
                         <tr>
-                          <th className="p-3 text-center border-bottom">S.No</th>
-                          <th className="p-3 text-center border-bottom">Medicine Name</th>
+                          <th className="p-3 text-center border-bottom">
+                            S.No
+                          </th>
+                          <th className="p-3 text-center border-bottom">
+                            Medicine Name
+                          </th>
                           <th className="p-3 text-center border-bottom">Qty</th>
-                          <th className="p-3 text-center border-bottom">Price</th>
-                          <th className="p-3 text-center border-bottom">Total</th>
+                          <th className="p-3 text-center border-bottom">
+                            Price
+                          </th>
+                          <th className="p-3 text-center border-bottom">
+                            Total
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {invoiceData.map((data, index) => {
-                          const tablets = JSON.parse(data.tabletdetails).tablets;
+                          const tablets = JSON.parse(
+                            data.tabletdetails
+                          ).tablets;
 
                           return (
                             <React.Fragment key={data.id}>
                               {tablets && tablets.length > 0 ? (
                                 tablets.map((tablet, tabletIndex) => (
-                                  <tr key={`${data.id}-${tabletIndex}`} className="border-bottom">
-                                    <td className="p-3 text-center">{index * tablets.length + tabletIndex + 1}</td>
-                                    <td className="p-3 text-center">{tablet.medicinename}</td>
-                                    <td className="p-3 text-center">{tablet.qty}</td>
-                                    <td className="p-3 text-center">{tablet.qtyprice}</td>
-                                    <td className="p-3 text-center">{tablet.total}</td>
+                                  <tr
+                                    key={`${data.id}-${tabletIndex}`}
+                                    className="border-bottom"
+                                  >
+                                    <td className="p-3 text-center">
+                                      {index * tablets.length + tabletIndex + 1}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {tablet.medicinename}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {tablet.qty}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {tablet.qtyprice}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {tablet.total}
+                                    </td>
                                   </tr>
                                 ))
                               ) : (
                                 <tr>
-                                  <td className="p-3 text-center" colSpan="5">No data available</td>
+                                  <td className="p-3 text-center" colSpan="5">
+                                    No data available
+                                  </td>
                                 </tr>
                               )}
                             </React.Fragment>
@@ -268,7 +367,10 @@ const BillingHis = () => {
                   </div>
                 </div>
 
-                <div className="d-flex align-items-center justify-content-between ms-5" style={{ marginTop: '50px' }}>
+                <div
+                  className="d-flex align-items-center justify-content-between ms-5"
+                  style={{ marginTop: "50px" }}
+                >
                   <div>
                     <div className="col-md-12 mt-3 text-start">
                       Cash Given: {invoiceData[0].cashgiven}
@@ -277,7 +379,7 @@ const BillingHis = () => {
                       Balance: {invoiceData[0].balance}
                     </div>
                   </div>
-                  <div style={{ marginRight: '40px' }}>
+                  <div style={{ marginRight: "40px" }}>
                     <div className="col-md-12 mt-3 text-end">
                       Subtotal: {invoiceData[0].subtotal}
                     </div>
@@ -291,14 +393,13 @@ const BillingHis = () => {
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           )
-        }
+        )}
+        ;
       </div>
-      
-    </div>
+    </>
   );
 };
 

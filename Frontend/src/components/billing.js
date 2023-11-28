@@ -1,71 +1,81 @@
-import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import billbg from '../logo/ac.jpg'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-import '../styles/stock.css'
+import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import billbg from "../logo/ac.jpg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import "../styles/stock.css";
+import FloatingAlert from "./floatingalert";
 
 function Billing() {
-  const [medicineRows, setMedicineRows] = useState(Array.from({ length: 3 }, (_, index) => ({ id: index + 1 })));
-  const [subtotal, setSubtotal] = useState('');
-  const [discount, setDiscountTotal] = useState('');
-  const [grandtotal, setGrandTotal] = useState('');
+  const [medicineRows, setMedicineRows] = useState(
+    Array.from({ length: 3 }, (_, index) => ({ id: index + 1 }))
+  );
+  const [subtotal, setSubtotal] = useState("");
+  const [discount, setDiscountTotal] = useState("");
+  const [grandtotal, setGrandTotal] = useState("");
   const [submittedData, setSubmittedData] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const inputRefs = useRef([]);
   const [loader, setLoader] = useState(false);
-  const [cashGiven, setCashGiven] = useState('');
-  const [balance, setBalance] = useState('');
-  const [mobileNo, setMobileNo] = useState('');
-  const [countryCode, setCountryCode] = useState('+91');
-  const [suggestions, setSuggestions] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [cashGiven, setCashGiven] = useState("");
+  const [balance, setBalance] = useState("");
+  const [mobileNo, setMobileNo] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [suggestions, setSuggestions] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [alert, setAlert] = useState({ message: "", type: "" });
+
+  const showAlert = (message, type) => {
+    setAlert({ message, type });
+  };
 
   useEffect(() => {
     setMedicineRows((prevRows) => {
       const newRows = prevRows.map((row) => ({
         ...row,
-        refs: Array.from({ length: 4 }, (_, i) => inputRefs.current[row.id]?.[i] || null),
+        refs: Array.from(
+          { length: 4 },
+          (_, i) => inputRefs.current[row.id]?.[i] || null
+        ),
       }));
       return newRows;
     });
   }, []);
 
   useEffect(() => {
-    if (cashGiven !== '' && grandtotal !== '') {
-      const newCashGiven = parseFloat(cashGiven) || '';
+    if (cashGiven !== "" && grandtotal !== "") {
+      const newCashGiven = parseFloat(cashGiven) || "";
       const newBalance = (newCashGiven - grandtotal).toFixed(2);
       setBalance(newBalance);
     }
   }, [cashGiven, grandtotal]);
 
-  const currentDateFormatted = new Date().toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
+  const currentDateFormatted = new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
   });
 
   const handleMedicineNameChange = async (event, id) => {
-
     const inputValue = event.target.value;
-    const sanitizedValue = inputValue.replace(/^\d*/, '');
+    const sanitizedValue = inputValue.replace(/^\d*/, "");
 
     event.target.value = sanitizedValue;
 
     try {
-      const response = await axios.get(`http://localhost:3000/suggestions?partialName=${inputValue}`);
+      const response = await axios.get(
+        `http://localhost:3000/suggestions?partialName=${inputValue}`
+      );
       const fetchedSuggestions = response.data.suggestions;
       setSuggestions(fetchedSuggestions);
-
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      console.error("Error fetching suggestions:", error);
     }
   };
 
   const handleQuantity = async (event, rowIndex, colIndex, id) => {
-
     const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
     const qtyprice = parseFloat(inputRefs.current[id]?.[2].value) || 0;
     const total = qty * qtyprice;
@@ -74,11 +84,13 @@ function Billing() {
       totalInput.value = total.toFixed(2);
     }
 
-    const tabletname = inputRefs.current[id]?.[0].value || '';
+    const tabletname = inputRefs.current[id]?.[0].value || "";
     const { medicinename, dosage } = extractMedicineInfo(tabletname);
 
     try {
-      const response = await axios.get(`http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`);
+      const response = await axios.get(
+        `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+      );
       const availableQuantity = response.data.availableQuantity;
 
       const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
@@ -88,101 +100,100 @@ function Billing() {
         const priceInput = inputRefs.current[id] && inputRefs.current[id][2];
 
         if (qtyInput) {
-          qtyInput.value = '';
-          priceInput.value = '';
-          totalInput.value = '';
+          qtyInput.value = "";
+          priceInput.value = "";
+          totalInput.value = "";
         }
       }
     } catch (error) {
-      console.error('Error fetching available quantity:', error);
+      console.error("Error fetching available quantity:", error);
     }
 
-
     setMedicineRows((prevRows) =>
-      prevRows.map((row) =>
-        row.id === id ? { ...row, total } : row
-      )
+      prevRows.map((row) => (row.id === id ? { ...row, total } : row))
     );
-
-  }
+  };
 
   const handleTotal = () => {
-    const newSubtotal = medicineRows.reduce((acc, row) => acc + (row.total || 0), 0).toFixed(2);
+    const newSubtotal = medicineRows
+      .reduce((acc, row) => acc + (row.total || 0), 0)
+      .toFixed(2);
     setSubtotal(newSubtotal);
 
     const newGrandTotal = (newSubtotal - discount).toFixed(2);
     setGrandTotal(newGrandTotal);
-  }
+  };
 
   const extractMedicineInfo = (tabletname) => {
     const dosagePattern = /\b(\d+(?:mg|ml|gm))\b/g;
 
     const dosageMatch = tabletname.match(dosagePattern);
-    const dosage = dosageMatch ? dosageMatch[0] : '';
+    const dosage = dosageMatch ? dosageMatch[0] : "";
 
-    const medicinename = tabletname.replace(dosagePattern, '').trim();
+    const medicinename = tabletname.replace(dosagePattern, "").trim();
 
     return { medicinename, dosage };
   };
 
   const handleKeyPress = async (event, rowIndex, colIndex, id) => {
-
     const medicineNameInput = inputRefs.current[id]?.[0];
-    const empty = medicineNameInput?.value || '';
+    const empty = medicineNameInput?.value || "";
 
-    if (empty.trim() === '') {
+    if (empty.trim() === "") {
       return;
     }
 
-    if (event.target.tagName.toLowerCase() === 'input') {
+    if (event.target.tagName.toLowerCase() === "input") {
       event.preventDefault();
       if (colIndex === 0 || colIndex === 1 || colIndex === 2) {
-        const tabletname = inputRefs.current[id]?.[0].value || '';
+        const tabletname = inputRefs.current[id]?.[0].value || "";
         const { medicinename, dosage } = extractMedicineInfo(tabletname);
 
         if (event.target.id === `medicinename${id}`) {
           try {
-            const response = await axios.get(`http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`);
+            const response = await axios.get(
+              `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+            );
             const expired = response.data.expired;
 
             if (expired) {
               const expiredDate = new Date(expired);
-              const expiredDateString = expiredDate.toISOString().split('T')[0]; // Extracts the date portion
+              const expiredDateString = expiredDate.toISOString().split("T")[0]; // Extracts the date portion
 
-              alert(`${medicinename} ${dosage} expired on ${expiredDateString} !`);
+              showAlert(
+                `${medicinename} ${dosage} expired on ${expiredDateString} !`
+              );
               const medicineNameInput = inputRefs.current[id]?.[0];
               if (medicineNameInput) {
-                medicineNameInput.value = '';
+                medicineNameInput.value = "";
               }
-
             }
-
           } catch (error) {
-
-            if (event.target.id !== '') {
-              alert(`"${medicinename}" Stock not available .`);
+            if (event.target.id !== "") {
+              showAlert(`"${medicinename}" Stock not available .`);
               const medicineNameInput = inputRefs.current[id]?.[0];
               if (medicineNameInput) {
-                medicineNameInput.value = '';
+                medicineNameInput.value = "";
               }
             }
           }
 
           try {
-            const response = await axios.get(`http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`);
+            const response = await axios.get(
+              `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+            );
             const mrp = response.data.mrp;
 
             const qtyPriceInput = inputRefs.current[id]?.[2];
             if (qtyPriceInput) {
-              qtyPriceInput.value = mrp || '';
+              qtyPriceInput.value = mrp || "";
             }
           } catch (error) {
-            console.error('Error fetching MRP:', error);
+            console.error("Error fetching MRP:", error);
           }
         }
       }
     }
-
   };
 
   const handleAddMedicine = () => {
@@ -204,12 +215,17 @@ function Billing() {
   };
 
   const handleCashGivenBlur = () => {
-    const formattedValue = parseFloat(cashGiven.replace(/[^\d.]/g, '')).toFixed(2);
+    const formattedValue = parseFloat(cashGiven.replace(/[^\d.]/g, "")).toFixed(
+      2
+    );
     setCashGiven(formattedValue);
   };
 
   const handleDiscountBlur = () => {
-    const discountValue = typeof discount === 'number' ? discount : parseFloat(discount.replace(/[^\d.]/g, ''));
+    const discountValue =
+      typeof discount === "number"
+        ? discount
+        : parseFloat(discount.replace(/[^\d.]/g, ""));
 
     const formattedValue = discountValue.toFixed(2);
     setDiscountTotal(formattedValue);
@@ -220,12 +236,12 @@ function Billing() {
 
   const handleInputChange = (e) => {
     const inputValue = e.target.value;
-    const formattedValue = inputValue.replace(/\D/g, '').slice(0, 10);
+    const formattedValue = inputValue.replace(/\D/g, "").slice(0, 10);
     setMobileNo(formattedValue);
   };
 
   const handleDiscountChange = (event) => {
-    const newDiscountTotal = (parseFloat(event.target.value) || '');
+    const newDiscountTotal = parseFloat(event.target.value) || "";
     setDiscountTotal(newDiscountTotal);
 
     const newGrandTotal = subtotal - newDiscountTotal;
@@ -242,18 +258,19 @@ function Billing() {
     const updatedMedicineRows = medicineRows
       .map((row) => {
         const medicinename = inputRefs.current[row.id][0].value.trim();
-        const qty = parseFloat(inputRefs.current[row.id][1].value) || '';
-        const qtyprice = parseFloat(inputRefs.current[row.id][2].value) || '';
-        const total = parseFloat(inputRefs.current[row.id][3].value) || '';
+        const qty = parseFloat(inputRefs.current[row.id][1].value) || "";
+        const qtyprice = parseFloat(inputRefs.current[row.id][2].value) || "";
+        const total = parseFloat(inputRefs.current[row.id][3].value) || "";
 
-
-        if ((medicinename || qty || qtyprice) && !(medicinename && qty && qtyprice)) {
-          alert('Please fill in all field');
+        if (
+          (medicinename || qty || qtyprice) &&
+          !(medicinename && qty && qtyprice)
+        ) {
+          showAlert("Please fill in all fields", "error");
           hasIncompleteRow = true;
 
           return null;
         }
-
         inputRefs.current[row.id][3].value = total;
 
         return {
@@ -264,29 +281,29 @@ function Billing() {
           total: total,
         };
       })
-      .filter((row) => row && row.medicinename && row.medicinename.trim() !== '');
+      .filter(
+        (row) => row && row.medicinename && row.medicinename.trim() !== ""
+      );
 
     if (hasIncompleteRow) {
       return;
     }
 
-    const patientName = document.getElementById('patientname').value.trim();
+    const patientName = document.getElementById("patientname").value.trim();
     if (!patientName) {
-      alert('Please fill the Patient Name');
+      showAlert("Please fill the Patient Name");
       return;
     }
 
-    const mobileno = document.getElementById('mobileno').value.trim();
+    const mobileno = document.getElementById("mobileno").value.trim();
     if (!mobileno || mobileno.length < 10) {
-      alert('Check Mobile Number');
+      showAlert("Check Mobile Number");
       return;
     }
 
-
-
-    const cashgiven = document.getElementById('cashgiven').value.trim();
+    const cashgiven = document.getElementById("cashgiven").value.trim();
     if (!cashgiven) {
-      alert('Please fill the Cash given');
+      showAlert("Please fill the Cash given");
       return;
     }
 
@@ -294,32 +311,36 @@ function Billing() {
 
     const billingData = {
       medicineRows: updatedMedicineRows,
-      subtotal: document.getElementById('subtotal').value || '',
+      subtotal: document.getElementById("subtotal").value || "",
       discount: discount,
-      grandtotal: document.getElementById('grandtotal').value || '',
-      patientname: document.getElementById('patientname').value || '',
-      doctorname: document.getElementById('doctorname').value || '',
-      mobileno: document.getElementById('mobileno').value || '',
+      grandtotal: document.getElementById("grandtotal").value || "",
+      patientname: document.getElementById("patientname").value || "",
+      doctorname: document.getElementById("doctorname").value || "",
+      mobileno: document.getElementById("mobileno").value || "",
       cashgiven: cashgiven,
       balance: balance,
       medicinename: updatedMedicineRows.map((row) => row.medicinename),
     };
 
     try {
-      const response = await axios.post('http://localhost:3000/billing', billingData);
+      const response = await axios.post(
+        "http://localhost:3000/billing",
+        billingData
+      );
       const generatedInvoiceNumber = response.data.invoicenumber;
       console.log("Generated Invoice Number:", generatedInvoiceNumber);
 
       setIsSubmitted(true);
-      setInvoiceNumber(generatedInvoiceNumber);
+      showAlert("Successfully submitted!", "success");
 
+      setInvoiceNumber(generatedInvoiceNumber);
     } catch (error) {
-      console.error('Error submitting billing data:', error);
+      console.error("Error submitting billing data:", error);
     }
   };
 
   const handlePdf = () => {
-    const capture = document.querySelector('.bill');
+    const capture = document.querySelector(".bill");
     setLoader(true);
     const html2canvasOptions = {
       scale: 2,
@@ -328,11 +349,11 @@ function Billing() {
     };
 
     html2canvas(capture, html2canvasOptions).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL("image/png");
       const jsPDFOptions = {
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
       };
 
       const doc = new jsPDF(jsPDFOptions);
@@ -342,9 +363,16 @@ function Billing() {
       const marginLeft = (doc.internal.pageSize.width - imageWidth) / 2;
       const marginTop = (doc.internal.pageSize.height - imageHeight) / 2;
 
-      doc.addImage(imgData, 'PNG', marginLeft, marginTop, imageWidth, imageHeight);
+      doc.addImage(
+        imgData,
+        "PNG",
+        marginLeft,
+        marginTop,
+        imageWidth,
+        imageHeight
+      );
       setLoader(false);
-      doc.save('bill.pdf');
+      doc.save("bill.pdf");
     });
   };
 
@@ -355,17 +383,21 @@ function Billing() {
     message += `Discount: ${discount}\n`;
     message += `Grand Total: ${grandtotal}\n\nPurchased Tablets:\n`;
 
-    message += 'S.No | Medicine Name | Qty | Price | Total\n';
-    message += '--------------------------------------------\n';
+    message += "S.No | Medicine Name | Qty | Price | Total\n";
+    message += "--------------------------------------------\n";
 
     submittedData.forEach((data, index) => {
       const { medicinename, qty, qtyprice, total } = data;
-      message += `${index + 1} | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
+      message += `${
+        index + 1
+      } | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
     });
 
-    const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message
+    )}`;
 
-    window.open(whatsappLink, '_blank');
+    window.open(whatsappLink, "_blank");
   };
 
   const handlePrint = () => {
@@ -373,26 +405,23 @@ function Billing() {
   };
 
   const handleCancel = () => {
-
-    setSubtotal('');
-    setGrandTotal('');
-    setMobileNo('');
-    setCashGiven('');
-    setBalance('');
-    setCountryCode('+91');
-    setDiscountTotal('');
-
+    setSubtotal("");
+    setGrandTotal("");
+    setMobileNo("");
+    setCashGiven("");
+    setBalance("");
+    setCountryCode("+91");
+    setDiscountTotal("");
 
     Object.values(inputRefs.current).forEach((refs) => {
       refs.forEach((ref) => {
         if (ref) {
-          ref.value = '';
+          ref.value = "";
         }
       });
     });
     setIsSubmitted(false);
     window.location.reload();
-
   };
 
   return (
@@ -454,23 +483,47 @@ function Billing() {
       </style>
       <div>
         {!isSubmitted ? (
-          <div className="container" style={{
-            fontFamily: 'serif',
-          }}>
-            <div style={{ marginLeft: '20px' }}>
-              <div className=' d-flex justify-content-between align-items-center mb-3' >
-                <h2 className="mb-0" ><b>Billing</b>
+          <div
+            className="container"
+            style={{
+              fontFamily: "serif",
+            }}
+          >
+            <div style={{ marginLeft: "20px" }}>
+              <div className=" d-flex justify-content-between align-items-center mb-3">
+                <h2 className="mb-0">
+                  <b>Billing</b>
                 </h2>
               </div>
-              <div style={{ backgroundColor: 'white', border: '1px solid lightgray' }}>
-
-                <div className='mt-4 ms-5'>
+              <div
+                style={{
+                  backgroundColor: "white",
+                  border: "1px solid lightgray",
+                }}
+              >
+                <div className="mt-4 ms-5">
                   <div className="container mt-1">
-                    <div className='row'>
-                      <div className='col-4 ms-2'><h5><b>Medicine Name</b></h5></div>
-                      <div className='col-2 ms-1'><h5><b>Quantity</b></h5></div>
-                      <div className='col-2 ms-1'><h5><b>Price</b></h5></div>
-                      <div className='col-2 ms-1'><h5><b>Total</b></h5></div>
+                    <div className="row">
+                      <div className="col-4 ms-2">
+                        <h5>
+                          <b>Medicine Name</b>
+                        </h5>
+                      </div>
+                      <div className="col-2 ms-1">
+                        <h5>
+                          <b>Quantity</b>
+                        </h5>
+                      </div>
+                      <div className="col-2 ms-1">
+                        <h5>
+                          <b>Price</b>
+                        </h5>
+                      </div>
+                      <div className="col-2 ms-1">
+                        <h5>
+                          <b>Total</b>
+                        </h5>
+                      </div>
                     </div>
 
                     {medicineRows.map(({ id, refs }, rowIndex) => (
@@ -482,7 +535,9 @@ function Billing() {
                             className="form-control"
                             placeholder="Enter Name"
                             onChange={(e) => handleMedicineNameChange(e, id)}
-                            ref={(el) => (inputRefs.current[id] ||= [])[0] = el}
+                            ref={(el) =>
+                              ((inputRefs.current[id] ||= [])[0] = el)
+                            }
                             onBlur={(e) => handleKeyPress(e, rowIndex, 0, id)}
                             list="medicineSuggestions"
                           />
@@ -502,13 +557,15 @@ function Billing() {
                             id={`qty${id}`}
                             type="number"
                             className="form-control"
-                            placeholder='Enter Qty'
-                            ref={(el) => (inputRefs.current[id] ||= [])[1] = el}
+                            placeholder="Enter Qty"
+                            ref={(el) =>
+                              ((inputRefs.current[id] ||= [])[1] = el)
+                            }
                             onBlur={(e) => handleQuantity(e, rowIndex, 1, id)}
                             onFocus={handleTotal}
                             style={{
-                              WebkitAppearance: 'none',
-                              MozAppearance: 'textfield'
+                              WebkitAppearance: "none",
+                              MozAppearance: "textfield",
                             }}
                           />
                         </div>
@@ -517,7 +574,9 @@ function Billing() {
                             id={`qtyprice${id}`}
                             type="number"
                             className="form-control "
-                            ref={(el) => (inputRefs.current[id] ||= [])[2] = el}
+                            ref={(el) =>
+                              ((inputRefs.current[id] ||= [])[2] = el)
+                            }
                             onFocus={handleTotal}
                             readOnly
                           />
@@ -527,7 +586,9 @@ function Billing() {
                             id={`total${id}`}
                             type="text"
                             className="form-control "
-                            ref={(el) => (inputRefs.current[id] ||= [])[3] = el}
+                            ref={(el) =>
+                              ((inputRefs.current[id] ||= [])[3] = el)
+                            }
                             onFocus={handleTotal}
                           />
                         </div>
@@ -536,53 +597,87 @@ function Billing() {
                           <button
                             type="button"
                             className="btn "
-                            style={{ backgroundColor: 'white', border: '1px solid lightgray' }}
-
+                            style={{
+                              backgroundColor: "white",
+                              border: "1px solid lightgray",
+                            }}
                             onClick={() => handleRemoveMedicine(id)}
                           >
-                            <FontAwesomeIcon icon={faTimesCircle} style={{ color: 'black' }} />
+                            <FontAwesomeIcon
+                              icon={faTimesCircle}
+                              style={{ color: "black" }}
+                            />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
+                  <FloatingAlert message={alert.message} type={alert.type} />
+
                   <br />
                   <div className="row mt-1">
                     <div className="col-6">
-                      <button type="button" className="btn mt-1 ms-3" style={{ backgroundColor: 'teal', color: 'white' }} onClick={handleAddMedicine}>
+                      <button
+                        type="button"
+                        className="btn mt-1 ms-3"
+                        style={{ backgroundColor: "teal", color: "white" }}
+                        onClick={handleAddMedicine}
+                      >
                         Add More Medicine
                       </button>
                     </div>
-                    <div className="col-6" >
+                    <div className="col-6">
                       <div className="row mt-1 ">
                         <div className="col-12 text-center">
-                          <b><label className="me-4"  >Sub Total</label></b>
-                          <input id="subtotal" type="number" className="border-0 text-start" style={{ width: '70px', background: 'none' }} value={subtotal} readOnly />
+                          <b>
+                            <label className="me-4">Sub Total</label>
+                          </b>
+                          <input
+                            id="subtotal"
+                            type="number"
+                            className="border-0 text-start"
+                            style={{ width: "70px", background: "none" }}
+                            value={subtotal}
+                            readOnly
+                          />
                         </div>
                       </div>
 
                       <div className="row mt-1">
                         <div className="col-12 text-center">
-                          <b><label className="me-4" >Discount</label></b>
+                          <b>
+                            <label className="me-4">Discount</label>
+                          </b>
                           <input
                             id="discount"
                             className="border-0 text-start p-1"
                             type="number"
                             value={discount}
                             onChange={handleDiscountChange}
-                            onBlur={handleDiscountBlur} style={{ width: '70px', background: 'none' }}
+                            onBlur={handleDiscountBlur}
+                            style={{ width: "70px", background: "none" }}
                           />
                         </div>
                       </div>
 
                       <div className="row mt-1">
                         <div className="col-12 text-center ">
-
-                          <div className="p-1 d-inline-block text-start" style={{ backgroundColor: 'teal', height: '30px' }}>
-                            <b><label className="me-2 text-white"  >Grand Total</label></b>
+                          <div
+                            className="p-1 d-inline-block text-start"
+                            style={{ backgroundColor: "teal", height: "30px" }}
+                          >
+                            <b>
+                              <label className="me-2 text-white">
+                                Grand Total
+                              </label>
+                            </b>
                             <input
                               className="border-0 text-white text-start p-1"
-                              style={{ backgroundColor: 'teal', width: '80px', height: '20px' }}
+                              style={{
+                                backgroundColor: "teal",
+                                width: "80px",
+                                height: "20px",
+                              }}
                               id="grandtotal"
                               type="number"
                               value={grandtotal}
@@ -593,60 +688,118 @@ function Billing() {
                       </div>
                     </div>
                   </div>
-                  <div >
-                    <div className='row ms-3 mt-3 '>
-                      <div className='col-3 '><b><label >Patient Name</label></b>  <input type='text' id='patientname' onBlur={(e) => handleKeyPress(e, 0, 0, 'patientname')} onFocus={handleTotal} /> </div>
-                      <div className='col-3'> <b><label>Doctor Name</label></b>
+                  <div>
+                    <div className="row ms-3 mt-3 ">
+                      <div className="col-3 ">
+                        <b>
+                          <label>Patient Name</label>
+                        </b>{" "}
                         <input
-                          type='text'
-                          id='doctorname'
-                          value='Dr G.Vasudevan'
-                          onBlur={(e) => handleKeyPress(e, 0, 0, 'doctorname')}
-                        />
-
+                          type="text"
+                          id="patientname"
+                          onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
+                          onFocus={handleTotal}
+                        />{" "}
                       </div>
-                      <div className='col-6'> <b><label htmlFor='mobileno'><b>Mobile No</b></label></b>
-                        <div style={{ display: 'flex' }}>
-                          <select id='countryCode' value={countryCode} onChange={handleCountryCodeChange}>
-                            <option value='+91'>+91 (India)</option>
-                            <option value='+1'>+1 (US)</option>
-                            <option value='+44'>+44 (UK)</option>
+                      <div className="col-3">
+                        {" "}
+                        <b>
+                          <label>Doctor Name</label>
+                        </b>
+                        <input
+                          type="text"
+                          id="doctorname"
+                          value="Dr G.Vasudevan"
+                          onBlur={(e) => handleKeyPress(e, 0, 0, "doctorname")}
+                        />
+                      </div>
+                      <div className="col-6">
+                        {" "}
+                        <b>
+                          <label htmlFor="mobileno">
+                            <b>Mobile No</b>
+                          </label>
+                        </b>
+                        <div style={{ display: "flex" }}>
+                          <select
+                            id="countryCode"
+                            value={countryCode}
+                            onChange={handleCountryCodeChange}
+                          >
+                            <option value="+91">+91 (India)</option>
+                            <option value="+1">+1 (US)</option>
+                            <option value="+44">+44 (UK)</option>
                           </select>
                           <input
-                            type='tel'
-                            id='mobileno'
+                            type="tel"
+                            id="mobileno"
                             value={mobileNo}
                             onChange={handleInputChange}
-                            style={{ marginLeft: '5px' }}
+                            style={{ marginLeft: "5px" }}
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className='row ms-3  mt-3 '>
-                      <div className='col-4'></div>
-                      <div className='col-2'><b><label>Invoice Date</label></b> <input
-                        type='text'
-                        className='form-control border-0'
-                        defaultValue={currentDateFormatted} readOnly style={{ width: '130px' }}
-                      /></div>
-                      <div className='col-2'><b><label>Cash Given</label></b>
+                    <div className="row ms-3  mt-3 ">
+                      <div className="col-4"></div>
+                      <div className="col-2">
+                        <b>
+                          <label>Invoice Date</label>
+                        </b>{" "}
                         <input
-                          type='text'
-                          id='cashgiven'
+                          type="text"
+                          className="form-control border-0"
+                          defaultValue={currentDateFormatted}
+                          readOnly
+                          style={{ width: "130px" }}
+                        />
+                      </div>
+                      <div className="col-2">
+                        <b>
+                          <label>Cash Given</label>
+                        </b>
+                        <input
+                          type="text"
+                          id="cashgiven"
                           value={cashGiven}
                           onChange={handleCashGivenChange}
                           onBlur={handleCashGivenBlur}
-                          style={{ width: '130px' }}
-                        /></div>
+                          style={{ width: "130px" }}
+                        />
+                      </div>
 
-                      <div className='col-2'><b><label>Balance</label></b>  <input type='text' id='balance' value={balance} readOnly style={{ width: '130px' }} />
+                      <div className="col-2">
+                        <b>
+                          <label>Balance</label>
+                        </b>{" "}
+                        <input
+                          type="text"
+                          id="balance"
+                          value={balance}
+                          readOnly
+                          style={{ width: "130px" }}
+                        />
                       </div>
                     </div>
                     <div className="row mt-1 mb-2 p-3 me-5 ">
                       <div className="col-md-12 text-end ">
-                        <button type="button" className="btn me-2" onClick={handleCancel} style={{ backgroundColor: 'teal', color: 'white' }} >Cancel</button>
-                        <button type="button" style={{ backgroundColor: 'teal', color: 'white' }} className="btn" onClick={handleSubmit}>Submit</button>
+                        <button
+                          type="button"
+                          className="btn me-2"
+                          onClick={handleCancel}
+                          style={{ backgroundColor: "teal", color: "white" }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          style={{ backgroundColor: "teal", color: "white" }}
+                          className="btn"
+                          onClick={handleSubmit}
+                        >
+                          Submit
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -655,11 +808,17 @@ function Billing() {
             </div>
           </div>
         ) : (
-          <div className="container" id="dev" >
-            <div className="col-md-12 text-end" style={{ marginTop: '20px' }}>
+          <div className="container" id="dev">
+            <div className="col-md-12 text-end" style={{ marginTop: "20px" }}>
               <button
                 type="button"
-                style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
+                style={{
+                  backgroundColor: "teal",
+                  color: "white",
+                  marginRight: "10px",
+                  fontFamily: "Arial, sans-serif",
+                  fontSize: "16px",
+                }}
                 className="btn"
                 onClick={handleWhatsApp}
               >
@@ -667,7 +826,13 @@ function Billing() {
               </button>
               <button
                 type="button"
-                style={{ backgroundColor: 'teal', color: 'white', marginRight: '10px', fontFamily: 'Arial, sans-serif', fontSize: '16px' }}
+                style={{
+                  backgroundColor: "teal",
+                  color: "white",
+                  marginRight: "10px",
+                  fontFamily: "Arial, sans-serif",
+                  fontSize: "16px",
+                }}
                 className="btn"
                 onClick={handlePdf}
                 disabled={!(loader === false)}
@@ -677,63 +842,138 @@ function Billing() {
 
               <button
                 type="button"
-                style={{ backgroundColor: 'teal', color: 'white' }}
+                style={{ backgroundColor: "teal", color: "white" }}
                 className="btn"
                 onClick={handlePrint}
               >
                 Print
               </button>
-
-
             </div>
-            <div className="bill" style={{
-              marginLeft: '180px',
-              marginTop: '40px',
-              backgroundColor: 'white',
-              width: '65%',
-              height: '800px',
-              border: '1px solid black',
-              backgroundImage: `url(${billbg})`,
-              backgroundSize: '100% 100%',
-              fontFamily: 'serif'
-            }}>
-
-              <div style={{ marginLeft: '70%', marginTop: '110px', height: '70px', lineHeight: '2px' }}>
+            <div
+              className="bill"
+              style={{
+                marginLeft: "180px",
+                marginTop: "40px",
+                backgroundColor: "white",
+                width: "65%",
+                height: "800px",
+                border: "1px solid black",
+                backgroundImage: `url(${billbg})`,
+                backgroundSize: "100% 100%",
+                fontFamily: "serif",
+              }}
+            >
+              <div
+                style={{
+                  marginLeft: "70%",
+                  marginTop: "110px",
+                  height: "70px",
+                  lineHeight: "2px",
+                }}
+              >
                 <div>
-                  <h3 style={{ color: 'darkblue' }}><b>Invoice</b></h3>
+                  <h3 style={{ color: "darkblue" }}>
+                    <b>Invoice</b>
+                  </h3>
                   <h6>Invoice No:{invoiceNumber}</h6>
                   <h6>Invoice Date: {currentDateFormatted}</h6>
                 </div>
-
               </div>
 
-              <div style={{ width: '100%', marginTop: '5%' }}>
-                <table style={{ width: '90%', margin: 'auto', borderCollapse: 'collapse' }}>
-                  <thead >
-                    <tr style={{ color: 'white' }}>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>S.No</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Medicine Name</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Price</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Qty</th>
-                      <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#2A4577' }}>Total</th>
+              <div style={{ width: "100%", marginTop: "5%" }}>
+                <table
+                  style={{
+                    width: "90%",
+                    margin: "auto",
+                    borderCollapse: "collapse",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ color: "white" }}>
+                      <th
+                        style={{
+                          padding: "10px",
+                          textAlign: "center",
+                          borderBottom: "1px solid #ddd",
+                          backgroundColor: "#2A4577",
+                        }}
+                      >
+                        S.No
+                      </th>
+                      <th
+                        style={{
+                          padding: "10px",
+                          textAlign: "center",
+                          borderBottom: "1px solid #ddd",
+                          backgroundColor: "#2A4577",
+                        }}
+                      >
+                        Medicine Name
+                      </th>
+                      <th
+                        style={{
+                          padding: "10px",
+                          textAlign: "center",
+                          borderBottom: "1px solid #ddd",
+                          backgroundColor: "#2A4577",
+                        }}
+                      >
+                        Price
+                      </th>
+                      <th
+                        style={{
+                          padding: "10px",
+                          textAlign: "center",
+                          borderBottom: "1px solid #ddd",
+                          backgroundColor: "#2A4577",
+                        }}
+                      >
+                        Qty
+                      </th>
+                      <th
+                        style={{
+                          padding: "10px",
+                          textAlign: "center",
+                          borderBottom: "1px solid #ddd",
+                          backgroundColor: "#2A4577",
+                        }}
+                      >
+                        Total
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {Array.isArray(submittedData) && submittedData.map((data, index) => (
-                      <tr key={data.id} style={{ borderBottom: '1px solid #ddd' }}>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>{index + 1}</td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>{data.medicinename}</td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>{data.qtyprice}</td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>{data.qty}</td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>{data.total}</td>
-                      </tr>
-                    ))}
+                    {Array.isArray(submittedData) &&
+                      submittedData.map((data, index) => (
+                        <tr
+                          key={data.id}
+                          style={{ borderBottom: "1px solid #ddd" }}
+                        >
+                          <td style={{ padding: "10px", textAlign: "center" }}>
+                            {index + 1}
+                          </td>
+                          <td style={{ padding: "10px", textAlign: "center" }}>
+                            {data.medicinename}
+                          </td>
+                          <td style={{ padding: "10px", textAlign: "center" }}>
+                            {data.qtyprice}
+                          </td>
+                          <td style={{ padding: "10px", textAlign: "center" }}>
+                            {data.qty}
+                          </td>
+                          <td style={{ padding: "10px", textAlign: "center" }}>
+                            {data.total}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
-
               </div>
 
-              <div className="d-flex align-items-center justify-content-between ms-5" style={{ marginTop: '200px' }}>
+              <div
+                className="d-flex align-items-center justify-content-between ms-5"
+                style={{ marginTop: "200px" }}
+              >
                 <div>
                   <div className="col-md-12 mt-3 text-start">
                     Cash Given: {cashGiven}
@@ -742,7 +982,7 @@ function Billing() {
                     Balance: {balance}
                   </div>
                 </div>
-                <div style={{ marginRight: '40px' }}>
+                <div style={{ marginRight: "40px" }}>
                   <div className="col-md-12 mt-3 text-end">
                     Subtotal: {subtotal}
                   </div>
@@ -756,9 +996,13 @@ function Billing() {
                   </div>
                 </div>
               </div>
-
             </div>
-            <button type="button" className="btn me-2" style={{ backgroundColor: 'green', color: 'white' }} onClick={handleCancel}>
+            <button
+              type="button"
+              className="btn me-2"
+              style={{ backgroundColor: "green", color: "white" }}
+              onClick={handleCancel}
+            >
               Cancel
             </button>
           </div>
