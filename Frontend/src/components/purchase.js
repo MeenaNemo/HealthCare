@@ -23,29 +23,26 @@ const Purchase = () => {
   const [selectedToDate, setSelectedToDate] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
 
-  const itemsPerPage = 25;
 
+  const itemsPerPage = 25;
   const filterData = () => {
     return medicineData.filter((item) => {
-      console.log("fromDate:", fromDate);
-      console.log("toDate:", toDate);
       const isSearched = item.medicinename
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
       const itemDate = moment(item.time).startOf("day");
 
       const isWithinDateRange =
-        (!fromDate ||
-          itemDate.isSameOrAfter(moment(fromDate).startOf("day"))) &&
+        (!fromDate || itemDate.isSameOrAfter(moment(fromDate).startOf("day"))) &&
         (!toDate || itemDate.isSameOrBefore(moment(toDate).endOf("day")));
 
       return isSearched && isWithinDateRange;
     });
   };
-
+  
   useEffect(() => {
     fetchpurchaseData();
-  }, [searchQuery, fromDate, toDate, medicineData]);
+  }, [searchQuery, fromDate, toDate]);
 
   useEffect(() => {
     const filtered = filterData();
@@ -107,7 +104,6 @@ const Purchase = () => {
   const handleSearchChange = (query) => {
     setSearchQuery(query);
   };
-
   const handleFromDateChange = (date, dateString) => {
     setFromDate(dateString);
   };
@@ -116,75 +112,73 @@ const Purchase = () => {
     setToDate(dateString);
   };
 
+
   const exportToExcel = () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("PurchaseData");
-
-    worksheet.columns = [
-      { header: "Medicine Name", key: "medicinename", width: 15 },
-      { header: "Brand Names", key: "brandname", width: 15 },
-      { header: "Dosage", key: "dosage", width: 15 },
-      { header: "Purchase price", key: "purchaseprice", width: 15 },
-      { header: "Total Qty", key: "totalqty", width: 15 },
-      { header: "Purchase Amount", key: "purchaseamount", width: 17 },
-      { header: "Expiry Date", key: "expirydate", width: 15 },
-      { header: "MRP", key: "mrp", width: 15 },
-      { header: "Purchase Date", key: "time", width: 15 },
+  
+    // Define column headings based on your Purchase History table
+    const columns = [
+      "Purchase Date",
+      "Medicine Name",
+      "Dosage",
+      "Brand Name",
+      "Purchase Price",
+      "Purchase Amount",
+      "MRP",
+      "Total Qty",
+      "Expiry Date",
     ];
-
+  
+    // Add columns to the worksheet
+    worksheet.columns = columns.map((column, index) => ({
+      header: column,
+      key: column.toLowerCase().replace(/\s/g, ''), // Use a key without spaces for consistency
+      width: index === 0 ? 17 : 15, // Adjust width for the first column
+    }));
+  
     const headerRow = worksheet.getRow(1);
-
+  
+    // Style the header row
     worksheet.columns.forEach((column) => {
       const cell = headerRow.getCell(column.key);
-      if (
-        [
-          "Medicine Name",
-          "Brand Name",
-          "Dosage",
-          "Purchase price",
-          "Total Qty",
-          "Purchase Amount",
-          "Expiry Date",
-          "MRP",
-          "Purchase Date",
-        ].includes(column.key)
-      ) {
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: {
-            argb: "FF0000FF", // Blue color
-          },
-        };
-      }
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: {
+          argb: "FF001F3F", // Blue color
+        },
+      };
       cell.font = {
         color: { argb: "FFFFFF" }, // White text color
         bold: true,
       };
+      cell.alignment = { horizontal: "center" }; // Center-align header
     });
-
+  
+    // Add data rows to the worksheet
     filteredData.forEach((item) => {
       const formattedDate = item.time
         ? moment(item.time).format("YYYY-MM-DD")
         : "N/A";
-
+  
       const dataRow = worksheet.addRow({
-        medicinename: item.medicinename || "N/A",
-        brandname: item.brandname || "N/A",
-        dosage: item.dosage || "N/A",
-        purchaseprice: item.purchaseprice || "N/A",
-        totalqty: item.totalqty || "N/A",
-        purchaseamount: item.purchaseamount || "N/A",
-        expirydate: item.expirydate || "N/A",
-        mrp: item.mrp || "N/A",
         purchasedate: formattedDate || "N/A",
+        medicinename: item.medicinename || "N/A",
+        dosage: item.dosage || "N/A",
+        brandname: item.brandname || "N/A",
+        purchaseprice: item.purchaseprice || "N/A",
+        purchaseamount: item.purchaseamount || "N/A",
+        mrp: item.mrp || "N/A",
+        totalqty: item.totalqty || "N/A",
+        expirydate: item.expirydate
+          ? moment(item.expirydate).format("YYYY-MM-DD")
+          : "N/A",
       });
-
+  
       // Center-align data in each row
-      dataRow.alignment = { horizontal: "center" };
-
-      // Add borders to each cell in the data row
       dataRow.eachCell((cell) => {
+        cell.alignment = { horizontal: "center" };
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },
@@ -193,7 +187,7 @@ const Purchase = () => {
         };
       });
     });
-
+  
     // Add borders to all cells in the header row
     headerRow.eachCell((cell) => {
       cell.border = {
@@ -203,22 +197,24 @@ const Purchase = () => {
         right: { style: "thin" },
       };
     });
-
+  
+    // Save the Excel file
     workbook.xlsx.writeBuffer().then((buffer) => {
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const url = URL.createObjectURL(blob);
-
+  
       const a = document.createElement("a");
       a.href = url;
-      a.download = "stock.xlsx";
+      a.download = "purchase_history.xlsx";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     });
   };
 
+  
   const downloadPDF = () => {
     const html2canvasOptions = {
       scale: 2,
@@ -229,11 +225,15 @@ const Purchase = () => {
     const capture = document.querySelector(".purchase-table");
     setLoader(true);
 
-    const fromDate = moment(selectedFromDate).format("YYYY-MM-DD");
-    const toDate = moment(selectedToDate).format("YYYY-MM-DD");
+    const formattedFromDate = fromDate
+      ? moment(fromDate).format("YYYY-MM-DD")
+      : "N/A";
+
+    const formattedToDate = toDate
+      ? moment(toDate).format("YYYY-MM-DD")
+      : "N/A";
 
     html2canvas(capture, html2canvasOptions).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
       const jsPDFOptions = {
         orientation: "portrait",
         unit: "mm",
@@ -244,31 +244,85 @@ const Purchase = () => {
       const imageWidth = 210; // A4 width in mm
       const imageHeight = (canvas.height * imageWidth) / canvas.width;
 
-      let rowIndex = 0;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(16);
+      pdf.setTextColor(43, 128, 176);
+      pdf.text(
+        `Purchase Details from ${formattedFromDate} to ${formattedToDate}`,
+        10,
+        10,
+        null,
+        null,
+        "left"
+      );
+
+      const headingHeight = 20;
+      const tableStartY = 0 + headingHeight;
+      const firstPageData = filteredData.slice(0, itemsPerPage);
+      const firstPageBodyData = firstPageData.map((currentData) => [
+        currentData.time
+          ? moment(currentData.time).format("YYYY-MM-DD")
+          : "N/A",
+        currentData.medicinename || "N/A",
+        currentData.dosage || "N/A",
+        currentData.brandname || "N/A",
+        currentData.purchaseprice || "N/A",
+        currentData.purchaseamount || "N/A",
+        currentData.mrp || "N/A",
+        currentData.totalqty || "N/A",
+        currentData.expirydate
+          ? moment(currentData.expirydate).format("YYYY-MM-DD")
+          : "N/A",
+        
+      ]);
+  
+      pdf.autoTable({
+        head: [
+          [
+            "Purchase Date",
+            "Medicine Name",
+            "Dosage",
+            "Brand Name",
+            "Purchase Price",
+            "Purchase Amount",
+            "MRP",
+            "Total Qty",
+            "Expiry Date",
+          ],
+        ],
+        body: firstPageBodyData,
+        startY: tableStartY, // Adjust the starting Y position as needed
+        theme: "grid", // Apply grid theme for borders
+        styles: {
+          fontSize: 9,
+          halign: "center", // Center-align headings
+        },
+        headerStyles: {
+          fillColor: [41, 128, 185], // Blue color for header background
+          textColor: 255, // White text color
+          lineWidth: 0.3, // Header border line width
+        },
+        columnStyles: {
+          0: { cellWidth: 20, cellHeight: 10 },
+          1: { cellWidth: 30, cellHeight: 10 },
+          // Add more column styles as needed
+        },
+        alternateRowStyles: {
+          fillColor: [224, 224, 224],
+          lineWidth: 0.3,
+        },
+      });
+  
+      let rowIndex = itemsPerPage;
       const numberOfRows = filteredData.length;
-
-      let firstPage = true; // Flag to determine the first page
-
+  
       while (rowIndex < numberOfRows) {
-        if (!firstPage) {
-          pdf.addPage();
-        } else {
-          firstPage = false; // Update flag for subsequent pages
-        }
+        pdf.addPage();
+        pdf.text(`Page ${Math.ceil((rowIndex + 1) / itemsPerPage)}`, 10, 10); // Add page number
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(16);
         pdf.setTextColor(43, 128, 176); // Blue color
-        pdf.text(
-          `Purchase Details from ${fromDate}  to  ${toDate}`,
-          10,
-          10,
-          null,
-          null,
-          "left"
-        );
-
-        const headingHeight = 20; // Adjust this value based on the heading size and spacing
-        const tableStartY = 0 + headingHeight; // Adjust the spacing between heading and table
+  
         const currentPageData = filteredData.slice(
           rowIndex,
           rowIndex + itemsPerPage
@@ -288,7 +342,7 @@ const Purchase = () => {
             ? moment(currentData.time).format("YYYY-MM-DD")
             : "N/A",
         ]);
-
+  
         pdf.autoTable({
           head: [
             [
@@ -316,23 +370,26 @@ const Purchase = () => {
             lineWidth: 0.3, // Header border line width
           },
           columnStyles: {
-            0: { cellWidth: 20, cellHeight: 10 }, // Adjust width and height for the Purchase Date column
-            1: { cellWidth: 30, cellHeight: 10 }, // Adjust width and height for the Medicine Name column
+            0: { cellWidth: 20, cellHeight: 10 },
+            1: { cellWidth: 30, cellHeight: 10 },
             // Add more column styles as needed
           },
           alternateRowStyles: {
             fillColor: [224, 224, 224],
-            lineWidth: 0.3, // Alternate row background color
+            lineWidth: 0.3,
           },
         });
-
+  
         rowIndex += itemsPerPage;
       }
-
+  
       setLoader(false);
       pdf.save("purchase.pdf");
     });
   };
+  
+      
+
 
   return (
     <div>
@@ -351,10 +408,10 @@ const Purchase = () => {
             </h2>
           </div>
           <div>
-            <button onClick={exportToExcel}>
-              <FontAwesomeIcon icon={faFileExport} /> Export to Excel
+            <button className="export" onClick={exportToExcel}>
+              Export to Excel
             </button>
-            <button onClick={downloadPDF} disabled={!(loader === false)}>
+            <button className="export" onClick={downloadPDF} disabled={!(loader === false)}>
               {loader ? (
                 <span>Downloading as PDF</span>
               ) : (
@@ -396,9 +453,9 @@ const Purchase = () => {
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
-            <div>
-              <table>
-                <thead>
+            <div className="scrollable-body">
+              <table className="table">
+                    <thead className="sticky-top bg-light">
                   <tr>
                     <th className="text-center">Purchase Date</th>
                     <th className="text-center">Medicine Name</th>
@@ -468,3 +525,4 @@ const Purchase = () => {
 };
 
 export default Purchase;
+

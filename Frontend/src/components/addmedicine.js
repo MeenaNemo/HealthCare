@@ -11,12 +11,13 @@ function AddMedicine() {
     totalqty: "",
     purchaseamount: 0,
     dosage: "",
-    dosageUnit: "",
+    dosageUnit: "mg",
     expirydate: "",
     mrp: "",
   });
-
+  const [popupType, setPopupType] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+
 
   const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
 
@@ -118,42 +119,20 @@ function AddMedicine() {
     });
 
     if (emptyFields.length > 0) {
-      emptyFields.forEach(([key, value]) => {
-        const inputElement = document.getElementById(key);
-        inputElement.style.border = "1px solid red";
-
-        const errorMessageContainer = inputElement.parentNode.querySelector(
-          ".error-message-container"
-        );
-        if (!errorMessageContainer) {
-          const errorMessage = document.createElement("p");
-          errorMessage.className = "error-message-container";
-          errorMessage.textContent = `Please fill this field.`;
-
-          const errorMessageContainer = document.createElement("div");
-          errorMessageContainer.style.height = "10px";
-          errorMessageContainer.appendChild(errorMessage);
-
-          inputElement.parentNode.appendChild(errorMessageContainer);
-        }
-      });
+      // Show popup for empty fields
+      setPopupType("emptyFields");
+      setShowPopup(true);
+      // Hide popup after 2 seconds
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 2000);
       return;
     }
 
     try {
-      Object.keys(formData).forEach((key) => {
-        const inputElement = document.getElementById(key);
-        inputElement.style.border = "";
-
-        const errorMessageContainer = inputElement.parentNode.querySelector(
-          ".error-message-container"
-        );
-        if (errorMessageContainer) {
-          errorMessageContainer.remove();
-        }
-      });
-
+      // Assuming your API call is successful
       await axios.post("http://localhost:3000/purchase", formData);
+      setPopupType("success");
       setShowPopup(true);
       console.log("Form Submitted!");
 
@@ -169,7 +148,13 @@ function AddMedicine() {
         expirydate: "",
         mrp: "",
       });
+
+      // Hide popup after 2 seconds
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 2000);
     } catch (error) {
+      // Handle API call error
       console.error("Error submitting data: " + error);
     }
   };
@@ -279,7 +264,7 @@ function AddMedicine() {
                       }}
                     />
                     <select
-                      className="form-select w-50"
+                      className="form-select w-15"
                       id="dosageUnit"
                       value={formData.dosageUnit}
                       onChange={(e) => {
@@ -348,6 +333,10 @@ function AddMedicine() {
                     value={formData.purchaseprice}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    style={{
+                      WebkitAppearance: "none",
+                      MozAppearance: "textfield",
+                    }}
                   />
                 </div>
               </div>
@@ -364,6 +353,10 @@ function AddMedicine() {
                     value={formData.totalqty}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    style={{
+                      WebkitAppearance: "none",
+                      MozAppearance: "textfield",
+                    }}
                   />
                 </div>
               </div>
@@ -380,6 +373,10 @@ function AddMedicine() {
                     value={formData.purchaseamount}
                     readOnly
                     onKeyDown={handleKeyDown}
+                    style={{
+                      WebkitAppearance: "none",
+                      MozAppearance: "textfield",
+                    }}
                   />
                 </div>
                 <br />
@@ -400,6 +397,7 @@ function AddMedicine() {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Select a date"
+
                   />
                 </div>
               </div>
@@ -416,6 +414,10 @@ function AddMedicine() {
                     value={formData.mrp}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    style={{
+                      WebkitAppearance: "none",
+                      MozAppearance: "textfield",
+                    }}
                   />
                 </div>
               </div>
@@ -428,12 +430,15 @@ function AddMedicine() {
                   type="submit"
                   className="btn btn-sm me-2"
                   onClick={handleCancel}
+                  style={{backgroundColor:'teal', color:'white'}}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
+                  style={{backgroundColor:'teal', color:'white'}}
+
                   onClick={handleSubmit}
                 >
                   Submit
@@ -447,13 +452,13 @@ function AddMedicine() {
           tabIndex="-1"
           role="dialog"
         >
-          <div
+               <div
             className="modal-header"
             style={{
               position: "fixed",
               top: "10px",
               right: "10px",
-              backgroundColor: "red",
+              backgroundColor: popupType === "emptyFields" ? "red" : "green",
               color: "white",
               padding: "10px",
               borderRadius: "5px",
@@ -462,7 +467,11 @@ function AddMedicine() {
               display: "block",
             }}
           >
-            <p>Medicine added successfully.</p>
+            <p>
+              {popupType === "emptyFields"
+                ? "Please fill all input fields."
+                : "Medicine added successfully."}
+            </p>
           </div>
         </div>
       </div>

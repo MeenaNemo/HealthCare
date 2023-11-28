@@ -5,21 +5,23 @@ import html2canvas from "html2canvas";
 import billbg from "../logo/ac.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/stock.css";
 import FloatingAlert from "./floatingalert";
+import "../styles/billing.css";
 
 function Billing() {
   const [medicineRows, setMedicineRows] = useState(
     Array.from({ length: 3 }, (_, index) => ({ id: index + 1 }))
   );
   const [subtotal, setSubtotal] = useState("");
-  const [discount, setDiscountTotal] = useState("");
+  const [discount, setDiscountTotal] = useState("0");
   const [grandtotal, setGrandTotal] = useState("");
   const [submittedData, setSubmittedData] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const inputRefs = useRef([]);
   const [loader, setLoader] = useState(false);
-  const [cashGiven, setCashGiven] = useState("");
+  const [cashGiven, setCashGiven] = useState("0");
   const [balance, setBalance] = useState("");
   const [mobileNo, setMobileNo] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
@@ -27,8 +29,12 @@ function Billing() {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [alert, setAlert] = useState({ message: "", type: "" });
 
-  const showAlert = (message, type) => {
+  const showAlert = (message, type, duration = 3000) => {
     setAlert({ message, type });
+
+    setTimeout(() => {
+      setAlert({ message: "", type: ""});
+    },duration)
   };
 
   useEffect(() => {
@@ -95,7 +101,8 @@ function Billing() {
 
       const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
       if (qty > availableQuantity) {
-        alert(`Available Quantity: ${availableQuantity}`);
+        showAlert(`Available Quantity: ${availableQuantity}`);
+        console.log("AQ", availableQuantity);
         const qtyInput = inputRefs.current[id] && inputRefs.current[id][1];
         const priceInput = inputRefs.current[id] && inputRefs.current[id][2];
 
@@ -215,7 +222,7 @@ function Billing() {
   };
 
   const handleCashGivenBlur = () => {
-    const formattedValue = parseFloat(cashGiven.replace(/[^\d.]/g, "")).toFixed(
+    const formattedValue = parseFloat(cashGiven.replace(/[^\d.]/g, 0)).toFixed(
       2
     );
     setCashGiven(formattedValue);
@@ -225,7 +232,7 @@ function Billing() {
     const discountValue =
       typeof discount === "number"
         ? discount
-        : parseFloat(discount.replace(/[^\d.]/g, ""));
+        : parseFloat(discount.replace(/[^\d.]/g, 0));
 
     const formattedValue = discountValue.toFixed(2);
     setDiscountTotal(formattedValue);
@@ -481,146 +488,153 @@ function Billing() {
           }
         `}
       </style>
-      <div>
+      <div className="container" style={{ fontFamily: "serif" }}>
         {!isSubmitted ? (
-          <div
-            className="container"
-            style={{
-              fontFamily: "serif",
-            }}
-          >
-            <div style={{ marginLeft: "20px" }}>
-              <div className=" d-flex justify-content-between align-items-center mb-3">
-                <h2 className="mb-0">
+          <div className="row">
+            <div className="container">
+              <div className="mt-4">
+                <h2 className="text-start">
                   <b>Billing</b>
                 </h2>
               </div>
               <div
-                style={{
-                  backgroundColor: "white",
-                  border: "1px solid lightgray",
-                }}
+                className="bg-white border rounded p-5 pt-0"
+                style={{ maxWidth: "1000px", margin: "0" }}
               >
-                <div className="mt-4 ms-5">
-                  <div className="container mt-1">
-                    <div className="row">
-                      <div className="col-4 ms-2">
-                        <h5>
-                          <b>Medicine Name</b>
-                        </h5>
-                      </div>
-                      <div className="col-2 ms-1">
-                        <h5>
-                          <b>Quantity</b>
-                        </h5>
-                      </div>
-                      <div className="col-2 ms-1">
-                        <h5>
-                          <b>Price</b>
-                        </h5>
-                      </div>
-                      <div className="col-2 ms-1">
-                        <h5>
-                          <b>Total</b>
-                        </h5>
-                      </div>
-                    </div>
-
-                    {medicineRows.map(({ id, refs }, rowIndex) => (
-                      <div className="row mt-2 billingdata" key={id}>
-                        <div className="col-4">
-                          <input
-                            id={`medicinename${id}`}
-                            type="text"
-                            className="form-control"
-                            placeholder="Enter Name"
-                            onChange={(e) => handleMedicineNameChange(e, id)}
-                            ref={(el) =>
-                              ((inputRefs.current[id] ||= [])[0] = el)
-                            }
-                            onBlur={(e) => handleKeyPress(e, rowIndex, 0, id)}
-                            list="medicineSuggestions"
-                          />
-                          {suggestions.length > 0 && (
-                            <datalist id="medicineSuggestions">
-                              {suggestions.map((suggestion, index) => (
-                                <option
-                                  key={index}
-                                  value={`${suggestion.medicinename} ${suggestion.dosage}`}
-                                />
-                              ))}
-                            </datalist>
-                          )}
-                        </div>
-                        <div className="col-2 ms-1">
-                          <input
-                            id={`qty${id}`}
-                            type="number"
-                            className="form-control"
-                            placeholder="Enter Qty"
-                            ref={(el) =>
-                              ((inputRefs.current[id] ||= [])[1] = el)
-                            }
-                            onBlur={(e) => handleQuantity(e, rowIndex, 1, id)}
-                            onFocus={handleTotal}
-                            style={{
-                              WebkitAppearance: "none",
-                              MozAppearance: "textfield",
-                            }}
-                          />
-                        </div>
-                        <div className="col-2 ms-1">
-                          <input
-                            id={`qtyprice${id}`}
-                            type="number"
-                            className="form-control "
-                            ref={(el) =>
-                              ((inputRefs.current[id] ||= [])[2] = el)
-                            }
-                            onFocus={handleTotal}
-                            readOnly
-                          />
-                        </div>
-                        <div className="col-2 ms-1">
-                          <input
-                            id={`total${id}`}
-                            type="text"
-                            className="form-control "
-                            ref={(el) =>
-                              ((inputRefs.current[id] ||= [])[3] = el)
-                            }
-                            onFocus={handleTotal}
-                          />
-                        </div>
-
-                        <div className="col-1 ms-1">
-                          <button
-                            type="button"
-                            className="btn "
-                            style={{
-                              backgroundColor: "white",
-                              border: "1px solid lightgray",
-                            }}
-                            onClick={() => handleRemoveMedicine(id)}
-                          >
-                            <FontAwesomeIcon
-                              icon={faTimesCircle}
-                              style={{ color: "black" }}
+                <div className="table-responsive">
+                  <table className="table custom-table-no-border ">
+                    <thead>
+                      <tr>
+                        <th>
+                          <h5>
+                            <b className="ms-1">Medicine Name</b>
+                          </h5>
+                        </th>
+                        <th>
+                          <h5>
+                            <b className="ms-1">Quantity</b>
+                          </h5>
+                        </th>
+                        <th>
+                          <h5>
+                            <b className="ms-1">Price</b>
+                          </h5>
+                        </th>
+                        <th>
+                          <h5>
+                            <b className="ms-1">Total</b>
+                          </h5>
+                        </th>
+                        <th></th> {/* Empty column for the button */}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {medicineRows.map(({ id, refs }, rowIndex) => (
+                        <tr key={id}>
+                          <td>
+                            <input
+                              id={`medicinename${id}`}
+                              type="text"
+                              className="form-control"
+                              placeholder="Enter Name"
+                              onChange={(e) => handleMedicineNameChange(e, id)}
+                              ref={(el) =>
+                                ((inputRefs.current[id] ||= [])[0] = el)
+                              }
+                              onBlur={(e) => handleKeyPress(e, rowIndex, 0, id)}
+                              list="medicineSuggestions"
                             />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <FloatingAlert message={alert.message} type={alert.type} />
+                            {suggestions.length > 0 && (
+                              <datalist id="medicineSuggestions">
+                                {suggestions.map((suggestion, index) => (
+                                  <option
+                                    key={index}
+                                    value={`${suggestion.medicinename} ${suggestion.dosage}`}
+                                  />
+                                ))}
+                              </datalist>
+                            )}
+                          </td>
+                          <td>
+                            <input
+                              id={`qty${id}`}
+                              type="number"
+                              className="form-control"
+                              placeholder="Enter Qty"
+                              ref={(el) =>
+                                ((inputRefs.current[id] ||= [])[1] = el)
+                              }
+                              onBlur={(e) => handleQuantity(e, rowIndex, 1, id)}
+                              onFocus={handleTotal}
+                              style={{
+                                WebkitAppearance: "none",
+                                MozAppearance: "textfield",
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              id={`qtyprice${id}`}
+                              type="number"
+                              className="form-control "
+                              ref={(el) =>
+                                ((inputRefs.current[id] ||= [])[2] = el)
+                              }
+                              onFocus={handleTotal}
+                              readOnly
+                              style={{
+                                WebkitAppearance: "none",
+                                MozAppearance: "textfield",
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              id={`total${id}`}
+                              type="text"
+                              className="form-control "
+                              ref={(el) =>
+                                ((inputRefs.current[id] ||= [])[3] = el)
+                              }
+                              onFocus={handleTotal}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn "
+                              style={{
+                                backgroundColor: "white",
+                                border: "1px solid lightgray",
+                              }}
+                              onClick={() => handleRemoveMedicine(id)}
+                            >
+                              <FontAwesomeIcon
+                                icon={faTimesCircle}
+                                style={{ color: "black" }}
+                              />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                  <br />
-                  <div className="row mt-1">
+                <FloatingAlert message={alert.message} type={alert.type} />
+
+                <div className="row mt-0">
+                  <div className="row mt-0">
                     <div className="col-6">
                       <button
                         type="button"
                         className="btn mt-1 ms-3"
-                        style={{ backgroundColor: "teal", color: "white" }}
+                        style={{
+                          backgroundColor: "teal",
+                          color: "white",
+                          WebkitAppearance: "none",
+                          MozAppearance: "textfield",
+                        }}
                         onClick={handleAddMedicine}
                       >
                         Add More Medicine
@@ -636,7 +650,12 @@ function Billing() {
                             id="subtotal"
                             type="number"
                             className="border-0 text-start"
-                            style={{ width: "70px", background: "none" }}
+                            style={{
+                              width: "70px",
+                              background: "none",
+                              WebkitAppearance: "none",
+                              MozAppearance: "textfield",
+                            }}
                             value={subtotal}
                             readOnly
                           />
@@ -655,7 +674,12 @@ function Billing() {
                             value={discount}
                             onChange={handleDiscountChange}
                             onBlur={handleDiscountBlur}
-                            style={{ width: "70px", background: "none" }}
+                            style={{
+                              width: "70px",
+                              background: "none",
+                              WebkitAppearance: "none",
+                              MozAppearance: "textfield",
+                            }}
                           />
                         </div>
                       </div>
@@ -677,6 +701,8 @@ function Billing() {
                                 backgroundColor: "teal",
                                 width: "80px",
                                 height: "20px",
+                                WebkitAppearance: "none",
+                                MozAppearance: "textfield",
                               }}
                               id="grandtotal"
                               type="number"
@@ -688,323 +714,341 @@ function Billing() {
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="row ms-3 mt-3 ">
-                      <div className="col-3 ">
-                        <b>
-                          <label>Patient Name</label>
-                        </b>{" "}
-                        <input
-                          type="text"
-                          id="patientname"
-                          onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
-                          onFocus={handleTotal}
-                        />{" "}
-                      </div>
-                      <div className="col-3">
-                        {" "}
-                        <b>
-                          <label>Doctor Name</label>
-                        </b>
-                        <input
-                          type="text"
-                          id="doctorname"
-                          value="Dr G.Vasudevan"
-                          onBlur={(e) => handleKeyPress(e, 0, 0, "doctorname")}
-                        />
-                      </div>
-                      <div className="col-6">
-                        {" "}
-                        <b>
-                          <label htmlFor="mobileno">
-                            <b>Mobile No</b>
-                          </label>
-                        </b>
-                        <div style={{ display: "flex" }}>
-                          <select
-                            id="countryCode"
-                            value={countryCode}
-                            onChange={handleCountryCodeChange}
-                          >
-                            <option value="+91">+91 (India)</option>
-                            <option value="+1">+1 (US)</option>
-                            <option value="+44">+44 (UK)</option>
-                          </select>
-                          <input
-                            type="tel"
-                            id="mobileno"
-                            value={mobileNo}
-                            onChange={handleInputChange}
-                            style={{ marginLeft: "5px" }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                </div>
 
-                    <div className="row ms-3  mt-3 ">
-                      <div className="col-4"></div>
-                      <div className="col-2">
-                        <b>
-                          <label>Invoice Date</label>
-                        </b>{" "}
-                        <input
-                          type="text"
-                          className="form-control border-0"
-                          defaultValue={currentDateFormatted}
-                          readOnly
-                          style={{ width: "130px" }}
-                        />
-                      </div>
-                      <div className="col-2">
-                        <b>
-                          <label>Cash Given</label>
-                        </b>
-                        <input
-                          type="text"
-                          id="cashgiven"
-                          value={cashGiven}
-                          onChange={handleCashGivenChange}
-                          onBlur={handleCashGivenBlur}
-                          style={{ width: "130px" }}
-                        />
-                      </div>
+                <div className="row mt-1">
+                  <div className="col-md-3 ms-2">
+                    <b>
+                      <label>Patient Name</label>
+                    </b>{" "}
+                    <div>
+                      <input
+                        type="text"
+                        id="patientname"
+                        onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
+                        onFocus={handleTotal}
+                      />
+                    </div>
+                    <br />
+                  </div>
 
-                      <div className="col-2">
-                        <b>
-                          <label>Balance</label>
-                        </b>{" "}
-                        <input
-                          type="text"
-                          id="balance"
-                          value={balance}
-                          readOnly
-                          style={{ width: "130px" }}
-                        />
-                      </div>
+                  <div className="col-md-3">
+                    <b>
+                      <label>Doctor Name</label>
+                    </b>
+                    <div>
+                      <input
+                        type="text"
+                        id="doctorname"
+                        value="Dr G.Vasudevan"
+                        onBlur={(e) => handleKeyPress(e, 0, 0, "doctorname")}
+                      />
                     </div>
-                    <div className="row mt-1 mb-2 p-3 me-5 ">
-                      <div className="col-md-12 text-end ">
-                        <button
-                          type="button"
-                          className="btn me-2"
-                          onClick={handleCancel}
-                          style={{ backgroundColor: "teal", color: "white" }}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          style={{ backgroundColor: "teal", color: "white" }}
-                          className="btn"
-                          onClick={handleSubmit}
-                        >
-                          Submit
-                        </button>
-                      </div>
+                    <br />
+                  </div>
+                  <div className="col-md-3">
+                    <b>
+                      <label htmlFor="mobileno">
+                        <b>Mobile No</b>
+                      </label>
+                    </b>
+                    <div style={{ display: "flex" }}>
+                      <select
+                        id="countryCode"
+                        value={countryCode}
+                        onChange={handleCountryCodeChange}
+                        className="me-1"
+                      >
+                        <option value="+91">+91 (India)</option>
+                        <option value="+1">+1 (US)</option>
+                        <option value="+44">+44 (UK)</option>
+                      </select>
+                      <input
+                        type="tel"
+                        id="mobileno"
+                        value={mobileNo}
+                        onChange={handleInputChange}
+                      />
                     </div>
+                  </div>
+                </div>
+
+                <div className="row  ms-5">
+                  <div className="col-md-3">
+                    <b>
+                      <label>Invoice Date</label>
+                    </b>{" "}
+                    <input
+                      type="text"
+                      className="form-control"
+                      defaultValue={currentDateFormatted}
+                      readOnly
+                      style={{ width: "130px", border: "1px solid gray" }}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <b>
+                      <label>Cash Given</label>
+                    </b>
+                    <input
+                      type="text"
+                      id="cashgiven"
+                      value={cashGiven}
+                      onChange={handleCashGivenChange}
+                      onBlur={handleCashGivenBlur}
+                      style={{ width: "130px" }}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <b>
+                      <label>Balance</label>
+                    </b>
+                    <div>
+                      <input
+                        type="text"
+                        id="balance"
+                        value={balance}
+                        readOnly
+                        style={{ width: "130px" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-12 text-end">
+                    <button
+                      type="button"
+                      className="btn btn-secondary me-2"
+                      onClick={handleCancel}
+                      style={{ backgroundColor: "teal", color: "white" }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn "
+                      style={{ backgroundColor: "teal", color: "white" }}
+                      onClick={handleSubmit}
+                    >
+                      Submit
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="container" id="dev">
-            <div className="col-md-12 text-end" style={{ marginTop: "20px" }}>
-              <button
-                type="button"
-                style={{
-                  backgroundColor: "teal",
-                  color: "white",
-                  marginRight: "10px",
-                  fontFamily: "Arial, sans-serif",
-                  fontSize: "16px",
-                }}
-                className="btn"
-                onClick={handleWhatsApp}
-              >
-                WhatsApp
-              </button>
-              <button
-                type="button"
-                style={{
-                  backgroundColor: "teal",
-                  color: "white",
-                  marginRight: "10px",
-                  fontFamily: "Arial, sans-serif",
-                  fontSize: "16px",
-                }}
-                className="btn"
-                onClick={handlePdf}
-                disabled={!(loader === false)}
-              >
-                Download PDF
-              </button>
-
-              <button
-                type="button"
-                style={{ backgroundColor: "teal", color: "white" }}
-                className="btn"
-                onClick={handlePrint}
-              >
-                Print
-              </button>
-            </div>
-            <div
-              className="bill"
-              style={{
-                marginLeft: "180px",
-                marginTop: "40px",
-                backgroundColor: "white",
-                width: "65%",
-                height: "800px",
-                border: "1px solid black",
-                backgroundImage: `url(${billbg})`,
-                backgroundSize: "100% 100%",
-                fontFamily: "serif",
-              }}
-            >
-              <div
-                style={{
-                  marginLeft: "70%",
-                  marginTop: "110px",
-                  height: "70px",
-                  lineHeight: "2px",
-                }}
-              >
-                <div>
-                  <h3 style={{ color: "darkblue" }}>
-                    <b>Invoice</b>
-                  </h3>
-                  <h6>Invoice No:{invoiceNumber}</h6>
-                  <h6>Invoice Date: {currentDateFormatted}</h6>
-                </div>
-              </div>
-
-              <div style={{ width: "100%", marginTop: "5%" }}>
-                <table
+          <div className="row">
+            <div className="col-lg-8 mx-auto"></div>
+            <div className="container" id="dev">
+              <div className="col-md-12 text-end" style={{ marginTop: "20px" }}>
+                <button
+                  type="button"
                   style={{
-                    width: "90%",
-                    margin: "auto",
-                    borderCollapse: "collapse",
+                    backgroundColor: "teal",
+                    color: "white",
+                    marginRight: "10px",
+                    fontFamily: "Arial, sans-serif",
+                    fontSize: "16px",
+                  }}
+                  className="btn"
+                  onClick={handleWhatsApp}
+                >
+                  WhatsApp
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    backgroundColor: "teal",
+                    color: "white",
+                    marginRight: "10px",
+                    fontFamily: "Arial, sans-serif",
+                    fontSize: "16px",
+                  }}
+                  className="btn"
+                  onClick={handlePdf}
+                  disabled={!(loader === false)}
+                >
+                  Download PDF
+                </button>
+
+                <button
+                  type="button"
+                  style={{ backgroundColor: "teal", color: "white" }}
+                  className="btn"
+                  onClick={handlePrint}
+                >
+                  Print
+                </button>
+              </div>
+              <div
+                className="bill"
+                style={{
+                  marginLeft: "180px",
+                  marginTop: "40px",
+                  backgroundColor: "white",
+                  width: "65%",
+                  height: "800px",
+                  border: "1px solid black",
+                  backgroundImage: `url(${billbg})`,
+                  backgroundSize: "100% 100%",
+                  fontFamily: "serif",
+                }}
+              >
+                <div
+                  style={{
+                    marginLeft: "70%",
+                    marginTop: "110px",
+                    height: "70px",
+                    lineHeight: "2px",
                   }}
                 >
-                  <thead>
-                    <tr style={{ color: "white" }}>
-                      <th
-                        style={{
-                          padding: "10px",
-                          textAlign: "center",
-                          borderBottom: "1px solid #ddd",
-                          backgroundColor: "#2A4577",
-                        }}
-                      >
-                        S.No
-                      </th>
-                      <th
-                        style={{
-                          padding: "10px",
-                          textAlign: "center",
-                          borderBottom: "1px solid #ddd",
-                          backgroundColor: "#2A4577",
-                        }}
-                      >
-                        Medicine Name
-                      </th>
-                      <th
-                        style={{
-                          padding: "10px",
-                          textAlign: "center",
-                          borderBottom: "1px solid #ddd",
-                          backgroundColor: "#2A4577",
-                        }}
-                      >
-                        Price
-                      </th>
-                      <th
-                        style={{
-                          padding: "10px",
-                          textAlign: "center",
-                          borderBottom: "1px solid #ddd",
-                          backgroundColor: "#2A4577",
-                        }}
-                      >
-                        Qty
-                      </th>
-                      <th
-                        style={{
-                          padding: "10px",
-                          textAlign: "center",
-                          borderBottom: "1px solid #ddd",
-                          backgroundColor: "#2A4577",
-                        }}
-                      >
-                        Total
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(submittedData) &&
-                      submittedData.map((data, index) => (
-                        <tr
-                          key={data.id}
-                          style={{ borderBottom: "1px solid #ddd" }}
+                  <div>
+                    <h3 style={{ color: "darkblue" }}>
+                      <b>Invoice</b>
+                    </h3>
+                    <h6>Invoice No:{invoiceNumber}</h6>
+                    <h6>Invoice Date: {currentDateFormatted}</h6>
+                  </div>
+                </div>
+
+                <div style={{ width: "100%", marginTop: "5%" }}>
+                  <table
+                    style={{
+                      width: "90%",
+                      margin: "auto",
+                      borderCollapse: "collapse",
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ color: "white" }}>
+                        <th
+                          style={{
+                            padding: "10px",
+                            textAlign: "center",
+                            borderBottom: "1px solid #ddd",
+                            backgroundColor: "#2A4577",
+                          }}
                         >
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {index + 1}
-                          </td>
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {data.medicinename}
-                          </td>
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {data.qtyprice}
-                          </td>
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {data.qty}
-                          </td>
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {data.total}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
+                          S.No
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px",
+                            textAlign: "center",
+                            borderBottom: "1px solid #ddd",
+                            backgroundColor: "#2A4577",
+                          }}
+                        >
+                          Medicine Name
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px",
+                            textAlign: "center",
+                            borderBottom: "1px solid #ddd",
+                            backgroundColor: "#2A4577",
+                          }}
+                        >
+                          Price
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px",
+                            textAlign: "center",
+                            borderBottom: "1px solid #ddd",
+                            backgroundColor: "#2A4577",
+                          }}
+                        >
+                          Qty
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px",
+                            textAlign: "center",
+                            borderBottom: "1px solid #ddd",
+                            backgroundColor: "#2A4577",
+                          }}
+                        >
+                          Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.isArray(submittedData) &&
+                        submittedData.map((data, index) => (
+                          <tr
+                            key={data.id}
+                            style={{ borderBottom: "1px solid #ddd" }}
+                          >
+                            <td
+                              style={{ padding: "10px", textAlign: "center" }}
+                            >
+                              {index + 1}
+                            </td>
+                            <td
+                              style={{ padding: "10px", textAlign: "center" }}
+                            >
+                              {data.medicinename}
+                            </td>
+                            <td
+                              style={{ padding: "10px", textAlign: "center" }}
+                            >
+                              {data.qtyprice}
+                            </td>
+                            <td
+                              style={{ padding: "10px", textAlign: "center" }}
+                            >
+                              {data.qty}
+                            </td>
+                            <td
+                              style={{ padding: "10px", textAlign: "center" }}
+                            >
+                              {data.total}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <div
-                className="d-flex align-items-center justify-content-between ms-5"
-                style={{ marginTop: "200px" }}
+                <div
+                  className="d-flex align-items-center justify-content-between ms-5"
+                  style={{ marginTop: "200px" }}
+                >
+                  <div>
+                    <div className="col-md-12 mt-3 text-start">
+                      Cash Given: {cashGiven}
+                    </div>
+                    <div className="col-md-12 mt-3 text-start">
+                      Balance: {balance}
+                    </div>
+                  </div>
+                  <div style={{ marginRight: "40px" }}>
+                    <div className="col-md-12 mt-3 text-end">
+                      Subtotal: {subtotal}
+                    </div>
+
+                    <div className="col-md-12 mt-3 text-end">
+                      Discount: <span>{discount}</span>
+                    </div>
+
+                    <div className="col-md-12 mt-3 text-end">
+                      Grand Total: {grandtotal}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn me-2"
+                style={{ backgroundColor: "green", color: "white" }}
+                onClick={handleCancel}
               >
-                <div>
-                  <div className="col-md-12 mt-3 text-start">
-                    Cash Given: {cashGiven}
-                  </div>
-                  <div className="col-md-12 mt-3 text-start">
-                    Balance: {balance}
-                  </div>
-                </div>
-                <div style={{ marginRight: "40px" }}>
-                  <div className="col-md-12 mt-3 text-end">
-                    Subtotal: {subtotal}
-                  </div>
-
-                  <div className="col-md-12 mt-3 text-end">
-                    Discount: <span>{discount}</span>
-                  </div>
-
-                  <div className="col-md-12 mt-3 text-end">
-                    Grand Total: {grandtotal}
-                  </div>
-                </div>
-              </div>
+                Cancel
+              </button>
             </div>
-            <button
-              type="button"
-              className="btn me-2"
-              style={{ backgroundColor: "green", color: "white" }}
-              onClick={handleCancel}
-            >
-              Cancel
-            </button>
           </div>
         )}
       </div>

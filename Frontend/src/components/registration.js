@@ -5,6 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const RegistrationForm = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const mobileNumberRegex = /^\d{10}$/;
+
+
   const [formData, setFormData] = useState({
     user_first_name: "",
     user_last_name: "",
@@ -17,11 +21,46 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+
+    if (
+      !formData.user_first_name ||
+      !formData.user_last_name ||
+      !emailRegex.test(formData.user_email) ||
+      !mobileNumberRegex.test(formData.user_mobile_number) ||
+      !formData.user_role ||
+      !formData.user_password
+    ) {
+      alert("Please fill in all fields with valid information.");
+      return;
+    }
+  
+    if (!emailRegex.test(formData.user_email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    if (!mobileNumberRegex.test(formData.user_mobile_number)) {
+      alert("Mobile number must be 10 digits long.");
+      return;
+    }
+  
     try {
+      const checkEmailResponse = await axios.get(
+        `http://localhost:3000/check-email?email=${formData.user_email}`
+      );
+  
+      if (checkEmailResponse.data.status === 400) {
+        alert("Email is already registered. Please use a different email address.");
+        setFormData({ ...formData, user_email: "" });
+        return;
+      }
+  
       const formDataToSend = new FormData();
       for (const key in formData) {
         formDataToSend.append(key, formData[key]);
       }
+  
       const response = await axios.post(
         "http://localhost:3000/register",
         formDataToSend,
@@ -31,16 +70,26 @@ const RegistrationForm = () => {
           },
         }
       );
+  
       console.log(response.data);
       if (response.data.status === 200) {
         alert("Registration successful!");
-        // Handle successful registration, maybe redirect or show a success message
+
+        setFormData({
+          user_first_name: "",
+          user_last_name: "",
+          user_email: "",
+          user_mobile_number: "",
+          user_role: "",
+          user_password: "",
+          user_profile_photo: null,
+        });
       }
     } catch (error) {
       console.error("Registration failed:", error);
-      // Handle registration failure, show error message
     }
   };
+  
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -50,7 +99,10 @@ const RegistrationForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
     setFormData({ ...formData, [name]: value });
+
+
   };
 
   const handleFileChange = (e) => {
@@ -62,7 +114,7 @@ const RegistrationForm = () => {
 
   return (
     <div className="container mt-4" style={{ fontFamily: "serif" }}>
-      <h2 className="text-center">
+      <h2>
         <b>Registration Form</b>
       </h2>
       <br />
@@ -85,8 +137,8 @@ const RegistrationForm = () => {
               className="form-control"
               id="user_first_name"
               name="user_first_name"
+              onChange = {handleInputChange}
               value={formData.user_first_name}
-              onChange={handleInputChange}
               required
             />
           </div>
@@ -99,8 +151,8 @@ const RegistrationForm = () => {
               className="form-control"
               id="user_last_name"
               name="user_last_name"
+              onChange = {handleInputChange}
               value={formData.user_last_name}
-              onChange={handleInputChange}
               required
             />
           </div>
@@ -116,8 +168,8 @@ const RegistrationForm = () => {
               className="form-control"
               id="user_email"
               name="user_email"
+              onChange = {handleInputChange}
               value={formData.user_email}
-              onChange={handleInputChange}
               required
             />
           </div>
@@ -126,12 +178,16 @@ const RegistrationForm = () => {
               <b>Mobile Number</b>
             </label>
             <input
-              type="text"
+              type="tel"
               className="form-control"
               id="user_mobile_number"
               name="user_mobile_number"
-              value={formData.user_mobile_number}
               onChange={handleInputChange}
+              onInput={(e) => {
+                // Allow only numeric input
+                e.target.value = e.target.value.replace(/\D/, '').slice(0, 10);
+              }}
+              value={formData.user_mobile_number}
               required
             />
           </div>
@@ -146,8 +202,8 @@ const RegistrationForm = () => {
               className="form-select"
               id="user_role"
               name="user_role"
+              onChange = {handleInputChange}
               value={formData.user_role}
-              onChange={handleInputChange}
               required
             >
               <option value="">Select User Role</option>
@@ -160,7 +216,7 @@ const RegistrationForm = () => {
             <label
               htmlFor="user_password"
               className="form-label"
-              style={{ height: "3px" }}
+              style={{ height: "1px" }}
             >
               <b>Password</b>
             </label>
@@ -170,12 +226,12 @@ const RegistrationForm = () => {
                 className="form-control"
                 id="user_password"
                 name="user_password"
+                onChange = {handleInputChange}
                 value={formData.user_password}
-                onChange={handleInputChange}
                 required
               />
               <button
-                className="btn h-2"
+                className="btn h-0"
                 type="button"
                 onClick={handlePasswordVisibility}
               >
@@ -185,20 +241,10 @@ const RegistrationForm = () => {
           </div>
         </div>
 
-        {/* <div className="row mb-3">
-          <div className="col-md-12">
-            <label htmlFor="user_profile_photo" className="form-label">Profile Photo</label>
-            <input
-          type="file"
-          name="user_profile_photo"
-          onChange={handleFileChange}
-        />
-          </div>
-        </div> */}
-
         <div className="row">
           <div className="col-md-12 text-center">
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary"
+            style={{backgroundColor:'teal', color:'white'}}>
               Register
             </button>
           </div>

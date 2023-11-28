@@ -9,6 +9,9 @@ import {
   faPlus,
   faBoxes,
   faFileMedical,
+  faStore,
+  faMoneyBillTransfer,
+  faIdCard,
 } from "@fortawesome/free-solid-svg-icons";
 import StockDetailsPage from "./stock";
 import AddMedicine from "./addmedicine";
@@ -17,7 +20,7 @@ import ConsultationForm from "./consultationform";
 import Purchase from "./purchase";
 import BillingHis from "./billinghistory";
 import RegistrationForm from "./registration";
-import { BiChevronUp, BiChevronDown } from "react-icons/bi"; // Import necessary icons
+import { BiChevronUp, BiChevronDown } from "react-icons/bi"; 
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const UserProfile = ({ user, onLogout }) => {
@@ -33,9 +36,7 @@ const UserProfile = ({ user, onLogout }) => {
   return (
     <div className="flex-grow-0" style={{ fontFamily: "serif" }}>
       <div className="d-flex align-items-center ">
-        {/* {user && user.user.user_profile_photo && ( */}
         <img
-          // src={user.user.user_profile_photo}
           src={profileImg}
           alt="Profile"
           style={{
@@ -46,7 +47,6 @@ const UserProfile = ({ user, onLogout }) => {
             marginBottom: "15px",
           }}
         />
-        {/* )} */}
         <div style={{ display: "flex", alignItems: "center" }}>
           <div style={{ lineHeight: "2px" }}>
             <h6>
@@ -87,8 +87,7 @@ const Sidebar = () => {
 
   const handleRegistrationFormToggle = () => {
     if (user && user.user.user_role === "Doctor") {
-      setShowRegistrationForm(!showRegistrationForm);
-      // Hide other sections if needed when RegistrationForm is toggled
+      setShowRegistrationForm(true);
       setShowBilling(false);
       setShowStockDetails(false);
       setShowAddMedicine(false);
@@ -104,11 +103,12 @@ const Sidebar = () => {
       user.user.user_role === "Doctor"
     ) {
       setShowBilling(false);
-      setShowStockDetails(!showStockDetails);
+      setShowStockDetails(true);
       setShowAddMedicine(false);
       setShowForm(false);
       setShowPurchase(false);
       setShowBillingHis(false);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -119,12 +119,13 @@ const Sidebar = () => {
       (user && user.user.user_role === "Pharmacist") ||
       user.user.user_role === "Doctor"
     ) {
-      setShowBilling(!showBilling);
+      setShowBilling(true);
       setShowStockDetails(false);
       setShowAddMedicine(false);
       setShowForm(false);
       setShowPurchase(false);
       setShowBillingHis(false);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -132,10 +133,11 @@ const Sidebar = () => {
     if (user && user.user.user_role === "Doctor") {
       setShowBilling(false);
       setShowStockDetails(false);
-      setShowAddMedicine(!showAddMedicine);
+      setShowAddMedicine(true);
       setShowForm(false);
       setShowPurchase(false);
       setShowBillingHis(false);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -144,9 +146,10 @@ const Sidebar = () => {
       setShowBilling(false);
       setShowStockDetails(false);
       setShowAddMedicine(false);
-      setShowForm(!showForm);
+      setShowForm(true);
       setShowPurchase(false);
       setShowBillingHis(false);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -156,8 +159,9 @@ const Sidebar = () => {
       setShowStockDetails(false);
       setShowAddMedicine(false);
       setShowForm(false);
-      setShowPurchase(!showPurchase);
+      setShowPurchase(true);
       setShowBillingHis(false);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -168,7 +172,8 @@ const Sidebar = () => {
       setShowAddMedicine(false);
       setShowForm(false);
       setShowPurchase(false);
-      setShowBillingHis(!showBillingHis);
+      setShowBillingHis(true);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -194,10 +199,9 @@ const Sidebar = () => {
     history.push("/");
     window.location.reload();
   };
-
   return (
-    <div className="container-fluid">
-      <div className="row ">
+    <div className="container-fluid" style={{ fontFamily: "serif" }}>
+      <div className="row " >
         <div className="col-lg-3">
           <div className="shadow-sm p-3 w-100 h-100 bg-white rounded">
             <div className="d-flex align-items-center mb-3">
@@ -234,7 +238,7 @@ const Sidebar = () => {
                 {isOpen ? <BiChevronUp /> : <BiChevronDown />}
               </button>
               <div className={`collapse${isOpen ? " show" : ""} `}>
-                <div className="d-flex justify-content-center">
+                <div className="d-flex justify-content-center font-size-14">
                   <ul
                     className="list-unstyled mb-3"
                     style={{ lineHeight: "21px" }}
@@ -248,10 +252,7 @@ const Sidebar = () => {
                             className="text-decoration-none text-dark"
                             onClick={handleBillingToggle}
                           >
-                            <FontAwesomeIcon
-                              icon={faCashRegister}
-                              className="me-3"
-                            />
+                            <FontAwesomeIcon icon={faCashRegister} className="me-3"/>
                             <b>Billing</b>
                           </a>
                         </li>
@@ -294,10 +295,7 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handleFormToggle}
                         >
-                          <FontAwesomeIcon
-                            icon={faFileMedical}
-                            className="me-3"
-                          />
+                          <FontAwesomeIcon icon={faFileMedical} className="me-3"/>
                           <b>Consultation Form</b>
                         </a>
                       </li>
@@ -325,10 +323,7 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handlePurchaseToggle}
                         >
-                          <FontAwesomeIcon
-                            icon={faFileMedical}
-                            className="me-3"
-                          />{" "}
+                          <FontAwesomeIcon icon={faStore} className="me-3"/>
                           <b>Purchase History</b>
                         </a>
                       </li>
@@ -342,7 +337,7 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handleBillingHisToggle}
                         >
-                          <FontAwesomeIcon icon={faBoxes} className="me-3" />
+                          <FontAwesomeIcon icon={faMoneyBillTransfer} className="me-3" />
                           <b>Billing History</b>
                         </a>
                       </li>
@@ -355,10 +350,7 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handleRegistrationFormToggle}
                         >
-                          <FontAwesomeIcon
-                            icon={faFileMedical}
-                            className="me-4"
-                          />
+                          <FontAwesomeIcon  icon={faIdCard} className="me-3"/>
                           <b>Registration Form</b>
                         </a>
                       </li>
@@ -468,3 +460,5 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+

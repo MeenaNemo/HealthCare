@@ -18,7 +18,7 @@ const BillingHis = () => {
   const [toDate, setToDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isviewed, setisViewed] = useState(false);
+  const [isViewed, setisViewed] = useState(false);
   const [invoiceData, setInvoiceData] = useState("");
   const itemsPerPage = 25;
   const [loader, setLoader] = useState(false);
@@ -76,7 +76,7 @@ const BillingHis = () => {
     setToDate(dateString);
   };
 
-  const view = async (invoiceNumber) => {
+  const View = async (invoiceNumber) => {
     try {
       const response = await axios.get(
         `http://localhost:3000/billingdata/${invoiceNumber}`
@@ -109,7 +109,7 @@ const BillingHis = () => {
       };
 
       const doc = new jsPDF(jsPDFOptions);
-      const imageWidth = 330;
+      const imageWidth = 210;
       const imageHeight = 300;
 
       doc.addImage(imgData, "PNG", 0, 0, imageWidth, imageHeight);
@@ -121,11 +121,15 @@ const BillingHis = () => {
       setLoader(false);
     });
   };
+  const handlecancel=(event)=>{
+    event.preventDefault();
+    setisViewed(false);
+  }
 
   return (
     <>
       <div>
-        {!isviewed ? (
+        {!isViewed ? (
           <div
             style={{
               fontSize: "14px",
@@ -150,7 +154,7 @@ const BillingHis = () => {
                 <FontAwesomeIcon icon={faSearch} />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search Mobile number..."
                   value={searchQuery}
                   onChange={(event) => handleSearchChange(event.target.value)}
                 />
@@ -175,9 +179,9 @@ const BillingHis = () => {
               {dataOnCurrentPage.length === 0 ? (
                 <p>No search results found</p>
               ) : (
-                <div>
-                  <table>
-                    <thead>
+                <div className="scrollable-body">
+                <table className="table">
+                      <thead className="sticky-top bg-primary">
                       <tr>
                         <th className="text-center">Created Date</th>
                         <th className="text-center">Invoice Number</th>
@@ -207,10 +211,10 @@ const BillingHis = () => {
                           <td className="text-center">
                             {item.grandtotal || "N/A"}
                           </td>
-                          <td className="text-center">
-                            <button onClick={() => view(item.invoice_number)}>
+                          <td className="text-center" style={{padding:'5px'}}>
+                            <button  className="export" onClick={() => View(item.invoice_number)} style={{padding:'4px'}}>
                               {" "}
-                              view{" "}
+                              View{" "}
                             </button>
                           </td>
                         </tr>
@@ -242,36 +246,47 @@ const BillingHis = () => {
         ) : (
           invoiceData && (
             <div
-              className="oldbill mt-5"
-              style={{ marginLeft: "180px", marginTop: "40px" }}
+              className="mt-2"
+              style={{ marginLeft: "180px" }}
             >
-              <div
-                className="p-4 bg-white border border-dark"
-                style={{
-                  width: "65%",
-                  height: "800px",
-                  backgroundImage: `url(${billbg})`,
-                  backgroundSize: "100% 100%",
-                  fontFamily: "serif",
-                }}
-              >
-                <div>
+               <div style={{marginLeft:'400px'}}>
                   <button
                     type="button"
                     style={{
                       backgroundColor: "teal",
                       color: "white",
-                      marginRight: "10px",
-                      fontFamily: "Arial, sans-serif",
-                      fontSize: "16px",
+                      marginRight: "50px",
+                      fontFamily: " sans-serif",
+                      fontSize: "14px",
                     }}
-                    className="btn"
+                    className="btn me-2 ms-2"
                     onClick={downloadPDF}
                     disabled={!(loader === false)}
                   >
                     Download as PDF
                   </button>
+                  <button
+                  type="button"
+                  className="btn me-2 ms-2"
+                  style={{backgroundColor:"teal" ,color:'white',fontsize:"14px"}}
+                  onClick={handlecancel}
+                  >
+                    Go to Previouspage
+                  </button>
                 </div>
+              <div
+                className="oldbill p-4 bg-white border border-dark"
+                style={{
+                  width: "65%",
+                  height: "100%",
+                  marginLeft:"100px",
+                  marginTop:'50px',
+                  backgroundImage: `url(${billbg})`,
+                  backgroundSize: "100% 100%",
+                  fontFamily: "serif",
+                }}
+              >
+               
 
                 <div className="mt-5">
                   <div className="d-flex justify-content-end">
@@ -279,7 +294,7 @@ const BillingHis = () => {
                       className="mt-5"
                       style={{
                         marginLeft: "40%",
-                        marginTop: "110px",
+                        marginTop: "90px",
                         height: "70px",
                       }}
                     >
@@ -296,6 +311,7 @@ const BillingHis = () => {
                               )
                             : "N/A" || "N/A"}
                         </h6>
+                        <h6>Patient Name:{invoiceData[0].patientname}</h6>
                       </div>
                     </div>
                   </div>

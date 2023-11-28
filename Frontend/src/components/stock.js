@@ -23,14 +23,19 @@ const StockDetailsPage = () => {
   const [selectedToDate, setSelectedToDate] = useState();
   const itemsPerPage = 25;
 
-  const filteredData = medicineData.filter(
-    (item) =>
-      item.medicinename &&
-      item.medicinename.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (!fromExpiryDate ||
-        moment(item.expirydate).isSameOrAfter(fromExpiryDate)) &&
-      (!toExpiryDate || moment(item.expirydate).isSameOrBefore(toExpiryDate))
-  );
+  const filteredData = medicineData
+    .filter(
+      (item) =>
+        item.medicinename &&
+        item.medicinename.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (!fromExpiryDate ||
+          moment(item.expirydate).isSameOrAfter(fromExpiryDate)) &&
+        (!toExpiryDate || moment(item.expirydate).isSameOrBefore(toExpiryDate))
+    )
+    .sort((a, b) => {
+      // Sort by expiry date in ascending order
+      return moment(a.expirydate) - moment(b.expirydate);
+    });
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -108,7 +113,7 @@ const StockDetailsPage = () => {
 
     worksheet.columns = [
       { header: "Purchase Date", key: "purchasedate", width: 15 },
-      { header: "Product Name", key: "medicinename", width: 15 },
+      { header: "Medicine Name", key: "medicinename", width: 15 },
       { header: "Dosage", key: "dosage", width: 15 },
       { header: "Brand Names", key: "brandname", width: 15 },
       { header: "Purchase Price", key: "purchaseprice", width: 15 },
@@ -368,6 +373,7 @@ const StockDetailsPage = () => {
   };
   const tdStyle = {
     textAlign: "center",
+    whiteSpace: "nowrap",
   };
   const thStyle = {
     textAlign: "center",
@@ -390,11 +396,10 @@ const StockDetailsPage = () => {
               <h6 style={{ textAlign: "center" }}>View your stock list</h6>
             </div>
             <div>
-              <button onClick={exportToExcel}>
-                <FontAwesomeIcon icon={faFileExport} />
+              <button className="export"  onClick={exportToExcel}>
                 Export as Excel
               </button>
-              <button onClick={downloadPDF} disabled={!(loader === false)}>
+              <button className="export"  onClick={downloadPDF} disabled={!(loader === false)}>
                 {loader ? (
                   <span>Downloading</span>
                 ) : (
@@ -448,56 +453,50 @@ const StockDetailsPage = () => {
             <div>
               <div style={{ overflowX: "auto" }}>
                 <h2>Stock Details</h2>
-                <table
-                  style={{
-                    borderCollapse: "collapse",
-                    width: "100%",
-                    minWidth: "800px",
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>Purchase Date</th>
-                      <th style={thStyle}>Product Name</th>
-                      <th style={thStyle}>Dosage</th>
-                      <th style={thStyle}>Brand Name</th>
-                      <th style={thStyle}>Purchase Price</th>
-                      <th style={thStyle}>Purchase Amount</th>
-                      <th style={thStyle}>MRP</th>
-                      <th style={thStyle}>Total Qty</th>
-                      <th style={thStyle}>Expiry Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dataOnCurrentPage.map((item, index) => (
-                      <tr
-                        key={item.ID}
-                        style={{
-                          backgroundColor:
-                            index % 2 === 0 ? "#f2f2f2" : "white",
-                        }}
-                      >
-                        <td style={tdStyle}>
-                          {item.purchasedate
-                            ? moment(item.purchasedate).format("YYYY-MM-DD")
-                            : "N/A"}
-                        </td>
-                        <td style={tdStyle}>{item.medicinename || "N/A"}</td>
-                        <td style={tdStyle}>{item.dosage || "N/A"}</td>
-                        <td style={tdStyle}>{item.brandname || "N/A"}</td>
-                        <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
-                        <td style={tdStyle}>{item.purchaseamount || "N/A"}</td>
-                        <td style={tdStyle}>{item.mrp || "N/A"}</td>
-                        <td style={tdStyle}>{item.totalqty || "N/A"}</td>
-                        <td style={tdStyle}>
-                          {item.expirydate
-                            ? moment(item.expirydate).format("YYYY-MM-DD")
-                            : "N/A"}
-                        </td>
+
+                <div className="scrollable-body">
+                  <table className="table">
+                    <thead className="sticky-top bg-light ">
+                      <tr>
+                        <th style={thStyle }>Purchase Date</th>
+                        <th style={thStyle}>Medicine Name</th>
+                        <th style={thStyle}>Dosage</th>
+                        <th style={thStyle}>Brand Name</th>
+                        <th style={thStyle}>Purchase Price</th>
+                        <th style={thStyle}>Purchase Amount</th>
+                        <th style={thStyle}>MRP</th>
+                        <th style={thStyle}>Total Qty</th>
+                        <th style={thStyle}>Expiry Date</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {dataOnCurrentPage.map((item, index) => (
+                        <tr
+                          key={item.ID}
+
+                        >
+                          <td  style={tdStyle}>
+                            {item.purchasedate
+                              ? moment(item.purchasedate).format("YYYY-MM-DD")
+                              : "N/A"}
+                          </td>
+                          <td style={tdStyle}>{item.medicinename || "N/A"}</td>
+                          <td style={tdStyle}>{item.dosage || "N/A"}</td>
+                          <td style={tdStyle}>{item.brandname || "N/A"}</td>
+                          <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
+                          <td style={tdStyle}>{item.purchaseamount || "N/A"}</td>
+                          <td style={tdStyle}>{item.mrp || "N/A"}</td>
+                          <td style={tdStyle}>{item.totalqty || "N/A"}</td>
+                          <td style={tdStyle}>
+                            {item.expirydate
+                              ? moment(item.expirydate).format("YYYY-MM-DD")
+                              : "N/A"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

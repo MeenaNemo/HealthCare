@@ -112,37 +112,38 @@ CREATE TABLE IF NOT EXISTS Billing_Inventory (
 const privateKey =
   "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCKYCCU+icNr+dlESZOSomuTvi7Sv5HXbV2+RGzNWNGhnQYLGSPYFh3NRZ7HuP3C1M+sI2vX1UGb/AXlucw+pDLQpungBOyyi9zwsyzgBvdeZRFNj3V9tn3CQaEPTXbBFwSszmpPZvdk58L/YCru3G2XPdFNpKnv0Q7yiiiMWIX0wIDAQAB";
 
-app.post("/register", upload.single("user_profile_photo"), async (req, res) => {
-  try {
-    const reqData = req.body;
-    const filePath = req.file ? req.file.path : null;
-
-    if (Object.keys(reqData).length === 0) {
-      throw new Error("Please provide data.");
-    }
-
-    const existingEmailQuery =
-      "SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?";
-    db.query(
-      existingEmailQuery,
-      [reqData.user_email],
-      async (error, results) => {
+  app.post("/register", upload.single("user_profile_photo"), async (req, res) => {
+    try {
+      const reqData = req.body;
+      const filePath = req.file ? req.file.path : null;
+  
+      if (Object.keys(reqData).length === 0) {
+        throw new Error("Please provide data.");
+      }
+  
+      const existingEmailQuery =
+        "SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?";
+      db.query(existingEmailQuery, [reqData.user_email], async (error, results) => {
         if (error) {
           throw new Error("Database error: " + error.message);
         }
         if (results[0].count > 0) {
-          throw new Error("Email already exists.");
+          return res.status(400).json({
+            status: 400,
+            message: "Email already exists.",
+            error: true,
+          });
         }
-
+  
         const enpPassword = await bcrypt.hash(reqData.user_password, 10);
         const token = jwt.sign(reqData, privateKey);
         const user = "userid-" + uuid();
-
+  
         const insertUserQuery = `
-        INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp, user_profile_photo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
+          INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp, user_profile_photo)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+  
         const values = [
           user,
           reqData.user_first_name,
@@ -155,27 +156,52 @@ app.post("/register", upload.single("user_profile_photo"), async (req, res) => {
           new Date(),
           filePath, // Store the file path in the database
         ];
-
+  
         db.query(insertUserQuery, values, (error, result) => {
           if (error) {
             throw new Error("Error inserting user: " + error.message);
           }
-
-          res
-            .status(200)
-            .json({
-              status: 200,
-              data: result,
-              message: "User added successfully",
-              error: false,
-            });
+  
+          res.status(200).json({
+            status: 200,
+            data: result,
+            message: "User added successfully",
+            error: false,
+          });
         });
-      }
-    );
-  } catch (error) {
-    res.status(400).json({ status: 400, message: error.message, error: true });
-  }
-});
+      });
+  
+    } catch (error) {
+      console.error("Error during registration:", error);
+      res.status(500).json({ status: 500, message: "Internal server error.", error: true });
+    }
+  });
+  
+
+  app.get("/check-email", async (req, res) => {
+    try {
+      const userEmail = req.query.email;
+  
+      const existingEmailQuery =
+        "SELECT COUNT(*) as count FROM User_Inventory WHERE user_email = ?";
+        
+      db.query(existingEmailQuery, [userEmail], (error, results) => {
+        if (error) {
+          return res.status(500).json({ status: 500, message: "Database error", error: true });
+        }
+  
+        if (results[0].count > 0) {
+          // Email exists
+          return res.status(200).json({ status: 400, message: "Email already exists", error: true });
+        } else {
+          // Email does not exist
+          return res.status(200).json({ status: 200, message: "Email available", error: false });
+        }
+      });
+    } catch (error) {
+      return res.status(500).json({ status: 500, message: error.message, error: true });
+    }
+  });
 
 app.post("/login", async (req, res) => {
   try {
@@ -642,6 +668,21 @@ app.get("/billingdata/:invoice_number", (req, res) => {
     res.json(results);
   });
 });
+
+const extractMedicineInfo = (medData) => {
+  if (Array.isArray(medData)) {
+    medData = medData.join(' ');
+  }
+
+  const dosagePattern = /\b(\d+(?:mg|ml|gm))\b/g;
+
+  const dosageMatch = medData.match(dosagePattern);
+  const dosage = dosageMatch ? dosageMatch[0] : '';
+
+  const medicinename = medData.replace(dosagePattern, '').trim();
+
+  return { medicinename, dosage };
+};
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

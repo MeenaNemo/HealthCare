@@ -43,7 +43,7 @@ const ConsultationForm = () => {
     age: "",
     gender: "",
     dob: "",
-    consultingDoctorName: "Dr.G.VASUDEVAN M.S.,(Ortho)",
+    consultingDoctorName: "Dr.G.Vasudevan M.S.,(Ortho)",
     obervation: "",
     consultantCharge: "",
     clinicCharge: "",
@@ -151,7 +151,7 @@ const ConsultationForm = () => {
       age: "",
       gender: "",
       dob: "",
-      consultingDoctorName: "Dr.G.VASUDEVAN M.S.,(Ortho)", // You might want to change this to consultingDoctorName to match the state
+      consultingDoctorName: "Dr.G.Vasudevan M.S.,(Ortho)", // You might want to change this to consultingDoctorName to match the state
       observation: "", // Corrected the property name
       consultantCharge: "",
       clinicCharge: "",
@@ -297,6 +297,10 @@ const ConsultationForm = () => {
                       name="clinicCharge"
                       value={formData.clinicCharge}
                       onChange={handleChange}
+                      style={{
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                      }}
                       required
                       min="0"
                     />
@@ -312,6 +316,10 @@ const ConsultationForm = () => {
                       name="consultantCharge"
                       value={formData.consultantCharge}
                       onChange={handleChange}
+                      style={{
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                      }}
                       required
                       min="0"
                     />

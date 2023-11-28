@@ -1,0 +1,5 @@
+.custom-table-no-border,
+.custom-table-no-border thead th,
+.custom-table-no-border tbody td {
+  border: none; /* Remove border from the table and its cells */
+}
