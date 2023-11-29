@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch, faFileExport } from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { DatePicker } from "antd";
 import moment from "moment";
 import html2canvas from "html2canvas";
@@ -19,8 +19,8 @@ const StockDetailsPage = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedFromDate, setSelectedFromDate] = useState();
-  const [selectedToDate, setSelectedToDate] = useState();
+  // const [selectedFromDate, setSelectedFromDate] = useState();
+  // const [selectedToDate, setSelectedToDate] = useState();
   const itemsPerPage = 25;
 
   const filteredData = medicineData
@@ -226,8 +226,8 @@ const StockDetailsPage = () => {
       };
 
       const pdf = new jsPDF(jsPDFOptions);
-      const imageWidth = 210; // A4 width in mm
-      const imageHeight = (canvas.height * imageWidth) / canvas.width;
+      // const imageWidth = 210; // A4 width in mm
+      // const imageHeight = (canvas.height * imageWidth) / canvas.width;
 
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(16);
@@ -371,156 +371,122 @@ const StockDetailsPage = () => {
       pdf.save("stock.pdf");
     });
   };
-  const tdStyle = {
-    textAlign: "center",
-    whiteSpace: "nowrap",
-  };
-  const thStyle = {
-    textAlign: "center",
-  };
+ 
 
   return (
-    <div>
-      <div
-        style={{
-          marginTop: "10px",
-          fontFamily: "serif",
-        }}
-      >
-        <div style={{ margin: "20px" }}>
-          <div className="d-flex align-items-center justify-content-between">
-            <div style={{ marginLeft: "10px" }}>
-              <h2>
-                <b> Stock Details</b>
-              </h2>
-              <h6 style={{ textAlign: "center" }}>View your stock list</h6>
-            </div>
-            <div>
-              <button className="export"  onClick={exportToExcel}>
-                Export as Excel
-              </button>
-              <button className="export"  onClick={downloadPDF} disabled={!(loader === false)}>
-                {loader ? (
-                  <span>Downloading</span>
-                ) : (
-                  <span>Download as PDF</span>
-                )}
-              </button>
-            </div>
-          </div>
-          <br />
-          <div className="d-flex align-items-center justify-content-between">
-            <div
-              className="search-bar"
-              style={{ height: "30px", marginLeft: "10px" }}
-            >
-              <FontAwesomeIcon icon={faSearch} />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(event) => handleSearchChange(event.target.value)}
-              />
-            </div>
-            <div className="right-bottom">
-              <h6
-                style={{
-                  margin: "0 120px",
-                  fontSize: "18px",
-                  fontFamily: "serif",
-                }}
-              >
-                <b>Expiry Date Filter</b>
-              </h6>
-              From{" "}
-              <DatePicker
-                onChange={handleFromDateChange}
-                className="bold-placeholder"
-              />{" "}
-              <span></span>
-              To{" "}
-              <DatePicker
-                onChange={handleToDateChange}
-                className="bold-placeholder"
-              />
-            </div>
-          </div>
+    <div className="container mt-4" style={{ fontFamily: "serif, sans-serif" }}>
+    <div className="mb-4">
+    <div className="row align-items-center">
+    <div className="col-12">
+      <div className="d-flex justify-content-between align-items-center">
+        <div className="ms-3">
+          <h2 className="mb-0"><b>Stock Details</b></h2>
+          <h6 className="text-center mb-0">View your stock list</h6>
         </div>
-        <div className="stock-table">
-          {dataOnCurrentPage.length === 0 ? (
-            <p>No search results found</p>
-          ) : (
-            <div>
-              <div style={{ overflowX: "auto" }}>
-                <h2>Stock Details</h2>
-
-                <div className="scrollable-body">
-                  <table className="table">
-                    <thead className="sticky-top bg-light ">
-                      <tr>
-                        <th style={thStyle }>Purchase Date</th>
-                        <th style={thStyle}>Medicine Name</th>
-                        <th style={thStyle}>Dosage</th>
-                        <th style={thStyle}>Brand Name</th>
-                        <th style={thStyle}>Purchase Price</th>
-                        <th style={thStyle}>Purchase Amount</th>
-                        <th style={thStyle}>MRP</th>
-                        <th style={thStyle}>Total Qty</th>
-                        <th style={thStyle}>Expiry Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dataOnCurrentPage.map((item, index) => (
-                        <tr
-                          key={item.ID}
-
-                        >
-                          <td  style={tdStyle}>
-                            {item.purchasedate
-                              ? moment(item.purchasedate).format("YYYY-MM-DD")
-                              : "N/A"}
-                          </td>
-                          <td style={tdStyle}>{item.medicinename || "N/A"}</td>
-                          <td style={tdStyle}>{item.dosage || "N/A"}</td>
-                          <td style={tdStyle}>{item.brandname || "N/A"}</td>
-                          <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
-                          <td style={tdStyle}>{item.purchaseamount || "N/A"}</td>
-                          <td style={tdStyle}>{item.mrp || "N/A"}</td>
-                          <td style={tdStyle}>{item.totalqty || "N/A"}</td>
-                          <td style={tdStyle}>
-                            {item.expirydate
-                              ? moment(item.expirydate).format("YYYY-MM-DD")
-                              : "N/A"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="pagination">
-          <button onClick={handlePrevious} disabled={currentPage === 1}>
-            Previous
+        <div className="text-end">
+          <button className="btn me-2 export" onClick={exportToExcel}>
+            Export as Excel
           </button>
-          <span>
-            {" "}
-            {currentPage} of {Math.ceil(filteredData.length / itemsPerPage)}
-          </span>
-          <button
-            onClick={handleNext}
-            disabled={
-              currentPage === Math.ceil(filteredData.length / itemsPerPage)
-            }
-          >
-            Next
+          <button className="btn export" onClick={downloadPDF} disabled={loader}>
+            {loader ? <span>Downloading</span> : <span>Download as PDF</span>}
           </button>
         </div>
       </div>
     </div>
+  </div>
+      <br />
+      <div className="d-md-flex justify-content-between align-items-center">
+        <div className="search-bar" style={{ height: "30px", marginLeft: "10px" }}>
+          <FontAwesomeIcon icon={faSearch} />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(event) => handleSearchChange(event.target.value)}
+          />
+        </div>
+        <div className="right-bottom mt-3 mt-md-0">
+          <h6 className="mb-0 ms-sm-3" style={{ fontSize: "18px" }}>
+            <b style={{margin:'100px'}}>Expiry Date Filter</b>
+          </h6>
+          <div className="ms-sm-3">
+            From <DatePicker onChange={handleFromDateChange} className="bold-placeholder" />{" "}
+            <span></span>
+            To <DatePicker onChange={handleToDateChange} className="bold-placeholder" />
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div className="table-responsive">
+      <h2>Stock Details</h2>
+      <div className="scrollable-body">
+        <table className="table table-bordered table-striped">
+          <thead className="sticky-top bg-light ">
+            <tr>
+              <th className="text-center">Purchase Date</th>
+              <th className="text-center">Medicine Name</th>
+              <th className="text-center">Dosage</th>
+              <th className="text-center">Brand Name</th>
+              <th className="text-center">Purchase Price</th>
+              <th className="text-center">Purchase Amount</th>
+              <th className="text-center">MRP</th>
+              <th className="text-center">Total Qty</th>
+              <th className="text-center">Expiry Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dataOnCurrentPage.length === 0 ? (
+              <tr>
+                <td colSpan="9" className="text-center">No search results found</td>
+              </tr>
+            ) : (
+              dataOnCurrentPage.map((item, index) => (
+                <tr key={item.ID}>
+                  <td className="text-center">
+                    {item.purchasedate
+                      ? moment(item.purchasedate).format("YYYY-MM-DD")
+                      : "N/A"}
+                  </td>
+                  <td className="text-center">{item.medicinename || "N/A"}</td>
+                  <td className="text-center">{item.dosage || "N/A"}</td>
+                  <td className="text-center">{item.brandname || "N/A"}</td>
+                  <td className="text-center">{item.purchaseprice || "N/A"}</td>
+                  <td className="text-center">{item.purchaseamount || "N/A"}</td>
+                  <td className="text-center">{item.mrp || "N/A"}</td>
+                  <td className="text-center">{item.totalqty || "N/A"}</td>
+                  <td className="text-center">
+                    {item.expirydate
+                      ? moment(item.expirydate).format("YYYY-MM-DD")
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div className="pagination mt-4">
+      <button className="btn btn-primary" onClick={handlePrevious} disabled={currentPage === 1}>
+        Previous
+      </button>
+      <span className="mx-3">
+        {" "}
+        {currentPage} of {Math.ceil(filteredData.length / itemsPerPage)}
+      </span>
+      <button
+        className="btn btn-primary"
+        onClick={handleNext}
+        disabled={currentPage === Math.ceil(filteredData.length / itemsPerPage)}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+
+  
   );
 };
 

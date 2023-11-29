@@ -6,7 +6,6 @@ import ReactToPrint from "react-to-print";
 const FloatingAlert = ({ message }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Remove the notification after 3 seconds
       document.getElementById("floating-alert").style.display = "none";
     }, 3000);
 
@@ -67,20 +66,33 @@ const ConsultationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+  
     if (name === "clinicCharge" || name === "consultantCharge") {
-      if (!isNaN(value) || value === "") {
+      // Validate for numbers
+      if (/^\d+$/.test(value) || value === "") {
+        setFormData({
+          ...formData,
+          [name]: value,
+        });
+      }
+    } else if (name === "firstName" || name === "lastName" || name === "obervation") {
+      // Validate for text
+      if (/^[A-Za-z\s]+$/.test(value) || value === "") {
         setFormData({
           ...formData,
           [name]: value,
         });
       }
     } else {
+      // For other fields, allow any input
       setFormData({
         ...formData,
         [name]: value,
       });
     }
   };
+  
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -105,6 +117,7 @@ const ConsultationForm = () => {
 
     setSubmittedData(formData);
     setShowForm(false);
+    setShowAlert(false);
 
     localStorage.setItem("opNumber", formData.opNumber.toString());
   };
@@ -145,6 +158,7 @@ const ConsultationForm = () => {
 
   const handleCancel = (event) => {
     event.preventDefault();
+    const lastOPNumber = localStorage.getItem("opNumber");
     setFormData({
       firstName: "",
       lastName: "",
@@ -155,17 +169,18 @@ const ConsultationForm = () => {
       observation: "", // Corrected the property name
       consultantCharge: "",
       clinicCharge: "",
-      opNumber: 1,
+      opNumber: lastOPNumber ? parseInt(lastOPNumber, 10) + 1 : 1,
+      
     });
     setShowForm(true); // Set showForm to true to display the consultation form again
-    setShowAlert(false); // Hide the alert when canceling
+        setShowAlert(false); // Hide the alert when canceling
   };
 
   return (
     <div
       className="container"
       style={{
-        fontFamily: "serif",
+        fontFamily: 'serif',
       }}
     >
       <div style={{ margin: "20px" }} ref={componentRef}>
@@ -176,14 +191,14 @@ const ConsultationForm = () => {
               <b>Doctor Consultation Form</b>
             </h2>
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit} className=""
               style={{
                 backgroundColor: "white",
-                border: "1px solid lightgray",
+                border: "1px solid lightgray"
               }}
             >
               <div style={{ margin: "20px" }}>
-                <div className="row mb-3">
+                <div className="row mb-4">
                   <div className="col-md-6">
                     <label htmlFor="firstName" className="form-label">
                       <b>First Name</b>
@@ -195,6 +210,7 @@ const ConsultationForm = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
+                      
                       required
                     />
                   </div>
@@ -214,7 +230,7 @@ const ConsultationForm = () => {
                   </div>
                 </div>
 
-                <div className="row mb-3">
+                <div className="row mb-4">
                   <div className="col-md-6">
                     <label htmlFor="gender" className="form-label">
                       <b>Gender</b>
@@ -249,7 +265,7 @@ const ConsultationForm = () => {
                   </div>
                 </div>
 
-                <div className="row mb-3">
+                <div className="row mb-4">
                   <div className="col-md-6">
                     <label
                       htmlFor="consultingDoctorName"
@@ -285,7 +301,7 @@ const ConsultationForm = () => {
                   </div>
                 </div>
 
-                <div className="row mb-3">
+                <div className="row mb-4">
                   <div className="col-md-6">
                     <label htmlFor="clinicCharge" className="form-label">
                       <b>Clinic Charge</b>
@@ -294,6 +310,7 @@ const ConsultationForm = () => {
                       type="number"
                       className="form-control"
                       id="clinicCharge"
+                      placeholder="Please Enter a Number"
                       name="clinicCharge"
                       value={formData.clinicCharge}
                       onChange={handleChange}
@@ -314,6 +331,7 @@ const ConsultationForm = () => {
                       className="form-control"
                       id="consultantCharge"
                       name="consultantCharge"
+                      placeholder="Please Enter a Number"
                       value={formData.consultantCharge}
                       onChange={handleChange}
                       style={{
@@ -389,7 +407,8 @@ const ConsultationForm = () => {
                 border: "1px solid black",
                 backgroundImage: `url(${billbg})`,
                 backgroundSize: "cover",
-                fontFamily: "serif",
+                // fontFamily: "arial",
+                fontFamily: 'serif'
               }}
             >
               <div style={{ marginLeft: "160px", marginTop: "180px" }}>

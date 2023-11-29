@@ -28,14 +28,30 @@ function Billing() {
   const [suggestions, setSuggestions] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [alert, setAlert] = useState({ message: "", type: "" });
+  const [buttonText, setButtonText] = useState('Add More Medicine');
+
 
   const showAlert = (message, type, duration = 3000) => {
     setAlert({ message, type });
 
     setTimeout(() => {
-      setAlert({ message: "", type: ""});
-    },duration)
+      setAlert({ message: "", type: "" });
+    }, duration)
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setButtonText(window.innerWidth <= 767 ? 'Add More' : 'Add More Medicine');
+    };
+
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     setMedicineRows((prevRows) => {
@@ -165,8 +181,7 @@ function Billing() {
 
             if (expired) {
               const expiredDate = new Date(expired);
-              const expiredDateString = expiredDate.toISOString().split("T")[0]; // Extracts the date portion
-
+              const expiredDateString = expiredDate.toISOString().split("T")[0];
               showAlert(
                 `${medicinename} ${dosage} expired on ${expiredDateString} !`
               );
@@ -395,9 +410,8 @@ function Billing() {
 
     submittedData.forEach((data, index) => {
       const { medicinename, qty, qtyprice, total } = data;
-      message += `${
-        index + 1
-      } | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
+      message += `${index + 1
+        } | ${medicinename} | ${qty} | ${qtyprice} | ${total}\n`;
     });
 
     const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -486,9 +500,30 @@ function Billing() {
               }
             }
           }
-        `}
+
+
+// @media screen and (max-width: 767px) {
+//   .btn {
+//     font-size: 12px; // Adjust the font size for small screens
+//   }
+
+//   h2 {
+//     font-size: 18px; // Adjust the font size for small screens
+//   }
+
+//   th h5, td input {
+//     font-size: 14px; // Adjust the font size for small screens
+//   }
+
+//   label, input, b {
+//     font-size: 12px; // Adjust the font size for small screens
+//   }
+
+// }
+        `
+        }
       </style>
-      <div className="container" style={{ fontFamily: "serif" }}>
+      <div className="container" style={{ fontFamily: 'serif' }}>
         {!isSubmitted ? (
           <div className="row">
             <div className="container">
@@ -624,97 +659,89 @@ function Billing() {
                 <FloatingAlert message={alert.message} type={alert.type} />
 
                 <div className="row mt-0">
-                  <div className="row mt-0">
-                    <div className="col-6">
-                      <button
-                        type="button"
-                        className="btn mt-1 ms-3"
+                  <div className="col-12 col-md-6">
+                    <button
+                      type="button"
+                      className="btn mt-1 ms-md-3 btn-sm"
+                      style={{
+                        backgroundColor: "teal",
+                        color: "white",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                      }}
+                      onClick={handleAddMedicine}
+                    >
+                      {buttonText}
+                    </button>
+                  </div>
+                  <div className=" col-12 col-md-6 d-flex flex-column align-items-center">
+                    <div className="mt-1">
+                      <b>
+                        <label className="me-4">Sub Total</label>
+                      </b>
+                      <input
+                        id="subtotal"
+                        type="number"
+                        className="border-0 text-start"
                         style={{
-                          backgroundColor: "teal",
-                          color: "white",
+                          width: "70px",
+                          background: "none",
                           WebkitAppearance: "none",
                           MozAppearance: "textfield",
                         }}
-                        onClick={handleAddMedicine}
-                      >
-                        Add More Medicine
-                      </button>
+                        value={subtotal}
+                        readOnly
+                      />
                     </div>
-                    <div className="col-6">
-                      <div className="row mt-1 ">
-                        <div className="col-12 text-center">
-                          <b>
-                            <label className="me-4">Sub Total</label>
-                          </b>
-                          <input
-                            id="subtotal"
-                            type="number"
-                            className="border-0 text-start"
-                            style={{
-                              width: "70px",
-                              background: "none",
-                              WebkitAppearance: "none",
-                              MozAppearance: "textfield",
-                            }}
-                            value={subtotal}
-                            readOnly
-                          />
-                        </div>
-                      </div>
 
-                      <div className="row mt-1">
-                        <div className="col-12 text-center">
-                          <b>
-                            <label className="me-4">Discount</label>
-                          </b>
-                          <input
-                            id="discount"
-                            className="border-0 text-start p-1"
-                            type="number"
-                            value={discount}
-                            onChange={handleDiscountChange}
-                            onBlur={handleDiscountBlur}
-                            style={{
-                              width: "70px",
-                              background: "none",
-                              WebkitAppearance: "none",
-                              MozAppearance: "textfield",
-                            }}
-                          />
-                        </div>
-                      </div>
+                    <div className="mt-1">
+                      <b>
+                        <label className="me-4">Discount</label>
+                      </b>
+                      <input
+                        id="discount"
+                        className="border-0 text-start p-1"
+                        type="number"
+                        value={discount}
+                        onChange={handleDiscountChange}
+                        onBlur={handleDiscountBlur}
+                        style={{
+                          width: "70px",
+                          background: "none",
+                          WebkitAppearance: "none",
+                          MozAppearance: "textfield",
+                        }}
+                      />
+                    </div>
 
-                      <div className="row mt-1">
-                        <div className="col-12 text-center ">
-                          <div
-                            className="p-1 d-inline-block text-start"
-                            style={{ backgroundColor: "teal", height: "30px" }}
-                          >
-                            <b>
-                              <label className="me-2 text-white">
-                                Grand Total
-                              </label>
-                            </b>
-                            <input
-                              className="border-0 text-white text-start p-1"
-                              style={{
-                                backgroundColor: "teal",
-                                width: "80px",
-                                height: "20px",
-                                WebkitAppearance: "none",
-                                MozAppearance: "textfield",
-                              }}
-                              id="grandtotal"
-                              type="number"
-                              value={grandtotal}
-                              readOnly
-                            />
-                          </div>
-                        </div>
+                    <div className="mt-1">
+                      <div
+                        className="p-1 d-inline-block text-start"
+                        style={{ backgroundColor: "teal", height: "30px" }}
+                      >
+                        <b>
+                          <label className="me-2 text-white">Grand Total</label>
+                        </b>
+                        <input
+                          className="border-0 text-white text-start p-1"
+                          style={{
+                            backgroundColor: "teal",
+                            width: "80px",
+                            height: "20px",
+                            WebkitAppearance: "none",
+                            MozAppearance: "textfield",
+                          }}
+                          id="grandtotal"
+                          type="number"
+                          value={grandtotal}
+                          readOnly
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
+
+
 
                 <div className="row mt-1">
                   <div className="col-md-3 ms-2">
@@ -849,7 +876,7 @@ function Billing() {
                     backgroundColor: "teal",
                     color: "white",
                     marginRight: "10px",
-                    fontFamily: "Arial, sans-serif",
+                    fontFamily: "serif",
                     fontSize: "16px",
                   }}
                   className="btn"
@@ -863,7 +890,7 @@ function Billing() {
                     backgroundColor: "teal",
                     color: "white",
                     marginRight: "10px",
-                    fontFamily: "Arial, sans-serif",
+                    fontFamily: "serif",
                     fontSize: "16px",
                   }}
                   className="btn"

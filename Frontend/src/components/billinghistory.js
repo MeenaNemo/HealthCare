@@ -138,50 +138,44 @@ const BillingHis = () => {
               backgroundRepeat: "no-repeat",
             }}
           >
-            <div className="d-flex align-items-center justify-content-between">
-              <div style={{ margin: "20px" }}>
-                <h2>
-                  <b>Billing History</b>
-                </h2>
-              </div>
-            </div>
-            <br />
-            <div className="d-flex align-items-center justify-content-between">
-              <div
-                className="search-bar"
-                style={{ height: "30px", marginLeft: "10px" }}
-              >
-                <FontAwesomeIcon icon={faSearch} />
-                <input
-                  type="text"
-                  placeholder="Search Mobile number..."
-                  value={searchQuery}
-                  onChange={(event) => handleSearchChange(event.target.value)}
-                />
-              </div>
+            <div className="container-fluid p-3" style={{ fontFamily: "serif" }}>
+  <div className="row align-items-center">
+    <div className="col-12">
+      <h2><b>Billing History</b></h2>
+    </div>
+  </div>
+  <div className="row align-items-center mt-3">
+    <div className="col-12 col-md-6">
+      <div className="search-bar d-flex align-items-center">
+        <FontAwesomeIcon icon={faSearch} />
+        <input
+          type="text"
+          placeholder="Search Mobile number..."
+          value={searchQuery}
+          onChange={(event) => handleSearchChange(event.target.value)}
+          className="ms-2"
+        />
+      </div>
+    </div>
+    <div className="col-12 col-md-6 mt-3 mt-md-0 d-flex justify-content-md-end">
+      <span className="bold-placeholder me-3">
+        From: <DatePicker onChange={handleFromDateChange} />
+      </span>
+      <span className="bold-placeholder">
+        To: <DatePicker onChange={handleToDateChange} />
+      </span>
+    </div>
+  </div>
+</div>
 
-              <div className="right-bottom">
-                From :{" "}
-                <DatePicker
-                  onChange={handleFromDateChange}
-                  className="bold-placeholder"
-                />{" "}
-                <span> </span>
-                To :{" "}
-                <DatePicker
-                  onChange={handleToDateChange}
-                  className="bold-placeholder"
-                />{" "}
-                <span> </span>
-              </div>
-            </div>
+            
             <div className="billing-table">
               {dataOnCurrentPage.length === 0 ? (
                 <p>No search results found</p>
               ) : (
                 <div className="scrollable-body">
                 <table className="table">
-                      <thead className="sticky-top bg-primary">
+                <thead className="sticky-top" style={{ backgroundColor: 'blue', borderBottom: '2px solid black' }}>
                       <tr>
                         <th className="text-center">Created Date</th>
                         <th className="text-center">Invoice Number</th>
@@ -256,7 +250,7 @@ const BillingHis = () => {
                       backgroundColor: "teal",
                       color: "white",
                       marginRight: "50px",
-                      fontFamily: " sans-serif",
+                      fontFamily: " serif",
                       fontSize: "14px",
                     }}
                     className="btn me-2 ms-2"

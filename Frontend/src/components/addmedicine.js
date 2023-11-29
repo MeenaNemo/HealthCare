@@ -191,7 +191,7 @@ function AddMedicine() {
     <div
       className="container"
       style={{
-        fontFamily: "serif",
+        fontFamily: "arial",
         width: "100%",
         margin: "10px",
       }}
@@ -457,7 +457,8 @@ function AddMedicine() {
             style={{
               position: "fixed",
               top: "10px",
-              right: "10px",
+              left: "55%",
+              transform: "translateX(-50%)",
               backgroundColor: popupType === "emptyFields" ? "red" : "green",
               color: "white",
               padding: "10px",

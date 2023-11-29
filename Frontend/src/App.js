@@ -11,6 +11,7 @@ import BillingHis from "./components/billinghistory";
 import RegistrationForm from "./components/registration";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import './index.css'
 
 
 const App = () => {

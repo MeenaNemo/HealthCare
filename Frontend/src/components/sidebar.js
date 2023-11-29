@@ -34,7 +34,7 @@ const UserProfile = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="flex-grow-0" style={{ fontFamily: "serif" }}>
+    <div className="flex-grow-0" style={{ fontFamily:'serif, sans-serif' }}>
       <div className="d-flex align-items-center ">
         <img
           src={profileImg}
@@ -200,7 +200,7 @@ const Sidebar = () => {
     window.location.reload();
   };
   return (
-    <div className="container-fluid" style={{ fontFamily: "serif" }}>
+    <div className="container-fluid" style={{ fontFamily:'serif, sans-serif' }}>
       <div className="row " >
         <div className="col-lg-3">
           <div className="shadow-sm p-3 w-100 h-100 bg-white rounded">

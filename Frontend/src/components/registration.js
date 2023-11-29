@@ -113,7 +113,7 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="container mt-4" style={{ fontFamily: "serif" }}>
+    <div className="container mt-4" style={{ fontFamily: "serif, sans-serif" }}>
       <h2>
         <b>Registration Form</b>
       </h2>
@@ -220,7 +220,7 @@ const RegistrationForm = () => {
             >
               <b>Password</b>
             </label>
-            <div className="input-group">
+            <div className="input-group mt-2">
               <input
                 type={showPassword ? "text" : "password"}
                 className="form-control"

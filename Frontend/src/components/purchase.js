@@ -396,59 +396,59 @@ const Purchase = () => {
       <div
         style={{
           fontSize: "14px",
-          fontFamily: "serif",
+          fontFamily: "serif, sans-serif",
           backgroundSize: "100% 100%",
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="d-flex align-items-center justify-content-between">
-          <div style={{ margin: "20px" }}>
-            <h2>
-              <b> Purchase History</b>
-            </h2>
-          </div>
-          <div>
-            <button className="export" onClick={exportToExcel}>
-              Export to Excel
-            </button>
-            <button className="export" onClick={downloadPDF} disabled={!(loader === false)}>
-              {loader ? (
-                <span>Downloading as PDF</span>
-              ) : (
-                <span>Download as PDF</span>
-              )}
-            </button>
-          </div>
+        <div className="container-fluid p-3" style={{ fontFamily: "serif, sans-serif" }}>
+  <div className="row align-items-center">
+  <div className="col-12">
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 className="mb-0"><b>Purchase History</b></h2>
         </div>
-        <br />
-        <div className="d-flex align-items-center justify-content-between">
-          <div
-            className="search-bar"
-            style={{ height: "30px", margin: "10px" }}
-          >
-            <FontAwesomeIcon icon={faSearch} />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(event) => handleSearchChange(event.target.value)}
-            />
-          </div>
-          <div className="right-bottom">
-            From :{" "}
-            <DatePicker
-              onChange={handleFromDateChange}
-              className="bold-placeholder"
-            />{" "}
-            <span> </span>
-            To :{" "}
-            <DatePicker
-              onChange={handleToDateChange}
-              className="bold-placeholder"
-            />{" "}
-            <span> </span>
-          </div>
+        <div className="text-end">
+          <button className="export me-2" onClick={exportToExcel}>
+            Export to Excel
+          </button>
+          <button className="export" onClick={downloadPDF} disabled={loader}>
+            {loader ? (
+              <span>Downloading as PDF</span>
+            ) : (
+              <span>Download as PDF</span>
+            )}
+          </button>
         </div>
+      </div>
+    </div>
+  </div>
+  <div className="row align-items-center mt-3">
+    <div className="col-12 col-md-6">
+      <div className="search-bar d-flex align-items-center">
+        <FontAwesomeIcon icon={faSearch} />
+        <input
+          type="text"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(event) => handleSearchChange(event.target.value)}
+          style={{height:'30px'}}
+        />
+      </div>
+    </div>
+    <div className="col-12 col-md-6 mt-3 mt-md-0 d-flex justify-content-md-end">
+      <span className="bold-placeholder me-3">
+        From: <DatePicker onChange={handleFromDateChange} />
+      </span>
+      <span className="bold-placeholder">
+        To: <DatePicker onChange={handleToDateChange} />
+      </span>
+    </div>
+  </div>
+</div>
+
+
+
         <div className="purchase-table">
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
