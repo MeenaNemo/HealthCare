@@ -239,172 +239,141 @@ const BillingHis = () => {
           </div>
         ) : (
           invoiceData && (
-            <div
-              className="mt-2"
-              style={{ marginLeft: "180px" }}
+            <div className="mt-2 container">
+    <div className="row">
+      <div className="col-lg-8 col-md-10 col-sm-12 mx-auto">
+        <div>
+          <div className="text-end">
+            <button
+              type="button"
+              className="btn btn-success me-2"
+              onClick={downloadPDF}
+              disabled={!(loader === false)}
             >
-               <div style={{marginLeft:'400px'}}>
-                  <button
-                    type="button"
-                    style={{
-                      backgroundColor: "teal",
-                      color: "white",
-                      marginRight: "50px",
-                      fontFamily: " serif",
-                      fontSize: "14px",
-                    }}
-                    className="btn me-2 ms-2"
-                    onClick={downloadPDF}
-                    disabled={!(loader === false)}
-                  >
-                    Download as PDF
-                  </button>
-                  <button
-                  type="button"
-                  className="btn me-2 ms-2"
-                  style={{backgroundColor:"teal" ,color:'white',fontsize:"14px"}}
-                  onClick={handlecancel}
-                  >
-                    Go to Previouspage
-                  </button>
-                </div>
-              <div
-                className="oldbill p-4 bg-white border border-dark"
-                style={{
-                  width: "65%",
-                  height: "100%",
-                  marginLeft:"100px",
-                  marginTop:'50px',
-                  backgroundImage: `url(${billbg})`,
-                  backgroundSize: "100% 100%",
-                  fontFamily: "serif",
-                }}
-              >
-               
-
+              Download as PDF
+            </button>
+            <button
+              type="button"
+              className="btn btn-success me-2"
+              onClick={handlecancel}
+            >
+              Go to Previous Page
+            </button>
+          </div>
+          <div
+            className="oldbill p-4 bg-white border border-dark mt-3"
+            style={{
+              backgroundImage: `url(${billbg})`,
+              backgroundSize: "100% 100%",
+              fontFamily: "serif",
+            }}
+          >
+            <div className="mt-5">
+              <div className="d-flex justify-content-end">
                 <div className="mt-5">
-                  <div className="d-flex justify-content-end">
-                    <div
-                      className="mt-5"
-                      style={{
-                        marginLeft: "40%",
-                        marginTop: "90px",
-                        height: "70px",
-                      }}
-                    >
-                      <div>
-                        <h3 style={{ color: "darkblue" }}>
-                          <b>Invoice</b>
-                        </h3>
-                        <h6>Invoice No: {invoiceData[0].invoice_number}</h6>
-                        <h6>
-                          Invoice Date:{" "}
-                          {invoiceData[0].createdate
-                            ? moment(invoiceData[0].createdate).format(
-                                "YYYY-MM-DD"
-                              )
-                            : "N/A" || "N/A"}
-                        </h6>
-                        <h6>Patient Name:{invoiceData[0].patientname}</h6>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-100 w-lg-50 mx-auto mt-5">
-                  <div className="table-responsive">
-                    <table className="table table-bordered">
-                      <thead className="bg-primary text-white">
-                        <tr>
-                          <th className="p-3 text-center border-bottom">
-                            S.No
-                          </th>
-                          <th className="p-3 text-center border-bottom">
-                            Medicine Name
-                          </th>
-                          <th className="p-3 text-center border-bottom">Qty</th>
-                          <th className="p-3 text-center border-bottom">
-                            Price
-                          </th>
-                          <th className="p-3 text-center border-bottom">
-                            Total
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {invoiceData.map((data, index) => {
-                          const tablets = JSON.parse(
-                            data.tabletdetails
-                          ).tablets;
-
-                          return (
-                            <React.Fragment key={data.id}>
-                              {tablets && tablets.length > 0 ? (
-                                tablets.map((tablet, tabletIndex) => (
-                                  <tr
-                                    key={`${data.id}-${tabletIndex}`}
-                                    className="border-bottom"
-                                  >
-                                    <td className="p-3 text-center">
-                                      {index * tablets.length + tabletIndex + 1}
-                                    </td>
-                                    <td className="p-3 text-center">
-                                      {tablet.medicinename}
-                                    </td>
-                                    <td className="p-3 text-center">
-                                      {tablet.qty}
-                                    </td>
-                                    <td className="p-3 text-center">
-                                      {tablet.qtyprice}
-                                    </td>
-                                    <td className="p-3 text-center">
-                                      {tablet.total}
-                                    </td>
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td className="p-3 text-center" colSpan="5">
-                                    No data available
-                                  </td>
-                                </tr>
-                              )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div
-                  className="d-flex align-items-center justify-content-between ms-5"
-                  style={{ marginTop: "50px" }}
-                >
                   <div>
-                    <div className="col-md-12 mt-3 text-start">
-                      Cash Given: {invoiceData[0].cashgiven}
-                    </div>
-                    <div className="col-md-12 mt-3 text-start">
-                      Balance: {invoiceData[0].balance}
-                    </div>
-                  </div>
-                  <div style={{ marginRight: "40px" }}>
-                    <div className="col-md-12 mt-3 text-end">
-                      Subtotal: {invoiceData[0].subtotal}
-                    </div>
-
-                    <div className="col-md-12 mt-3 text-end">
-                      Discount: <span>{invoiceData[0].discount}</span>
-                    </div>
-
-                    <div className="col-md-12 mt-3 text-end">
-                      Grand Total: {invoiceData[0].grandtotal}
-                    </div>
+                    <h3 style={{ color: "darkblue" }}>
+                      <b>Invoice</b>
+                    </h3>
+                    <h6>Invoice No: {invoiceData[0].invoice_number}</h6>
+                    <h6>
+                      Invoice Date:{" "}
+                      {invoiceData[0].createdate
+                        ? moment(invoiceData[0].createdate).format("YYYY-MM-DD")
+                        : "N/A" || "N/A"}
+                    </h6>
+                    <h6>Patient Name: {invoiceData[0].patientname}</h6>
                   </div>
                 </div>
               </div>
             </div>
+
+            <div className="w-100 mx-auto mt-5 table-responsive" style={{ overflowX: 'auto' }}>
+              <table className="table table-bordered">
+                <thead className="bg-primary text-white">
+                  <tr>
+                    <th className="p-3 text-center border-bottom">S.No</th>
+                    <th className="p-3 text-center border-bottom">
+                      Medicine Name
+                    </th>
+                    <th className="p-3 text-center border-bottom">Qty</th>
+                    <th className="p-3 text-center border-bottom">Price</th>
+                    <th className="p-3 text-center border-bottom">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceData.map((data, index) => {
+                    const tablets = JSON.parse(data.tabletdetails).tablets;
+
+                    return (
+                      <React.Fragment key={data.id}>
+                        {tablets && tablets.length > 0 ? (
+                          tablets.map((tablet, tabletIndex) => (
+                            <tr
+                              key={`${data.id}-${tabletIndex}`}
+                              className="border-bottom"
+                            >
+                              <td className="p-3 text-center">
+                                {index * tablets.length + tabletIndex + 1}
+                              </td>
+                              <td className="p-3 text-center">
+                                {tablet.medicinename}
+                              </td>
+                              <td className="p-3 text-center">
+                                {tablet.qty}
+                              </td>
+                              <td className="p-3 text-center">
+                                {tablet.qtyprice}
+                              </td>
+                              <td className="p-3 text-center">
+                                {tablet.total}
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              className="p-3 text-center"
+                              colSpan="5"
+                            >
+                              No data available
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="d-flex align-items-center justify-content-between ms-5 mt-5">
+              <div>
+                <div className="mt-3 text-start">
+                  Cash Given: {invoiceData[0].cashgiven}
+                </div>
+                <div className="mt-3 text-start">
+                  Balance: {invoiceData[0].balance}
+                </div>
+              </div>
+              <div style={{ marginRight: "40px" }}>
+                <div className="mt-3 text-end">
+                  Subtotal: {invoiceData[0].subtotal}
+                </div>
+                <div className="mt-3 text-end">
+                  Discount: <span>{invoiceData[0].discount}</span>
+                </div>
+                <div className="mt-3 text-end">
+                  Grand Total: {invoiceData[0].grandtotal}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+          
           )
         )}
         ;

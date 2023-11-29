@@ -662,7 +662,7 @@ function Billing() {
                   <div className="col-12 col-md-6">
                     <button
                       type="button"
-                      className="btn mt-1 ms-md-3 btn-sm"
+                      className="btn ms-md-3 btn-sm"
                       style={{
                         backgroundColor: "teal",
                         color: "white",
@@ -674,8 +674,8 @@ function Billing() {
                       {buttonText}
                     </button>
                   </div>
-                  <div className=" col-12 col-md-6 d-flex flex-column align-items-center">
-                    <div className="mt-1">
+                  <div className=" col-12 col-md-5 d-flex flex-column align-items-end" >
+                    <div className="mt-0">
                       <b>
                         <label className="me-4">Sub Total</label>
                       </b>
@@ -706,7 +706,7 @@ function Billing() {
                         onChange={handleDiscountChange}
                         onBlur={handleDiscountBlur}
                         style={{
-                          width: "70px",
+                          width: "75px",
                           background: "none",
                           WebkitAppearance: "none",
                           MozAppearance: "textfield",
@@ -726,7 +726,7 @@ function Billing() {
                           className="border-0 text-white text-start p-1"
                           style={{
                             backgroundColor: "teal",
-                            width: "80px",
+                            width: "70px", 
                             height: "20px",
                             WebkitAppearance: "none",
                             MozAppearance: "textfield",
@@ -741,67 +741,75 @@ function Billing() {
                   </div>
                 </div>
 
+                <div className="row mt-3 ms-2 ">
+  <div className="col-md-3 me-5">
+    <b>
+      <label>Patient Name</label>
+    </b>
+    <div>
+      <input
+        type="text"
+        id="patientname"
+        onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
+        onFocus={handleTotal}
+        className="form-control"
+      />
+    </div>
+    <br />
+  </div>
 
+  <div className="col-md-3 me-5">
+    <b>
+      <label>Doctor Name</label>
+    </b>
+    <div>
+      <input
+        type="text"
+        id="doctorname"
+        value="Dr.G.Vasudevan M.S"
+        className="form-control"
+        onBlur={(e) => handleKeyPress(e, 0, 0, "doctorname")}
+      />
+    </div>
+    <br />
+  </div>
 
-                <div className="row mt-1">
-                  <div className="col-md-3 ms-2">
-                    <b>
-                      <label>Patient Name</label>
-                    </b>{" "}
-                    <div>
-                      <input
-                        type="text"
-                        id="patientname"
-                        onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
-                        onFocus={handleTotal}
-                      />
-                    </div>
-                    <br />
-                  </div>
+  <div className="col-md-3">
+    <div className="row">
+      <b>
+        <label htmlFor="mobileno">
+          <b>Mobile No</b>
+        </label>
+      </b>
+    </div>
+    <div className="row">
+      <div className="d-flex">
+        <select
+          id="countryCode"
+          value={countryCode}
+          onChange={handleCountryCodeChange}
+          className="me-1 form-select"
+          style={{ width: "80px" }} // Adjust the width of the select box
+        >
+          <option value="+91">+91 (India)</option>
+          <option value="+1">+1 (US)</option>
+          <option value="+44">+44 (UK)</option>
+        </select>
+        <input
+          type="tel"
+          id="mobileno"
+          value={mobileNo}
+          onChange={handleInputChange}
+          className="form-control"
+          style={{ flex: "3" }} // Make the input box expand to fill remaining space
+        />
+      </div>
+    </div>
+  </div>
+</div>
 
-                  <div className="col-md-3">
-                    <b>
-                      <label>Doctor Name</label>
-                    </b>
-                    <div>
-                      <input
-                        type="text"
-                        id="doctorname"
-                        value="Dr G.Vasudevan"
-                        onBlur={(e) => handleKeyPress(e, 0, 0, "doctorname")}
-                      />
-                    </div>
-                    <br />
-                  </div>
-                  <div className="col-md-3">
-                    <b>
-                      <label htmlFor="mobileno">
-                        <b>Mobile No</b>
-                      </label>
-                    </b>
-                    <div style={{ display: "flex" }}>
-                      <select
-                        id="countryCode"
-                        value={countryCode}
-                        onChange={handleCountryCodeChange}
-                        className="me-1"
-                      >
-                        <option value="+91">+91 (India)</option>
-                        <option value="+1">+1 (US)</option>
-                        <option value="+44">+44 (UK)</option>
-                      </select>
-                      <input
-                        type="tel"
-                        id="mobileno"
-                        value={mobileNo}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="row  ms-5">
-                  <div className="col-md-3">
+                <div className="row  ms-2">
+                  <div className="col-md-3 me-5">
                     <b>
                       <label>Invoice Date</label>
                     </b>{" "}
@@ -810,10 +818,9 @@ function Billing() {
                       className="form-control"
                       defaultValue={currentDateFormatted}
                       readOnly
-                      style={{ width: "130px", border: "1px solid gray" }}
                     />
                   </div>
-                  <div className="col-md-3">
+                  <div className="col-md-3 me-5">
                     <b>
                       <label>Cash Given</label>
                     </b>
@@ -823,10 +830,10 @@ function Billing() {
                       value={cashGiven}
                       onChange={handleCashGivenChange}
                       onBlur={handleCashGivenBlur}
-                      style={{ width: "130px" }}
+                      className="form-control"
                     />
                   </div>
-                  <div className="col-md-3">
+                  <div className="col-md-3 me-5">
                     <b>
                       <label>Balance</label>
                     </b>
@@ -836,13 +843,14 @@ function Billing() {
                         id="balance"
                         value={balance}
                         readOnly
-                        style={{ width: "130px" }}
+                        className="form-control"
+
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="row">
+                <div className="row mt-2">
                   <div className="col-md-12 text-end">
                     <button
                       type="button"
@@ -866,217 +874,112 @@ function Billing() {
             </div>
           </div>
         ) : (
-          <div className="row">
-            <div className="col-lg-8 mx-auto"></div>
-            <div className="container" id="dev">
-              <div className="col-md-12 text-end" style={{ marginTop: "20px" }}>
-                <button
-                  type="button"
-                  style={{
-                    backgroundColor: "teal",
-                    color: "white",
-                    marginRight: "10px",
-                    fontFamily: "serif",
-                    fontSize: "16px",
-                  }}
-                  className="btn"
-                  onClick={handleWhatsApp}
-                >
-                  WhatsApp
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    backgroundColor: "teal",
-                    color: "white",
-                    marginRight: "10px",
-                    fontFamily: "serif",
-                    fontSize: "16px",
-                  }}
-                  className="btn"
-                  onClick={handlePdf}
-                  disabled={!(loader === false)}
-                >
-                  Download PDF
-                </button>
-
-                <button
-                  type="button"
-                  style={{ backgroundColor: "teal", color: "white" }}
-                  className="btn"
-                  onClick={handlePrint}
-                >
-                  Print
-                </button>
-              </div>
-              <div
-                className="bill"
-                style={{
-                  marginLeft: "180px",
-                  marginTop: "40px",
-                  backgroundColor: "white",
-                  width: "65%",
-                  height: "800px",
-                  border: "1px solid black",
-                  backgroundImage: `url(${billbg})`,
-                  backgroundSize: "100% 100%",
-                  fontFamily: "serif",
-                }}
-              >
-                <div
-                  style={{
-                    marginLeft: "70%",
-                    marginTop: "110px",
-                    height: "70px",
-                    lineHeight: "2px",
-                  }}
-                >
-                  <div>
-                    <h3 style={{ color: "darkblue" }}>
-                      <b>Invoice</b>
-                    </h3>
-                    <h6>Invoice No:{invoiceNumber}</h6>
-                    <h6>Invoice Date: {currentDateFormatted}</h6>
-                  </div>
-                </div>
-
-                <div style={{ width: "100%", marginTop: "5%" }}>
-                  <table
-                    style={{
-                      width: "90%",
-                      margin: "auto",
-                      borderCollapse: "collapse",
-                    }}
-                  >
-                    <thead>
-                      <tr style={{ color: "white" }}>
-                        <th
-                          style={{
-                            padding: "10px",
-                            textAlign: "center",
-                            borderBottom: "1px solid #ddd",
-                            backgroundColor: "#2A4577",
-                          }}
-                        >
-                          S.No
-                        </th>
-                        <th
-                          style={{
-                            padding: "10px",
-                            textAlign: "center",
-                            borderBottom: "1px solid #ddd",
-                            backgroundColor: "#2A4577",
-                          }}
-                        >
-                          Medicine Name
-                        </th>
-                        <th
-                          style={{
-                            padding: "10px",
-                            textAlign: "center",
-                            borderBottom: "1px solid #ddd",
-                            backgroundColor: "#2A4577",
-                          }}
-                        >
-                          Price
-                        </th>
-                        <th
-                          style={{
-                            padding: "10px",
-                            textAlign: "center",
-                            borderBottom: "1px solid #ddd",
-                            backgroundColor: "#2A4577",
-                          }}
-                        >
-                          Qty
-                        </th>
-                        <th
-                          style={{
-                            padding: "10px",
-                            textAlign: "center",
-                            borderBottom: "1px solid #ddd",
-                            backgroundColor: "#2A4577",
-                          }}
-                        >
-                          Total
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array.isArray(submittedData) &&
-                        submittedData.map((data, index) => (
-                          <tr
-                            key={data.id}
-                            style={{ borderBottom: "1px solid #ddd" }}
-                          >
-                            <td
-                              style={{ padding: "10px", textAlign: "center" }}
-                            >
-                              {index + 1}
-                            </td>
-                            <td
-                              style={{ padding: "10px", textAlign: "center" }}
-                            >
-                              {data.medicinename}
-                            </td>
-                            <td
-                              style={{ padding: "10px", textAlign: "center" }}
-                            >
-                              {data.qtyprice}
-                            </td>
-                            <td
-                              style={{ padding: "10px", textAlign: "center" }}
-                            >
-                              {data.qty}
-                            </td>
-                            <td
-                              style={{ padding: "10px", textAlign: "center" }}
-                            >
-                              {data.total}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div
-                  className="d-flex align-items-center justify-content-between ms-5"
-                  style={{ marginTop: "200px" }}
-                >
-                  <div>
-                    <div className="col-md-12 mt-3 text-start">
-                      Cash Given: {cashGiven}
-                    </div>
-                    <div className="col-md-12 mt-3 text-start">
-                      Balance: {balance}
-                    </div>
-                  </div>
-                  <div style={{ marginRight: "40px" }}>
-                    <div className="col-md-12 mt-3 text-end">
-                      Subtotal: {subtotal}
-                    </div>
-
-                    <div className="col-md-12 mt-3 text-end">
-                      Discount: <span>{discount}</span>
-                    </div>
-
-                    <div className="col-md-12 mt-3 text-end">
-                      Grand Total: {grandtotal}
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-md-12 text-center mt-4">
               <button
                 type="button"
                 className="btn me-2"
-                style={{ backgroundColor: "green", color: "white" }}
-                onClick={handleCancel}
+                onClick={handleWhatsApp}
+                style={{
+                  backgroundColor: "teal",
+                  color: "white"}}
               >
-                Cancel
+                WhatsApp
+              </button>
+              <button
+                type="button"
+                className="btn  me-2"
+                onClick={handlePdf}
+                disabled={loader === true}
+                style={{
+                  backgroundColor: "teal",
+                  color: "white"}}
+              >
+                Download PDF
+              </button>
+              <button
+                type="button"
+                className="btn "
+                onClick={handlePrint}
+                style={{
+                  backgroundColor: "teal",
+                  color: "white"}}
+              >
+                Print
               </button>
             </div>
           </div>
+        
+          <div className="row justify-content-center mt-4">
+            <div className="col-md-10 col-lg-8">
+              <div className="bill " style={{ border: "1px solid black", backgroundImage: `url(${billbg})`, backgroundSize: "100% 100%", height:'100vh' }}>
+                <div className="text-end me-5" style={{marginTop:'80px'}}>
+                  <h3 className="me-4" style={{ color: "darkblue" }}>Invoice</h3>
+                  <h6>Invoice No: {invoiceNumber}</h6>
+                  <h6>Invoice Date: {currentDateFormatted}</h6>
+                </div>
+        
+                <div className="table-responsive me-5 ms-5">
+                  <table className="table table-bordered table-striped p-5 ">
+                    <thead className="table-dark">
+                      <tr>
+                        <th className="text-center">S.No</th>
+                        <th className="text-center">Medicine Name</th>
+                        <th className="text-center">Price</th>
+                        <th className="text-center">Qty</th>
+                        <th className="text-center">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.isArray(submittedData) && submittedData.map((data, index) => (
+                        <tr key={data.id}>
+                          <td className="text-center">{index + 1}</td>
+                          <td className="text-center">{data.medicinename}</td>
+                          <td className="text-center">{data.qtyprice}</td>
+                          <td className="text-center">{data.qty}</td>
+                          <td className="text-center">{data.total}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+        
+                <div className="d-flex justify-content-between m-5">
+                  <div>
+                    <div className="text-start">
+                      <p>Cash Given: {cashGiven}</p>
+                      <p>Balance: {balance}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-end">
+                      <p>Subtotal: {subtotal}</p>
+                      <p>Discount: <span>{discount}</span></p>
+                      <p>Grand Total: {grandtotal}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleCancel}
+                  style={{
+                    backgroundColor: "teal",
+                    color: "white"}}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+
+
+          
+        </div>
+        
         )}
       </div>
     </>

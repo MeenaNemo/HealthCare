@@ -62,6 +62,7 @@ const Login = () => {
         backgroundSize: "100% 100%",
         minHeight: "100vh",
         backgroundRepeat: "no-repeat",
+        fontFamily:'serif'
       }}
     >
       <div
@@ -119,7 +120,7 @@ const Login = () => {
             />
           </div>
           <div className="text-center">
-            <button type="submit" className="btn btn-info">
+            <button type="submit" className="btn" style={{backgroundColor:'teal', color:'white'}}>
               Sign in
             </button>
           </div>

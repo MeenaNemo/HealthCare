@@ -191,7 +191,7 @@ function AddMedicine() {
     <div
       className="container"
       style={{
-        fontFamily: "arial",
+        fontFamily: "serif",
         width: "100%",
         margin: "10px",
       }}
