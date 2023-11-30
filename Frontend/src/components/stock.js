@@ -19,8 +19,8 @@ const StockDetailsPage = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // const [selectedFromDate, setSelectedFromDate] = useState();
-  // const [selectedToDate, setSelectedToDate] = useState();
+ const [selectedFromDate, setSelectedFromDate] = useState();
+ const [selectedToDate, setSelectedToDate] = useState();
   const itemsPerPage = 25;
 
   const filteredData = medicineData
