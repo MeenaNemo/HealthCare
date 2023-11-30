@@ -28,12 +28,11 @@ const Login = () => {
       );
       console.log(response.data);
       if (response.data.status === 200) {
-        setAlertMessage("Login Successful!"); // Set success message
+        setAlertMessage("Login Successful!"); 
         localStorage.setItem("user", JSON.stringify(response.data.data));
         history.push("/sidebar");
         window.location.reload();
       }
-      // Handle successful login - set token in local storage and redirect
     } catch (error) {
       console.error("Login failed:", error);
       if (error.response && error.response.status === 401) {

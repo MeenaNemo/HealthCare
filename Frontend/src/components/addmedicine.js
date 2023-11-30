@@ -19,6 +19,7 @@ function AddMedicine() {
   const [showPopup, setShowPopup] = useState(false);
 
 
+  
   const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
 
   const handleChange = (event) => {
@@ -119,10 +120,8 @@ function AddMedicine() {
     });
 
     if (emptyFields.length > 0) {
-      // Show popup for empty fields
       setPopupType("emptyFields");
       setShowPopup(true);
-      // Hide popup after 2 seconds
       setTimeout(() => {
         setShowPopup(false);
       }, 2000);

@@ -208,8 +208,8 @@ app.post("/login", async (req, res) => {
     const { loginIdentifier, password } = req.body;
 
     const getUserQuery = `
-        SELECT * FROM User_Inventory WHERE user_email = ? OR user_mobile_number = ?
-      `;
+    SELECT * FROM User_Inventory WHERE user_email = ? OR user_mobile_number = ?
+  `;
 
     db.query(
       getUserQuery,
@@ -409,7 +409,6 @@ app.get("/allstock", (req, res) => {
     res.status(400).json({ error: "Medicine name is required" });
     return;
   }
-
   const sql =
     "SELECT * FROM Stock_Inventory WHERE medicinename = ? AND dosage = ?";
 
@@ -426,11 +425,11 @@ app.get("/allstock", (req, res) => {
     }
 
     const expiryDateString = results[0].expirydate;
-    const expiryDate = new Date(expiryDateString);
+    const expiryDate = new Date(expiryDateString +'Z' );
     const currentDate = new Date();
 
     if (expiryDate <= currentDate) {
-      res.json({ expired: expiryDate });
+      res.json({ expired: expiryDate.toISOString().split("T")[0]});
     } else {
       res.json({ expired: false });
     }
@@ -462,6 +461,8 @@ app.post("/purchase", (req, res) => {
     mrp,
   } = req.body;
 
+  const formattedMRP = `RS.${mrp}`;
+
   const insertPurchaseQuery = `
     INSERT INTO Purchase_Inventory 
       (medicinename, brandname, otherdetails, purchaseprice, totalqty, purchaseamount, dosage, expirydate, mrp) 
@@ -477,7 +478,7 @@ app.post("/purchase", (req, res) => {
     purchaseamount,
     dosage,
     expirydate,
-    mrp,
+    formattedMRP,
   ];
 
   db.query(insertPurchaseQuery, valuesPurchase, (err, result) => {
@@ -674,14 +675,16 @@ const extractMedicineInfo = (medData) => {
     medData = medData.join(' ');
   }
 
-  const dosagePattern = /\b(\d+(?:mg|ml|gm))\b/g;
-
-  const dosageMatch = medData.match(dosagePattern);
-  const dosage = dosageMatch ? dosageMatch[0] : '';
-
-  const medicinename = medData.replace(dosagePattern, '').trim();
-
-  return { medicinename, dosage };
+  const lastSpaceIndex = medData.lastIndexOf(' ');
+  
+  if (lastSpaceIndex !== -1) {
+    const dosage = medData.substring(lastSpaceIndex + 1).trim();
+    const medicinename = medData.substring(0, lastSpaceIndex);
+    
+    return { medicinename, dosage };
+  } else {
+    return { medicinename: '', dosage: '' }; 
+  }
 };
 
 app.listen(port, () => {

@@ -29,6 +29,7 @@ function Billing() {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [alert, setAlert] = useState({ message: "", type: "" });
   const [buttonText, setButtonText] = useState('Add More Medicine');
+  const [patientName, setPatientName] = useState('');
 
 
   const showAlert = (message, type, duration = 3000) => {
@@ -80,61 +81,56 @@ function Billing() {
     year: "numeric",
   });
 
-  const handleMedicineNameChange = async (event, id) => {
-    const inputValue = event.target.value;
-    const sanitizedValue = inputValue.replace(/^\d*/, "");
-
-    event.target.value = sanitizedValue;
-
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/suggestions?partialName=${inputValue}`
-      );
-      const fetchedSuggestions = response.data.suggestions;
-      setSuggestions(fetchedSuggestions);
-    } catch (error) {
-      console.error("Error fetching suggestions:", error);
-    }
-  };
-
   const handleQuantity = async (event, rowIndex, colIndex, id) => {
-    const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
+    const input = inputRefs.current[id]?.[1];
+    const qtyValue = input.value.trim();
+    input.value = qtyValue.replace(/\D/g, '');
+  
+    const qty = Math.floor(parseFloat(qtyValue)) || 0;
     const qtyprice = parseFloat(inputRefs.current[id]?.[2].value) || 0;
     const total = qty * qtyprice;
     const totalInput = inputRefs.current[id]?.[3];
     if (totalInput) {
       totalInput.value = total.toFixed(2);
     }
-
+  
     const tabletname = inputRefs.current[id]?.[0].value || "";
     const { medicinename, dosage } = extractMedicineInfo(tabletname);
-
+  
     try {
       const response = await axios.get(
         `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
       );
       const availableQuantity = response.data.availableQuantity;
-
-      const qty = parseFloat(inputRefs.current[id]?.[1].value) || 0;
+  
       if (qty > availableQuantity) {
         showAlert(`Available Quantity: ${availableQuantity}`);
-        console.log("AQ", availableQuantity);
         const qtyInput = inputRefs.current[id] && inputRefs.current[id][1];
         const priceInput = inputRefs.current[id] && inputRefs.current[id][2];
-
+  
         if (qtyInput) {
           qtyInput.value = "";
-          priceInput.value = "";
           totalInput.value = "";
         }
       }
     } catch (error) {
       console.error("Error fetching available quantity:", error);
     }
-
+  
     setMedicineRows((prevRows) =>
       prevRows.map((row) => (row.id === id ? { ...row, total } : row))
     );
+  };
+  
+  const handlePatientNameChange = (e) => {
+    const newName = e.target.value;
+    setPatientName(newName);
+    
+    // Additional logic or actions you want to perform on name change
+    // ...
+
+    // Example: Log the current patient name
+    console.log(`Patient Name changed to: ${newName}`);
   };
 
   const handleTotal = () => {
@@ -148,75 +144,124 @@ function Billing() {
   };
 
   const extractMedicineInfo = (tabletname) => {
-    const dosagePattern = /\b(\d+(?:mg|ml|gm))\b/g;
-
-    const dosageMatch = tabletname.match(dosagePattern);
-    const dosage = dosageMatch ? dosageMatch[0] : "";
-
-    const medicinename = tabletname.replace(dosagePattern, "").trim();
-
-    return { medicinename, dosage };
+    const lastSpaceIndex = tabletname.lastIndexOf(' ');
+    
+    if (lastSpaceIndex !== -1) {
+      const dosage = tabletname.substring(lastSpaceIndex + 1).trim();
+      const medicinename = tabletname.substring(0, lastSpaceIndex);
+      
+      console.log('Medicine Name:', medicinename);
+      console.log('Dosage:', dosage);
+      
+      return { medicinename, dosage };
+    } else {
+      console.log('Invalid tablet name format');
+      return { medicinename: '', dosage: '' }; 
+    }
   };
 
-  const handleKeyPress = async (event, rowIndex, colIndex, id) => {
-    const medicineNameInput = inputRefs.current[id]?.[0];
-    const empty = medicineNameInput?.value || "";
+  const handleSuggestionSelect = async (selectedSuggestion, id) => {
+    try {
+        const { medicinename, dosage } = extractMedicineInfo(selectedSuggestion);
+        const mrpResponse = await axios.get(
+            `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+        );
+        const mrp = mrpResponse.data.mrp;
+        console.log("mrp", mrp);
 
-    if (empty.trim() === "") {
-      return;
-    }
-
-    if (event.target.tagName.toLowerCase() === "input") {
-      event.preventDefault();
-      if (colIndex === 0 || colIndex === 1 || colIndex === 2) {
-        const tabletname = inputRefs.current[id]?.[0].value || "";
-        const { medicinename, dosage } = extractMedicineInfo(tabletname);
-
-        if (event.target.id === `medicinename${id}`) {
-          try {
-            const response = await axios.get(
-              `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
-            );
-            const expired = response.data.expired;
-
-            if (expired) {
-              const expiredDate = new Date(expired);
-              const expiredDateString = expiredDate.toISOString().split("T")[0];
-              showAlert(
-                `${medicinename} ${dosage} expired on ${expiredDateString} !`
-              );
-              const medicineNameInput = inputRefs.current[id]?.[0];
-              if (medicineNameInput) {
-                medicineNameInput.value = "";
-              }
-            }
-          } catch (error) {
-            if (event.target.id !== "") {
-              showAlert(`"${medicinename}" Stock not available .`);
-              const medicineNameInput = inputRefs.current[id]?.[0];
-              if (medicineNameInput) {
-                medicineNameInput.value = "";
-              }
-            }
-          }
-
-          try {
-            const response = await axios.get(
-              `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
-            );
-            const mrp = response.data.mrp;
-
+        // Check if MRP is available before updating qtyPriceInput
+        if (mrp !== undefined) {
             const qtyPriceInput = inputRefs.current[id]?.[2];
             if (qtyPriceInput) {
-              qtyPriceInput.value = mrp || "";
+                qtyPriceInput.value = mrp ? mrp.replace("RS.", "").trim() : "";
             }
-          } catch (error) {
-            console.error("Error fetching MRP:", error);
+        }
+    } catch (error) {
+        console.error("Error fetching MRP:", error);
+    }
+};
+
+
+  const handleMedicineNameChange = async (event, id) => {
+    const inputValue = event.target.value;
+    const sanitizedValue = inputValue.replace(/^\d*/, "");
+
+    event.target.value = sanitizedValue;
+
+    try {
+        const response = await axios.get(
+            `http://localhost:3000/suggestions?partialName=${inputValue}`
+        );
+        const fetchedSuggestions = response.data.suggestions;
+        setSuggestions(fetchedSuggestions);
+    } catch (error) {
+        console.error("Error fetching suggestions:", error);
+    }
+};
+  
+const handleKeyPress = async (event, rowIndex, colIndex, id) => {
+  const medicineNameInput = inputRefs.current[id]?.[0];
+  const qtyPriceInput = inputRefs.current[id]?.[2];
+  const empty = medicineNameInput?.value || "";
+
+  if (empty.trim() === "") {
+    return;
+  }
+
+  if (event.target.tagName.toLowerCase() === "input") {
+    event.preventDefault();
+    if (colIndex === 0 || colIndex === 1 || colIndex === 2) {
+      const tabletname = inputRefs.current[id]?.[0].value || "";
+      const { medicinename, dosage } = extractMedicineInfo(tabletname);
+
+      if (event.target.id === `medicinename${id}`) {
+        try {
+          const response = await axios.get(
+            `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+          );
+          const expired = response.data.expired;
+
+          if (expired) {
+            const expiredDate = new Date(expired);
+            const expiredDateString = expiredDate.toISOString().split("T")[0];
+            showAlert(
+              `${medicinename} ${dosage} expired on ${expiredDateString} !`
+            );
+            clearRow(id);
+          }
+        } catch (error) {
+          if (event.target.id !== "") {
+            showAlert(`"${medicinename}" Medicine not available.`);
+            clearRow(id);
           }
         }
+
+        
       }
     }
-  };
+  }
+};
+
+// Add a function to clear the entire row
+const clearRow = (id) => {
+  const medicineNameInput = inputRefs.current[id]?.[0];
+  const qtyInput = inputRefs.current[id]?.[1];
+  const qtyPriceInput = inputRefs.current[id]?.[2];
+  const totalInput = inputRefs.current[id]?.[3];
+
+  if (medicineNameInput) {
+    medicineNameInput.value = "";
+  }
+  if (qtyInput) {
+    qtyInput.value = "";
+  }
+  if (qtyPriceInput) {
+    qtyPriceInput.value = "";
+  }
+  if (totalInput) {
+    totalInput.value = "";
+  }
+};
 
   const handleAddMedicine = () => {
     const newId = Date.now();
@@ -232,15 +277,16 @@ function Billing() {
   };
 
   const handleCashGivenChange = (event) => {
-    const newCashGiven = event.target.value;
+    // Allow only digits (0-9)
+    const newCashGiven = event.target.value.replace(/[^\d]/g, '');
     setCashGiven(newCashGiven);
   };
-
   const handleCashGivenBlur = () => {
-    const formattedValue = parseFloat(cashGiven.replace(/[^\d.]/g, 0)).toFixed(
-      2
-    );
-    setCashGiven(formattedValue);
+    // Replace non-digit characters and leading zeros, then check if the result is an empty string
+    const formattedValue = cashGiven.replace(/[^\d.]/g, '').replace(/^0+/, '');
+  
+    // If the formatted value is an empty string, set it to '0', otherwise set it to the formatted value
+    setCashGiven(formattedValue === '' ? '0' : formattedValue);
   };
 
   const handleDiscountBlur = () => {
@@ -275,11 +321,22 @@ function Billing() {
   };
 
   const handleSubmit = async () => {
+    const isAnyFieldFilled = medicineRows.some((row) => {
+      const hasFilledInput = inputRefs.current[row.id].some((input) => !!input.value.trim());
+      return hasFilledInput;
+    });
+  
+    if (!isAnyFieldFilled) {
+      showAlert("Please fill in at least one input field", "error");
+      return;
+    }
+  
     let hasIncompleteRow = false;
+  
 
     const updatedMedicineRows = medicineRows
       .map((row) => {
-        const medicinename = inputRefs.current[row.id][0].value.trim();
+        const medicinename = inputRefs.current[row.id][0].value;
         const qty = parseFloat(inputRefs.current[row.id][1].value) || "";
         const qtyprice = parseFloat(inputRefs.current[row.id][2].value) || "";
         const total = parseFloat(inputRefs.current[row.id][3].value) || "";
@@ -313,7 +370,13 @@ function Billing() {
 
     const patientName = document.getElementById("patientname").value.trim();
     if (!patientName) {
-      showAlert("Please fill the Patient Name");
+      showAlert("Please enter a valid Patient Name");
+      return;
+    } else if (!/^[a-zA-Z\s]+$/.test(patientName)) {
+      showAlert("Give the valid Patient Name");
+      return;
+    } else if (/\d/.test(patientName)) {
+      showAlert("Patient Name should not contain numbers");
       return;
     }
 
@@ -566,7 +629,7 @@ function Billing() {
                     <tbody>
                       {medicineRows.map(({ id, refs }, rowIndex) => (
                         <tr key={id}>
-                          <td>
+                        <td>
                             <input
                               id={`medicinename${id}`}
                               type="text"
@@ -578,6 +641,7 @@ function Billing() {
                               }
                               onBlur={(e) => handleKeyPress(e, rowIndex, 0, id)}
                               list="medicineSuggestions"
+                              onSelect={(e) => handleSuggestionSelect(e.target.value, id)}
                             />
                             {suggestions.length > 0 && (
                               <datalist id="medicineSuggestions">
@@ -751,6 +815,7 @@ function Billing() {
         type="text"
         id="patientname"
         onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
+        onChange={handlePatientNameChange}
         onFocus={handleTotal}
         className="form-control"
       />
@@ -918,6 +983,7 @@ function Billing() {
                   <h3 className="me-4" style={{ color: "darkblue" }}>Invoice</h3>
                   <h6>Invoice No: {invoiceNumber}</h6>
                   <h6>Invoice Date: {currentDateFormatted}</h6>
+                  <h6>patientName:{patientName}</h6>
                 </div>
         
                 <div className="table-responsive me-5 ms-5">
