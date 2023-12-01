@@ -99,11 +99,21 @@ const RegistrationForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+  
+    // Regular expression to match only alphabetic characters and spaces
+    const onlyLettersRegex = /^[a-zA-Z\s]*$/;
+  
+    // Check if the entered value contains only alphabetic characters and spaces
+    if (name === "user_first_name" || name === "user_last_name") {
+      if (!onlyLettersRegex.test(value)) {
+        // If the input contains invalid characters, don't update the state
+        return;
+      }
+    }
+  
     setFormData({ ...formData, [name]: value });
-
-
   };
+  
 
   const handleFileChange = (e) => {
     setFormData({

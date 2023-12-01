@@ -30,7 +30,12 @@ function Billing() {
   const [alert, setAlert] = useState({ message: "", type: "" });
   const [buttonText, setButtonText] = useState('Add More Medicine');
   const [patientName, setPatientName] = useState('');
+  const [requestedQuantities, setRequestedQuantities] = useState({});
 
+
+  useEffect(() => {
+    handleTotal();
+  }, [medicineRows, discount]);
 
   const showAlert = (message, type, duration = 3000) => {
     setAlert({ message, type });
@@ -85,51 +90,54 @@ function Billing() {
     const input = inputRefs.current[id]?.[1];
     const qtyValue = input.value.trim();
     input.value = qtyValue.replace(/\D/g, '');
-  
+
     const qty = Math.floor(parseFloat(qtyValue)) || 0;
     const qtyprice = parseFloat(inputRefs.current[id]?.[2].value) || 0;
     const total = qty * qtyprice;
     const totalInput = inputRefs.current[id]?.[3];
     if (totalInput) {
-      totalInput.value = total.toFixed(2);
+        totalInput.value = total.toFixed(2);
     }
-  
+
     const tabletname = inputRefs.current[id]?.[0].value || "";
     const { medicinename, dosage } = extractMedicineInfo(tabletname);
-  
+
     try {
-      const response = await axios.get(
-        `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
-      );
-      const availableQuantity = response.data.availableQuantity;
-  
-      if (qty > availableQuantity) {
-        showAlert(`Available Quantity: ${availableQuantity}`);
-        const qtyInput = inputRefs.current[id] && inputRefs.current[id][1];
-        const priceInput = inputRefs.current[id] && inputRefs.current[id][2];
-  
-        if (qtyInput) {
-          qtyInput.value = "";
-          totalInput.value = "";
+        const response = await axios.get(
+            `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+        );
+        const availableQuantity = response.data.availableQuantity;
+
+        const requestedQuantityForMedicine = requestedQuantities[medicinename] || 0;
+
+        if (qty + requestedQuantityForMedicine > availableQuantity) {
+            const remainingQuantity = availableQuantity - requestedQuantityForMedicine;
+            showAlert(`Available Quantity for ${medicinename} is ${remainingQuantity}`);
+            
+            const qtyInput = inputRefs.current[id]?.[1];
+            if (qtyInput) {
+                qtyInput.value = "";
+                totalInput.value = "";
+            }
+        } else {
+            setRequestedQuantities((prevQuantities) => ({
+                ...prevQuantities,
+                [medicinename]: (prevQuantities[medicinename] || 0) + qty,
+            }));
         }
-      }
     } catch (error) {
-      console.error("Error fetching available quantity:", error);
+        console.error("Error fetching available quantity:", error);
     }
-  
+
     setMedicineRows((prevRows) =>
-      prevRows.map((row) => (row.id === id ? { ...row, total } : row))
+        prevRows.map((row) => (row.id === id ? { ...row, total } : row))
     );
-  };
+};
+
   
   const handlePatientNameChange = (e) => {
     const newName = e.target.value;
     setPatientName(newName);
-    
-    // Additional logic or actions you want to perform on name change
-    // ...
-
-    // Example: Log the current patient name
     console.log(`Patient Name changed to: ${newName}`);
   };
 
@@ -149,10 +157,7 @@ function Billing() {
     if (lastSpaceIndex !== -1) {
       const dosage = tabletname.substring(lastSpaceIndex + 1).trim();
       const medicinename = tabletname.substring(0, lastSpaceIndex);
-      
-      console.log('Medicine Name:', medicinename);
-      console.log('Dosage:', dosage);
-      
+    
       return { medicinename, dosage };
     } else {
       console.log('Invalid tablet name format');
@@ -169,11 +174,10 @@ function Billing() {
         const mrp = mrpResponse.data.mrp;
         console.log("mrp", mrp);
 
-        // Check if MRP is available before updating qtyPriceInput
         if (mrp !== undefined) {
             const qtyPriceInput = inputRefs.current[id]?.[2];
             if (qtyPriceInput) {
-                qtyPriceInput.value = mrp ? mrp.replace("RS.", "").trim() : "";
+                qtyPriceInput.value = mrp || "";
             }
         }
     } catch (error) {
@@ -231,18 +235,15 @@ const handleKeyPress = async (event, rowIndex, colIndex, id) => {
           }
         } catch (error) {
           if (event.target.id !== "") {
-            showAlert(`"${medicinename}" Medicine not available.`);
+            showAlert(`"${tabletname}" Medicine not available.`);
             clearRow(id);
           }
         }
-
-        
       }
     }
   }
 };
 
-// Add a function to clear the entire row
 const clearRow = (id) => {
   const medicineNameInput = inputRefs.current[id]?.[0];
   const qtyInput = inputRefs.current[id]?.[1];
@@ -277,15 +278,12 @@ const clearRow = (id) => {
   };
 
   const handleCashGivenChange = (event) => {
-    // Allow only digits (0-9)
     const newCashGiven = event.target.value.replace(/[^\d]/g, '');
     setCashGiven(newCashGiven);
   };
   const handleCashGivenBlur = () => {
-    // Replace non-digit characters and leading zeros, then check if the result is an empty string
     const formattedValue = cashGiven.replace(/[^\d.]/g, '').replace(/^0+/, '');
   
-    // If the formatted value is an empty string, set it to '0', otherwise set it to the formatted value
     setCashGiven(formattedValue === '' ? '0' : formattedValue);
   };
 
@@ -316,9 +314,30 @@ const clearRow = (id) => {
     setGrandTotal(newGrandTotal);
   };
 
+  // const handleRemoveMedicine = (id) => {
+  //   setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
+  // };
   const handleRemoveMedicine = (id) => {
+    const removedMedicine = medicineRows.find((row) => row.id === id);
+    if (removedMedicine && removedMedicine.tabletname) {
+      const { medicinename } = extractMedicineInfo(removedMedicine.tabletname);
+      
+      // Log the original quantities
+      console.log("Original Quantities:", requestedQuantities);
+  
+      const updatedQuantities = { ...requestedQuantities };
+      delete updatedQuantities[medicinename];
+      
+      // Log the updated quantities before setting
+      console.log("Updated Quantities:", updatedQuantities);
+  
+      setRequestedQuantities(updatedQuantities);
+    }
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
+  
+  
+  
 
   const handleSubmit = async () => {
     const isAnyFieldFilled = medicineRows.some((row) => {
@@ -588,15 +607,15 @@ const clearRow = (id) => {
       </style>
       <div className="container" style={{ fontFamily: 'serif' }}>
         {!isSubmitted ? (
-          <div className="row">
+          <div className="row m-1">
             <div className="container">
-              <div className="mt-4">
+              <div className="">
                 <h2 className="text-start">
                   <b>Billing</b>
                 </h2>
               </div>
               <div
-                className="bg-white border rounded p-5 pt-0"
+                className="bg-white border p-5 pt-0"
                 style={{ maxWidth: "1000px", margin: "0" }}
               >
                 <div className="table-responsive">
@@ -664,7 +683,7 @@ const clearRow = (id) => {
                                 ((inputRefs.current[id] ||= [])[1] = el)
                               }
                               onBlur={(e) => handleQuantity(e, rowIndex, 1, id)}
-                              onFocus={handleTotal}
+                             
                               style={{
                                 WebkitAppearance: "none",
                                 MozAppearance: "textfield",
@@ -866,7 +885,7 @@ const clearRow = (id) => {
           value={mobileNo}
           onChange={handleInputChange}
           className="form-control"
-          style={{ flex: "3" }} // Make the input box expand to fill remaining space
+          style={{ width:'160px'}} // Make the input box expand to fill remaining space
         />
       </div>
     </div>
@@ -977,16 +996,25 @@ const clearRow = (id) => {
           </div>
         
           <div className="row justify-content-center mt-4">
-            <div className="col-md-10 col-lg-8">
-              <div className="bill " style={{ border: "1px solid black", backgroundImage: `url(${billbg})`, backgroundSize: "100% 100%", height:'100vh' }}>
-                <div className="text-end me-5" style={{marginTop:'80px'}}>
-                  <h3 className="me-4" style={{ color: "darkblue" }}>Invoice</h3>
+          <div className="col-md-10 col-lg-8">
+            <div className="bill" style={{
+                        border: "1px solid black",
+                        backgroundImage: `url(${billbg})`,
+                        backgroundSize: "210mm 297mm", // Set width and height
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center", // Adjust as needed
+                        height: "297mm",
+                        width: "210mm",
+                        position: "relative" // Optional: Set the width of the container to match A4
+                    }}>
+                <div className="text-end me-4" style={{marginTop: '130px'}}>
+                  <h3 className="me-5"  style={{ color: "darkblue" }}>Invoice</h3>
                   <h6>Invoice No: {invoiceNumber}</h6>
                   <h6>Invoice Date: {currentDateFormatted}</h6>
                   <h6>patientName:{patientName}</h6>
                 </div>
         
-                <div className="table-responsive me-5 ms-5">
+                <div className="table-responsive mt-3 me-5 ms-5">
                   <table className="table table-bordered table-striped p-5 ">
                     <thead className="table-dark">
                       <tr>
@@ -1011,15 +1039,15 @@ const clearRow = (id) => {
                   </table>
                 </div>
         
-                <div className="d-flex justify-content-between m-5">
+                <div className="d-flex justify-content-between" style={{ position: 'absolute', bottom: '15%', width: '100%' }}>
                   <div>
-                    <div className="text-start">
+                  <div className="text-start ms-5">
                       <p>Cash Given: {cashGiven}</p>
                       <p>Balance: {balance}</p>
                     </div>
                   </div>
                   <div>
-                    <div className="text-end">
+                  <div className="text-end me-5">
                       <p>Subtotal: {subtotal}</p>
                       <p>Discount: <span>{discount}</span></p>
                       <p>Grand Total: {grandtotal}</p>

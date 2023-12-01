@@ -214,33 +214,32 @@ const StockDetailsPage = () => {
       logging: false,
       allowTaint: true,
     };
-
+  
     const capture = document.querySelector(".stock-table");
     setLoader(true);
-
+  
     html2canvas(capture, html2canvasOptions).then((canvas) => {
       const jsPDFOptions = {
         orientation: "portrait",
         unit: "mm",
         format: "a4",
       };
-
+  
       const pdf = new jsPDF(jsPDFOptions);
       const imageWidth = 210; // A4 width in mm
       const imageHeight = (canvas.height * imageWidth) / canvas.width;
-
+  
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(16);
       pdf.setTextColor(43, 128, 176);
-      pdf.text(
-        `Stock Details from ${fromExpiryDate} to ${toExpiryDate}`,
-        10,
-        10,
-        null,
-        null,
-        "left"
-      );
-
+  
+      // Set the PDF heading based on date filtering
+      const headingText = fromExpiryDate && toExpiryDate
+        ? `Stock Details from ${fromExpiryDate} to ${toExpiryDate}`
+        : "Stock Details as on Today";
+  
+      pdf.text(headingText, 10, 10, null, null, "left");
+  
       const headingHeight = 20;
       const tableStartY = 0 + headingHeight;
       const firstPageData = filteredData.slice(0, itemsPerPage);
@@ -259,7 +258,7 @@ const StockDetailsPage = () => {
           ? moment(currentData.expirydate).format("YYYY-MM-DD")
           : "N/A",
       ]);
-
+  
       pdf.autoTable({
         head: [
           [
@@ -275,16 +274,16 @@ const StockDetailsPage = () => {
           ],
         ],
         body: firstPageBodyData,
-        startY: tableStartY, // Adjust the starting Y position as needed
-        theme: "grid", // Apply grid theme for borders
+        startY: tableStartY,
+        theme: "grid",
         styles: {
           fontSize: 9,
-          halign: "center", // Center-align headings
+          halign: "center",
         },
         headerStyles: {
-          fillColor: [41, 128, 185], // Blue color for header background
-          textColor: 255, // White text color
-          lineWidth: 0.3, // Header border line width
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          lineWidth: 0.3,
         },
         columnStyles: {
           0: { cellWidth: 20, cellHeight: 10 },
@@ -296,17 +295,17 @@ const StockDetailsPage = () => {
           lineWidth: 0.3,
         },
       });
-
+  
       let rowIndex = itemsPerPage;
       const numberOfRows = filteredData.length;
-
+  
       while (rowIndex < numberOfRows) {
         pdf.addPage();
-        pdf.text(`Page ${Math.ceil((rowIndex + 1) / itemsPerPage)}`, 10, 10); // Add page number
+        pdf.text(`Page ${Math.ceil((rowIndex + 1) / itemsPerPage)}`, 10, 10);
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(16);
-        pdf.setTextColor(43, 128, 176); // Blue color
-
+        pdf.setTextColor(43, 128, 176);
+  
         const currentPageData = filteredData.slice(
           rowIndex,
           rowIndex + itemsPerPage
@@ -326,7 +325,7 @@ const StockDetailsPage = () => {
             ? moment(currentData.expirydate).format("YYYY-MM-DD")
             : "N/A",
         ]);
-
+  
         pdf.autoTable({
           head: [
             [
@@ -342,16 +341,16 @@ const StockDetailsPage = () => {
             ],
           ],
           body: bodyData,
-          startY: tableStartY, // Adjust the starting Y position as needed
-          theme: "grid", // Apply grid theme for borders
+          startY: tableStartY,
+          theme: "grid",
           styles: {
             fontSize: 9,
-            halign: "center", // Center-align headings
+            halign: "center",
           },
           headerStyles: {
-            fillColor: [41, 128, 185], // Blue color for header background
-            textColor: 255, // White text color
-            lineWidth: 0.3, // Header border line width
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            lineWidth: 0.3,
           },
           columnStyles: {
             0: { cellWidth: 20, cellHeight: 10 },
@@ -363,14 +362,15 @@ const StockDetailsPage = () => {
             lineWidth: 0.3,
           },
         });
-
+  
         rowIndex += itemsPerPage;
       }
-
+  
       setLoader(false);
       pdf.save("stock.pdf");
     });
   };
+  
   const tdStyle = {
     textAlign: "center",
     whiteSpace: "nowrap",
@@ -387,9 +387,9 @@ const StockDetailsPage = () => {
           fontFamily: "serif",
         }}
       >
-        <div style={{ margin: "20px" }}>
+        <div style={{ margin: "15px" }}>
           <div className="d-flex align-items-center justify-content-between">
-            <div style={{ marginLeft: "10px" }}>
+            <div >
               <h2>
                 <b> Stock Details</b>
               </h2>
@@ -447,7 +447,7 @@ const StockDetailsPage = () => {
             </div>
           </div>
         </div>
-        <div className="stock-table">
+        <div className="stock-table" style={{marginLeft:'0px'}}>
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
@@ -471,30 +471,29 @@ const StockDetailsPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {dataOnCurrentPage.map((item, index) => (
-                        <tr
-                          key={item.ID}
+                    {dataOnCurrentPage.map((item, index) => (
+  <tr key={item.ID}>
+    <td style={tdStyle}>
+      {item.purchasedate
+        ? moment(item.purchasedate).format("YYYY-MM-DD")
+        : "N/A"}
+    </td>
+    <td style={{ ...tdStyle, textAlign: 'left' }}>{item.medicinename || "N/A"}</td>
+    {/* Add textAlign: 'left' to the style of the Medicine Name cell */}
+    <td style={tdStyle}>{item.dosage || "N/A"}</td>
+    <td style={tdStyle}>{item.brandname || "N/A"}</td>
+    <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
+    <td style={tdStyle}>{item.purchaseamount || "N/A"}</td>
+    <td style={tdStyle}>{item.mrp || "N/A"}</td>
+    <td style={tdStyle}>{item.totalqty || "N/A"}</td>
+    <td style={tdStyle}>
+      {item.expirydate
+        ? moment(item.expirydate).format("YYYY-MM-DD")
+        : "N/A"}
+    </td>
+  </tr>
+))}
 
-                        >
-                          <td  style={tdStyle}>
-                            {item.purchasedate
-                              ? moment(item.purchasedate).format("YYYY-MM-DD")
-                              : "N/A"}
-                          </td>
-                          <td style={tdStyle}>{item.medicinename || "N/A"}</td>
-                          <td style={tdStyle}>{item.dosage || "N/A"}</td>
-                          <td style={tdStyle}>{item.brandname || "N/A"}</td>
-                          <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
-                          <td style={tdStyle}>{item.purchaseamount || "N/A"}</td>
-                          <td style={tdStyle}>{item.mrp || "N/A"}</td>
-                          <td style={tdStyle}>{item.totalqty || "N/A"}</td>
-                          <td style={tdStyle}>
-                            {item.expirydate
-                              ? moment(item.expirydate).format("YYYY-MM-DD")
-                              : "N/A"}
-                          </td>
-                        </tr>
-                      ))}
                     </tbody>
                   </table>
                 </div>

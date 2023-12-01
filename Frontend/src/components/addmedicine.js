@@ -17,7 +17,7 @@ function AddMedicine() {
   });
   const [popupType, setPopupType] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-
+  const [popupMessage, setPopupMessage] = useState("");
 
   
   const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
@@ -70,9 +70,25 @@ function AddMedicine() {
       }
 
       if (id === "expirydate" && !isNaN(new Date(value).getTime())) {
-        updatedData.expirydate = new Date(value).toISOString().split("T")[0];
+        const selectedDate = new Date(value);
+        const currentDate = new Date();
+  
+        if (selectedDate < currentDate) {
+          // Display a popup with an error message
+          setPopupType("error");
+          setPopupMessage('Please enter a valid expiry date.');
+          setShowPopup(true);
+  
+          // Hide the popup after 2 seconds
+          setTimeout(() => {
+            setShowPopup(false);
+          }, 2000);
+  
+  
+     return prevData; // Do not update the state if validation fails
+        }
+          updatedData.expirydate = new Date(value).toISOString().split("T")[0];
       }
-
       return updatedData;
     });
   };
@@ -192,7 +208,7 @@ function AddMedicine() {
       style={{
         fontFamily: "serif",
         width: "100%",
-        margin: "10px",
+       
       }}
     >
       <div className="m-3">
@@ -458,7 +474,7 @@ function AddMedicine() {
               top: "10px",
               left: "55%",
               transform: "translateX(-50%)",
-              backgroundColor: popupType === "emptyFields" ? "red" : "green",
+              backgroundColor:popupType === "error" || popupType === "emptyFields" ? "red" : "green",
               color: "white",
               padding: "10px",
               borderRadius: "5px",
@@ -467,11 +483,13 @@ function AddMedicine() {
               display: "block",
             }}
           >
-            <p>
-              {popupType === "emptyFields"
-                ? "Please fill all input fields."
-                : "Medicine added successfully."}
-            </p>
+           <p>
+  {popupType === "emptyFields"
+    ? "Please fill all input fields."
+    : popupType === "error"
+    ? popupMessage
+    : "Medicine added successfully."}
+</p>
           </div>
         </div>
       </div>

@@ -376,7 +376,7 @@ const BillingHis = () => {
           
           )
         )}
-        ;
+        
       </div>
     </>
   );

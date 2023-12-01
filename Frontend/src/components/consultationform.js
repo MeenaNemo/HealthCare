@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import billbg from "../logo/ac.jpg";
+import billbg from "../logo/template.jpeg";
 import ReactToPrint from "react-to-print";
 
-const FloatingAlert = ({ message }) => {
+const FloatingAlert = ({ message, type }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       document.getElementById("floating-alert").style.display = "none";
@@ -12,24 +12,23 @@ const FloatingAlert = ({ message }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const style={
+    position: "fixed",
+    top: "10px",
+    right: "300px",
+    padding: "10px",
+    borderRadius: "5px",
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+    zIndex: "9999",
+    display: "block",
+    backgroundColor: type === "error" ?  "blue": "red" ,
+    color: "white",
+  }
+
   return (
-    <div
-      id="floating-alert"
-      style={{
-        position: "fixed",
-        top: "10px",
-        right: "10px",
-        backgroundColor: "red",
-        color: "white",
-        padding: "10px",
-        borderRadius: "5px",
-        boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
-        zIndex: "9999",
-        display: "block",
-      }}
-    >
-      {message}
-    </div>
+    <div id="floating-alert" style={style}>
+    {message}
+  </div>
   );
 };
 
@@ -52,6 +51,8 @@ const ConsultationForm = () => {
   const [submittedData, setSubmittedData] = useState(null);
   const [showForm, setShowForm] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
 
   useEffect(() => {
     // Fetch the last OP Number from localStorage on component mount
@@ -66,7 +67,7 @@ const ConsultationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-  
+
     if (name === "clinicCharge" || name === "consultantCharge") {
       // Validate for numbers
       if (/^\d+$/.test(value) || value === "") {
@@ -75,7 +76,11 @@ const ConsultationForm = () => {
           [name]: value,
         });
       }
-    } else if (name === "firstName" || name === "lastName" || name === "obervation") {
+    } else if (
+      name === "firstName" ||
+      name === "lastName" ||
+      name === "obervation"
+    ) {
       // Validate for text
       if (/^[A-Za-z\s]+$/.test(value) || value === "") {
         setFormData({
@@ -91,8 +96,6 @@ const ConsultationForm = () => {
       });
     }
   };
-  
-  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -109,15 +112,25 @@ const ConsultationForm = () => {
       "clinicCharge",
     ];
     const isAnyFieldEmpty = requiredFields.some((field) => !formData[field]);
+    const isChargeFieldFilled =
+      !!formData.clinicCharge || !!formData.consultantCharge;
 
-    if (isAnyFieldEmpty) {
+    if (isAnyFieldEmpty && !isChargeFieldFilled) {
       setShowAlert(true); // Show floating alert if any required field is empty
+      setTimeout(() => {
+        setShowAlert(false); // Hide alert after 3 seconds
+      }, 2000);
       return;
     }
 
-    setSubmittedData(formData);
+    const totalCharge =
+      parseInt(formData.consultantCharge || 0, 10) +
+      parseInt(formData.clinicCharge || 0, 10);
+    setSubmittedData({ ...formData, totalCharge });
     setShowForm(false);
     setShowAlert(false);
+    clearAlert();
+
 
     localStorage.setItem("opNumber", formData.opNumber.toString());
   };
@@ -139,13 +152,27 @@ const ConsultationForm = () => {
   };
 
   const handleDOBChange = (e) => {
+    const selectedDate = new Date(e.target.value);
+    const currentDate = new Date();
+  
+    // Check if the selected date is in the future
+    if (selectedDate > currentDate) {
+      setAlertMessage("Please enter a valid date of birth.");
+      setAlertType("error");
+      return;
+    }
+  
     const age = calculateAge(e.target.value);
     setFormData({
       ...formData,
       dob: e.target.value,
       age: age.toString(),
     });
+  
+    // Clear DOB alert on valid DOB entry
+    clearAlert();
   };
+  
 
   const generateOPNumber = () => {
     // Increment the opNumber in the state
@@ -170,17 +197,22 @@ const ConsultationForm = () => {
       consultantCharge: "",
       clinicCharge: "",
       opNumber: lastOPNumber ? parseInt(lastOPNumber, 10) + 1 : 1,
-      
     });
     setShowForm(true); // Set showForm to true to display the consultation form again
-        setShowAlert(false); // Hide the alert when canceling
+    setShowAlert(false); 
+    clearAlert(); // Hide the alert when canceling
+  };
+  const clearAlert = () => {
+    // Clear alert message and type
+    setAlertMessage("");
+    setAlertType("");
   };
 
   return (
     <div
       className="container"
       style={{
-        fontFamily: 'serif',
+        fontFamily: "serif",
       }}
     >
       <div style={{ margin: "20px" }} ref={componentRef}>
@@ -191,10 +223,11 @@ const ConsultationForm = () => {
               <b>Doctor Consultation Form</b>
             </h2>
             <form
-              onSubmit={handleSubmit} className=""
+              onSubmit={handleSubmit}
+              className=""
               style={{
                 backgroundColor: "white",
-                border: "1px solid lightgray"
+                border: "1px solid lightgray",
               }}
             >
               <div style={{ margin: "20px" }}>
@@ -210,7 +243,6 @@ const ConsultationForm = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      
                       required
                     />
                   </div>
@@ -366,8 +398,11 @@ const ConsultationForm = () => {
                 </div>
               </div>
               {showAlert && (
-                <FloatingAlert message="Please fill in all required fields before submitting." />
+                <FloatingAlert message="Please fill in all required fields." />
               )}
+               {alertMessage && (
+          <FloatingAlert message={alertMessage} type={alertType} />
+        )}
             </form>
           </>
         )}
@@ -393,45 +428,125 @@ const ConsultationForm = () => {
                 style={{ backgroundColor: "green", color: "white" }}
                 onClick={handleCancel}
               >
-                Go to Previouspage
+                Go to Previous page
               </button>
             </div>
 
-            <div
-              className="mt-10"
-              style={{
-                marginLeft: "100px",
-                marginTop: "50px",
-                width: "65%",
-                height: "600px",
-                border: "1px solid black",
-                backgroundImage: `url(${billbg})`,
-                backgroundSize: "cover",
-                // fontFamily: "arial",
-                fontFamily: 'serif'
-              }}
-            >
-              <div style={{ marginLeft: "160px", marginTop: "180px" }}>
-                <h3>
-                  {" "}
-                  <b>Doctor Consultation Form</b>
-                </h3>
-                <p>OP Number: {submittedData.opNumber}</p>
-                <p>
-                  Patient Name: {submittedData.firstName}{" "}
-                  {submittedData.lastName || ""}
-                </p>
-                <p>Gender: {submittedData.gender}</p>
-                <p>Age: {submittedData.age}</p>
-                <p>Date of Birth: {submittedData.dob}</p>
-                <p>
-                  Consulting Doctor Name: {submittedData.consultingDoctorName}
-                </p>
-                <p>Obervation: {submittedData.obervation}</p>
-                <p>Consultant Charge: {submittedData.consultantCharge}</p>
-                <p>Clinic Charge: {submittedData.clinicCharge}</p>
-              </div>
-            </div>
+            {(!!submittedData.clinicCharge || !!submittedData.consultantCharge) && (
+  <div
+    className="mt-10"
+    style={{
+      marginLeft: "100px",
+      marginTop: "50px",
+      width: "67%",
+      border: "1px solid lightgray",
+      backgroundImage: `url(${billbg})`,
+      backgroundRepeat: "no-repeat",
+      backgroundSize: "100% 100%",
+      fontFamily: "serif",
+    }}
+  >
+     
+    <div
+      style={{ 
+        gap: "10px",
+        width:'100%',
+        marginLeft: "160px",
+        marginTop: "200px",
+        // marginBottom: "300px",
+      }}
+    >
+     <h3 style={{ paddingBottom: "10px" }}>
+        {" "}
+        <b>Doctor Consultation Form</b>
+      </h3>
+      <div style={{
+         display: "grid",
+         marginLeft:'-30px',
+         gridTemplateColumns: "repeat(2, 1fr)",
+      }}>
+        <p>
+          <b style={{ width: "170px", display: "inline-block" }} >
+            OP Number:
+          </b>{" "}
+          {submittedData.opNumber}
+        </p>
+        <br/>
+        {submittedData.firstName && (
+          <p>
+            <b style={{ width: "170px", display: "inline-block" }}>
+              Patient Name:
+            </b>{" "}
+            {submittedData.firstName}{" "}
+            {submittedData.lastName && (
+              <span>{submittedData.lastName}</span>
+            )}
+          </p>
+        )}
+        <br/>
+        {submittedData.gender && (
+          <p>
+            <b style={{ width: "170px", display: "inline-block" }}>
+              Gender:
+            </b>{" "}
+            {submittedData.gender}
+          </p>
+        )}
+<br/>
+                  {submittedData.age && (
+                    <p >
+                      <b style={{ width: "170px", display: "inline-block" }}>Age :</b> 
+                      {submittedData.age}
+                    </p>
+                  )}
+                  <br/>
+                  {submittedData.dob && (
+                    <p >
+                      <b style={{ width: "170px", display: "inline-block" }}>Date of Birth :</b> {submittedData.dob}
+                    </p>
+                  )}
+                  <br/>
+                  {submittedData.consultingDoctorName && (
+                    <p >
+                      <b > Doctor Name :</b>
+                      {submittedData.consultingDoctorName}
+                    </p>
+                  )}
+                  <br/>
+                  {submittedData.obervation && (
+                    <p >
+                      <b style={{ width: "170px", display: "inline-block" }}>Observation :</b> {submittedData.obervation}
+                    </p>
+                  )}
+                  <br/>
+                  {submittedData.consultantCharge && (
+                    <p >
+                      <b style={{ width: "170px", display: "inline-block" }}>Consultant Charge :</b> {submittedData.consultantCharge}
+                    </p>
+                  )}
+                  <br/>
+                  {submittedData.clinicCharge && (
+                    <p >
+                      <b style={{ width: "170px", display: "inline-block" }}>Clinic Charge :</b> {submittedData.clinicCharge}
+                    </p>
+                  )}
+                  <br/>
+                  {submittedData.totalCharge && (
+                    <p >
+                      <b style={{ width: "170px", display: "inline-block" }}>Total Charge :</b> {submittedData.totalCharge}
+                    </p>
+                  )}
+
+
+      </div>
+
+        <div style={{marginTop:'260px'}}>
+          <p><b>Doctor Signature</b></p>
+        </div>
+    </div>
+  </div>
+)}
+
           </>
         )}
       </div>

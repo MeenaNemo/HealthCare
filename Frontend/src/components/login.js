@@ -28,30 +28,60 @@ const Login = () => {
       );
       console.log(response.data);
       if (response.data.status === 200) {
-        setAlertMessage("Login Successful!"); 
-        localStorage.setItem("user", JSON.stringify(response.data.data));
-        history.push("/sidebar");
-        window.location.reload();
+        setAlertMessage("Login Successful!");
+        setTimeout(() => {
+          setAlertMessage(null); // Clear alert message after 2 seconds
+          localStorage.setItem("user", JSON.stringify(response.data.data));
+          history.push("/sidebar");
+          window.location.reload();
+        }, 2000);
       }
-    } catch (error) {
-      console.error("Login failed:", error);
-      if (error.response && error.response.status === 401) {
-        const errorMessage = error.response.data.message;
-        if (errorMessage === "Invalid username or password") {
-          setAlertMessage("Invalid username or password");
-        } else if (errorMessage === "Invalid username") {
-          setAlertMessage("Invalid username or password");
-        } else if (errorMessage === "Invalid password") {
-          setAlertMessage("Invalid password.");
-        } else {
-          setAlertMessage("An unexpected error occurred. Please try again.");
-        }
+    } 
+  catch (error) {
+    console.error("Login failed:", error);
+    if (error.response && error.response.status === 401) {
+      const errorMessage = error.response.data.message;
+      if (errorMessage === "Invalid username or password") {
+        setAlertMessage("Invalid username or password");
+      } else if (errorMessage === "Invalid username") {
+        setAlertMessage("Invalid username or password");
+      } else if (errorMessage === "Invalid password") {
+        setAlertMessage("Invalid password.");
       } else {
-        console.error("An unexpected error occurred:", error);
         setAlertMessage("An unexpected error occurred. Please try again.");
       }
+      setTimeout(() => {
+        setAlertMessage(null); // Clear alert message after 2 seconds
+      }, 2000);
+    } else {
+      console.error("An unexpected error occurred:", error);
+      setAlertMessage("An unexpected error occurred. Please try again.");
+      setTimeout(() => {
+        setAlertMessage(null); // Clear alert message after 2 seconds
+      }, 2000);
     }
+  }
+  
   };
+
+
+  const alertStyle = {
+    position: "fixed",
+    top: "10px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: "green", // Default to green color for success message
+    color: "white",
+    padding: "10px",
+    borderRadius: "5px",
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+    zIndex: "9999",
+    display: alertMessage ? "block" : "none", // Show only if alertMessage is present
+    opacity: alertMessage ? 1 : 0, // Set opacity for fade effect
+    transition: "opacity 0.5s ease-in-out", // Add transition for smooth fade effect
+  };
+  
+
 
   return (
     <div
@@ -82,11 +112,13 @@ const Login = () => {
             Welcome back! Please enter your details
           </p>
         </div>
-        {alertMessage && ( // Display alert message if present
+        <div style={alertStyle}>{alertMessage}</div>
+
+        {/* {alertMessage && ( // Display alert message if present
           <div className="alert alert-info mb-3" role="alert">
             {alertMessage}
           </div>
-        )}
+        )} */}
         <form onSubmit={handleLogin}>
           <div className="mb-3">
             <label htmlFor="loginIdentifier" className="form-label">

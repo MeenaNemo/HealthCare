@@ -1,7 +1,6 @@
 const express = require("express");
 const mysql = require("mysql");
 const axios = require("axios");
-const multer = require("multer");
 const app = express();
 const port = 3000;
 const cors = require("cors");
@@ -10,12 +9,14 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid").v4;
 const path = require("path");
-const fs = require("fs");
+const moment = require("moment-timezone");
 
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+moment.tz.setDefault("Asia/Kolkata");
 
 const db = mysql.createPool({
   host: "fivewhyrds.ctxjvxl0k0dq.us-east-1.rds.amazonaws.com",
@@ -24,23 +25,10 @@ const db = mysql.createPool({
   database: "Alagar_Clinic",
 });
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = "uploads/";
 
-    fs.mkdir(uploadPath, { recursive: true }, function (err) {
-      if (err) {
-        console.error("Error creating directory:", err);
-      }
-      cb(null, uploadPath);
-    });
-  },
-  filename: function (req, file, cb) {
-    cb(null, uuid() + path.extname(file.originalname));
-  },
-});
 
-const upload = multer({ storage: storage });
+const timestampDefaultValue = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
 
 const createUsersTableQuery = `
   CREATE TABLE IF NOT EXISTS User_Inventory (
@@ -52,9 +40,7 @@ const createUsersTableQuery = `
     user_role VARCHAR(20),
     user_password VARCHAR(255),
     user_token VARCHAR(255),
-    user_timestamp TIMESTAMP,
-    user_profile_photo VARCHAR(255)
-  )
+    user_timestamp TIMESTAMP DEFAULT '${timestampDefaultValue}'  )
 `;
 
 const createPurchaseTableQuery = `
@@ -69,7 +55,7 @@ const createPurchaseTableQuery = `
     purchaseamount DECIMAL(10,2),
     expirydate DATE,
     mrp DECIMAL(10,2),
-    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    time TIMESTAMP DEFAULT '${moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}',
     PRIMARY KEY (id, medicinename, dosage),
     INDEX (medicinename, dosage)
   )
@@ -87,7 +73,7 @@ const createStockTableQuery = `
     mrp DECIMAL(10,2),
     purchasedate DATE,
     expirydate DATE,
-    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    time TIMESTAMP DEFAULT '${moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}',
     FOREIGN KEY (medicinename, dosage) REFERENCES Purchase_Inventory(medicinename, dosage)
   )
 `;
@@ -105,17 +91,16 @@ CREATE TABLE IF NOT EXISTS Billing_Inventory (
   cashgiven DECIMAL(10,2),
   balance DECIMAL(10,2),
   invoice_number VARCHAR(20),
-  createdate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+  createdate TIMESTAMP DEFAULT '${moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}'
+  )
 `;
 
 const privateKey =
   "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCKYCCU+icNr+dlESZOSomuTvi7Sv5HXbV2+RGzNWNGhnQYLGSPYFh3NRZ7HuP3C1M+sI2vX1UGb/AXlucw+pDLQpungBOyyi9zwsyzgBvdeZRFNj3V9tn3CQaEPTXbBFwSszmpPZvdk58L/YCru3G2XPdFNpKnv0Q7yiiiMWIX0wIDAQAB";
 
-  app.post("/register", upload.single("user_profile_photo"), async (req, res) => {
+  app.post("/register", async (req, res) => {
     try {
       const reqData = req.body;
-      const filePath = req.file ? req.file.path : null;
   
       if (Object.keys(reqData).length === 0) {
         throw new Error("Please provide data.");
@@ -140,8 +125,8 @@ const privateKey =
         const user = "userid-" + uuid();
   
         const insertUserQuery = `
-          INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp, user_profile_photo)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
   
         const values = [
@@ -154,7 +139,6 @@ const privateKey =
           enpPassword,
           token,
           new Date(),
-          filePath, // Store the file path in the database
         ];
   
         db.query(insertUserQuery, values, (error, result) => {
@@ -461,7 +445,7 @@ app.post("/purchase", (req, res) => {
     mrp,
   } = req.body;
 
-  const formattedMRP = `RS.${mrp}`;
+  const formattedMRP = `${mrp}`;
 
   const insertPurchaseQuery = `
     INSERT INTO Purchase_Inventory 
