@@ -34,7 +34,7 @@ const BillingHis = () => {
 
   const fetchbillingData = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/billingdata");
+      const response = await axios.get("http://13.235.9.106:3000/billingdata");
       setMedicineData(response.data);
     } catch (error) {
       setError("Error fetching data");
@@ -79,7 +79,7 @@ const BillingHis = () => {
   const View = async (invoiceNumber) => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/billingdata/${invoiceNumber}`
+        `http://13.235.9.106:3000/billingdata/${invoiceNumber}`
       );
       const invoiceData = response.data;
       setInvoiceData(invoiceData);
@@ -89,19 +89,25 @@ const BillingHis = () => {
     }
   };
 
-  const downloadPDF = () => {
-    setLoader(true);
+  const downloadPDF = async () => {
+    try {
+      setLoader(true);
 
-    const html2canvasOptions = {
-      scale: 2,
-      logging: false,
-      allowTaint: true,
-    };
+      const html2canvasOptions = {
+        scale: 2,
+        logging: false,
+        allowTaint: true,
+      };
 
-    const capture = document.querySelector(".oldbill");
+      const capture = document.querySelector(".bill");
 
-    html2canvas(capture, html2canvasOptions).then((canvas) => {
+      if (!capture) {
+        throw new Error("Unable to find .bill element");
+      }
+
+      const canvas = await html2canvas(capture, html2canvasOptions);
       const imgData = canvas.toDataURL("image/png");
+
       const jsPDFOptions = {
         orientation: "portrait",
         unit: "mm",
@@ -119,8 +125,11 @@ const BillingHis = () => {
 
       doc.save(fileName);
       setLoader(false);
-    });
-  };
+    } catch (error) {
+      console.error("Error during PDF generation:", error);
+      setLoader(false);
+    }
+  }
   const handlecancel=(event)=>{
     event.preventDefault();
     setisViewed(false);
@@ -145,15 +154,15 @@ const BillingHis = () => {
     </div>
   </div>
   <div className="row align-items-center mt-3">
-    <div className="col-12 col-md-6">
-      <div className="search-bar d-flex align-items-center">
+    <div className="col-12 col-md-6 ">
+      <div className="search-bar d-flex align-items-center"
+      style={{marginLeft:'0px'}}>
         <FontAwesomeIcon icon={faSearch} />
         <input
           type="text"
           placeholder="Search Mobile number..."
           value={searchQuery}
           onChange={(event) => handleSearchChange(event.target.value)}
-          className="ms-2"
         />
       </div>
     </div>
@@ -169,7 +178,7 @@ const BillingHis = () => {
 </div>
 
             
-            <div className="billing-table">
+            <div className="billing-table ms-4">
               {dataOnCurrentPage.length === 0 ? (
                 <p>No search results found</p>
               ) : (
@@ -241,17 +250,17 @@ const BillingHis = () => {
           invoiceData && (
             <div className="mt-2 container">
     <div className="row">
-      <div className="col-lg-8 col-md-10 col-sm-12 mx-auto">
+      <div className="col-lg-8 col-md-10 col-sm-12 ">
         <div>
           <div className="text-end">
-            <button
-              type="button"
-              className="btn btn-success me-2"
-              onClick={downloadPDF}
-              disabled={!(loader === false)}
-            >
-              Download as PDF
-            </button>
+          <button
+  type="button"
+  className="btn btn-success me-2"
+  onClick={downloadPDF}
+  disabled={loader}
+>
+  Download as PDF
+</button>
             <button
               type="button"
               className="btn btn-success me-2"
@@ -260,48 +269,44 @@ const BillingHis = () => {
               Go to Previous Page
             </button>
           </div>
-          <div
-            className="oldbill p-4 bg-white border border-dark mt-3"
-            style={{
+          
+         
+        </div>
+      </div>
+    </div>
+    <div className="row m-5">
+<div className="col-md-10 col-lg-8">
+  <div className="bill" style={{
+              border: "1px solid black",
               backgroundImage: `url(${billbg})`,
-              backgroundSize: "100% 100%",
-              fontFamily: "serif",
-            }}
-          >
-            <div className="mt-5">
-              <div className="d-flex justify-content-end">
-                <div className="mt-5">
-                  <div>
-                    <h3 style={{ color: "darkblue" }}>
-                      <b>Invoice</b>
-                    </h3>
-                    <h6>Invoice No: {invoiceData[0].invoice_number}</h6>
-                    <h6>
-                      Invoice Date:{" "}
-                      {invoiceData[0].createdate
+              backgroundSize: "210mm 297mm", // Set width and height
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center", // Adjust as needed
+              height: "297mm",
+              width: "210mm",
+              position: "relative" // Optional: Set the width of the container to match A4
+          }}>
+      <div className="text-end me-4" style={{marginTop: '130px'}}>
+        <h3 className="me-5"  style={{ color: "darkblue" }}>Invoice</h3>
+        <h6 className="me-3">Invoice No:{invoiceData[0].invoice_number}</h6>
+        <h6 className="me-3">Invoice Date: {invoiceData[0].createdate
                         ? moment(invoiceData[0].createdate).format("YYYY-MM-DD")
-                        : "N/A" || "N/A"}
-                    </h6>
-                    <h6>Patient Name: {invoiceData[0].patientname}</h6>
-                  </div>
-                </div>
-              </div>
-            </div>
+                        : "N/A" || "N/A"}</h6>
+        <h6 className="me-3">PatientName:{invoiceData[0].patientname}</h6>
+      </div>
 
-            <div className="w-100 mx-auto mt-5 table-responsive" style={{ overflowX: 'auto' }}>
-              <table className="table table-bordered">
-                <thead className="bg-primary text-white">
-                  <tr>
-                    <th className="p-3 text-center border-bottom">S.No</th>
-                    <th className="p-3 text-center border-bottom">
-                      Medicine Name
-                    </th>
-                    <th className="p-3 text-center border-bottom">Qty</th>
-                    <th className="p-3 text-center border-bottom">Price</th>
-                    <th className="p-3 text-center border-bottom">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
+      <div className="table-responsive mt-3 me-5 ms-5">
+        <table className="table table-bordered table-striped p-5 ">
+          <thead className="table-dark">
+            <tr>
+              <th className="text-center">S.No</th>
+              <th className="text-center">Medicine Name</th>
+              <th className="text-center">Price</th>
+              <th className="text-center">Qty</th>
+              <th className="text-center">Total</th>
+            </tr>
+          </thead>
+          <tbody>
                   {invoiceData.map((data, index) => {
                     const tablets = JSON.parse(data.tabletdetails).tablets;
 
@@ -313,19 +318,19 @@ const BillingHis = () => {
                               key={`${data.id}-${tabletIndex}`}
                               className="border-bottom"
                             >
-                              <td className="p-3 text-center">
+                              <td className="text-center">
                                 {index * tablets.length + tabletIndex + 1}
                               </td>
-                              <td className="p-3 text-center">
+                              <td className=" text-center">
                                 {tablet.medicinename}
                               </td>
-                              <td className="p-3 text-center">
+                              <td className="text-center">
                                 {tablet.qty}
                               </td>
-                              <td className="p-3 text-center">
+                              <td className=" text-center">
                                 {tablet.qtyprice}
                               </td>
-                              <td className="p-3 text-center">
+                              <td className=" text-center">
                                 {tablet.total}
                               </td>
                             </tr>
@@ -344,34 +349,28 @@ const BillingHis = () => {
                     );
                   })}
                 </tbody>
-              </table>
-            </div>
+        </table>
+      </div>
 
-            <div className="d-flex align-items-center justify-content-between ms-5 mt-5">
-              <div>
-                <div className="mt-3 text-start">
-                  Cash Given: {invoiceData[0].cashgiven}
-                </div>
-                <div className="mt-3 text-start">
-                  Balance: {invoiceData[0].balance}
-                </div>
-              </div>
-              <div style={{ marginRight: "40px" }}>
-                <div className="mt-3 text-end">
-                  Subtotal: {invoiceData[0].subtotal}
-                </div>
-                <div className="mt-3 text-end">
-                  Discount: <span>{invoiceData[0].discount}</span>
-                </div>
-                <div className="mt-3 text-end">
-                  Grand Total: {invoiceData[0].grandtotal}
-                </div>
-              </div>
-            </div>
+      <div className="d-flex justify-content-between" style={{ position: 'absolute', bottom: '15%', width: '100%' }}>
+        <div>
+        <div className="text-start ms-5">
+            <p>Cash Given: {invoiceData[0].cashgiven}</p>
+            <p>Balance:{invoiceData[0].balance}</p>
+          </div>
+        </div>
+        <div>
+        <div className="text-end me-5">
+            <p>Subtotal:  {invoiceData[0].subtotal}</p>
+            <p>Discount: <span>{invoiceData[0].discount}</span></p>
+            <p>Grand Total: {invoiceData[0].grandtotal}</p>
           </div>
         </div>
       </div>
     </div>
+    
+  </div>
+</div>
   </div>
           
           )

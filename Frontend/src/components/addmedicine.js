@@ -146,7 +146,7 @@ function AddMedicine() {
 
     try {
       // Assuming your API call is successful
-      await axios.post("http://localhost:3000/purchase", formData);
+      await axios.post("http://13.235.9.106:3000/purchase", formData);
       setPopupType("success");
       setShowPopup(true);
       console.log("Form Submitted!");
@@ -211,7 +211,7 @@ function AddMedicine() {
        
       }}
     >
-      <div className="m-3">
+      <div className="m-4">
         <div className="d-flex justify-content-between align-items-center mb-3 mt-4">
           <h2 className="mb-0">
             <b>Add Medicine</b>

@@ -77,7 +77,7 @@ const Purchase = () => {
   useEffect(() => {
     const fetchpurchaseData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/allpurchase");
+        const response = await axios.get("http://13.235.9.106:3000/allpurchase");
         setMedicineData(response.data);
       } catch (error) {
         setError("Error fetching data");
@@ -425,7 +425,8 @@ const Purchase = () => {
   </div>
   <div className="row align-items-center mt-3">
     <div className="col-12 col-md-6">
-      <div className="search-bar d-flex align-items-center">
+      <div className="search-bar d-flex align-items-center" 
+      style={{marginLeft:'-0px'}}>
         <FontAwesomeIcon icon={faSearch} />
         <input
           type="text"
@@ -449,11 +450,11 @@ const Purchase = () => {
 
 
 
-        <div className="purchase-table">
+        <div className="purchase-table ms-4">
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
-            <div className="scrollable-body">
+            <div className="scrollable-body ">
               <table className="table">
                     <thead className="sticky-top bg-light">
                   <tr>

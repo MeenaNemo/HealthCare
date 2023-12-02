@@ -9,6 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/stock.css";
 import FloatingAlert from "./floatingalert";
 import "../styles/billing.css";
+import {useReactToPrint} from 'react-to-print';
 
 function Billing() {
   const [medicineRows, setMedicineRows] = useState(
@@ -31,6 +32,8 @@ function Billing() {
   const [buttonText, setButtonText] = useState('Add More Medicine');
   const [patientName, setPatientName] = useState('');
   const [requestedQuantities, setRequestedQuantities] = useState({});
+  const componentRef = useRef();
+
 
 
   useEffect(() => {
@@ -104,7 +107,7 @@ function Billing() {
 
     try {
         const response = await axios.get(
-            `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+            `http://13.235.9.106:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
         );
         const availableQuantity = response.data.availableQuantity;
 
@@ -169,7 +172,7 @@ function Billing() {
     try {
         const { medicinename, dosage } = extractMedicineInfo(selectedSuggestion);
         const mrpResponse = await axios.get(
-            `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+            `http://13.235.9.106:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
         );
         const mrp = mrpResponse.data.mrp;
         console.log("mrp", mrp);
@@ -194,7 +197,7 @@ function Billing() {
 
     try {
         const response = await axios.get(
-            `http://localhost:3000/suggestions?partialName=${inputValue}`
+            `http://13.235.9.106:3000/suggestions?partialName=${inputValue}`
         );
         const fetchedSuggestions = response.data.suggestions;
         setSuggestions(fetchedSuggestions);
@@ -221,7 +224,7 @@ const handleKeyPress = async (event, rowIndex, colIndex, id) => {
       if (event.target.id === `medicinename${id}`) {
         try {
           const response = await axios.get(
-            `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+            `http://13.235.9.106:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
           );
           const expired = response.data.expired;
 
@@ -334,10 +337,7 @@ const clearRow = (id) => {
       setRequestedQuantities(updatedQuantities);
     }
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
-  };
-  
-  
-  
+  };  
 
   const handleSubmit = async () => {
     const isAnyFieldFilled = medicineRows.some((row) => {
@@ -428,7 +428,7 @@ const clearRow = (id) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/billing",
+        "http://13.235.9.106:3000/billing",
         billingData
       );
       const generatedInvoiceNumber = response.data.invoicenumber;
@@ -503,9 +503,11 @@ const clearRow = (id) => {
     window.open(whatsappLink, "_blank");
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = useReactToPrint({
+    content: ()=>componentRef.current,
+    documentTitle:'billing-data',
+  
+  })
 
   const handleCancel = () => {
     setSubtotal("");
@@ -529,7 +531,7 @@ const clearRow = (id) => {
 
   return (
     <>
-      <style>
+    <style>
         {`
           @media print {
             body * {
@@ -537,6 +539,7 @@ const clearRow = (id) => {
             }
             .bill, .bill * {
               visibility: visible;
+             
             }
             .bill {
               position: absolute;
@@ -550,7 +553,7 @@ const clearRow = (id) => {
             @page {
               size: A4;
               margin: 0;
-              margin: 20mm;
+              // margin: 20mm;
             }
             @media print {
               html, body {
@@ -984,7 +987,7 @@ const clearRow = (id) => {
               </button>
               <button
                 type="button"
-                className="btn "
+                className="btn me-2"
                 onClick={handlePrint}
                 style={{
                   backgroundColor: "teal",
@@ -992,12 +995,22 @@ const clearRow = (id) => {
               >
                 Print
               </button>
+              <button
+                  type="button"
+                  className="btn "
+                  onClick={handleCancel}
+                  style={{
+                    backgroundColor: "teal",
+                    color: "white"}}
+                >
+                  Cancel
+                </button>
             </div>
           </div>
         
-          <div className="row justify-content-center mt-4">
+          <div  className="row m-4">
           <div className="col-md-10 col-lg-8">
-            <div className="bill" style={{
+            <div ref={componentRef} className="bill" style={{
                         border: "1px solid black",
                         backgroundImage: `url(${billbg})`,
                         backgroundSize: "210mm 297mm", // Set width and height
@@ -1011,7 +1024,7 @@ const clearRow = (id) => {
                   <h3 className="me-5"  style={{ color: "darkblue" }}>Invoice</h3>
                   <h6>Invoice No: {invoiceNumber}</h6>
                   <h6>Invoice Date: {currentDateFormatted}</h6>
-                  <h6>patientName:{patientName}</h6>
+                  <h6 className="me-4">Patient Name:{patientName}</h6>
                 </div>
         
                 <div className="table-responsive mt-3 me-5 ms-5">
@@ -1055,25 +1068,10 @@ const clearRow = (id) => {
                   </div>
                 </div>
               </div>
-              <div className="text-center mt-4">
-                <button
-                  type="button"
-                  className="btn btn-success"
-                  onClick={handleCancel}
-                  style={{
-                    backgroundColor: "teal",
-                    color: "white"}}
-                >
-                  Cancel
-                </button>
-              </div>
+             
             </div>
           </div>
-
-
-          
         </div>
-        
         )}
       </div>
     </>

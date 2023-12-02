@@ -202,7 +202,7 @@ const Sidebar = () => {
   return (
     <div className="container-fluid" style={{ fontFamily:'serif, sans-serif' }}>
       <div className="row " >
-        <div className="col-lg-3">
+        <div className="col-lg-3" style={{flex: '0 0 330px'}}>
           <div className="shadow-sm p-3 w-100 h-100 bg-white rounded">
             <div className="d-flex align-items-center mb-3">
               <img
@@ -380,7 +380,7 @@ const Sidebar = () => {
                 style={{ display: showStockDetails ? "block" : "none" }}
               >
                 {showStockDetails && (
-                  <div className="stock-details-content">
+                  <div className="stock-details-content" style={{marginLeft:'10px'}}>
                     <StockDetailsPage />
                   </div>
                 )}
@@ -388,7 +388,7 @@ const Sidebar = () => {
 
               <div
                 className="billing-content"
-                style={{ display: showBilling ? "block" : "none" }}
+                style={{ display: showBilling ? "block" : "none", marginLeft:'10px' }}
               >
                 {showBilling && (
                   <div className="billing-content">

@@ -69,7 +69,7 @@ const StockDetailsPage = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/stock");
+        const response = await axios.get("http://13.235.9.106:3000/stock");
         setMedicineData(response.data);
       } catch (error) {
         setError("Error fetching data");
@@ -383,11 +383,13 @@ const StockDetailsPage = () => {
     <div>
       <div
         style={{
-          marginTop: "10px",
+          fontSize: "14px",
           fontFamily: "serif",
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
         }}
       >
-        <div style={{ margin: "15px" }}>
+        <div className="container-fluid mt-4" >
           <div className="d-flex align-items-center justify-content-between">
             <div >
               <h2>
@@ -447,7 +449,7 @@ const StockDetailsPage = () => {
             </div>
           </div>
         </div>
-        <div className="stock-table" style={{marginLeft:'0px'}}>
+        <div className="stock-table" >
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (

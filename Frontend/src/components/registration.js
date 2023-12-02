@@ -47,7 +47,7 @@ const RegistrationForm = () => {
   
     try {
       const checkEmailResponse = await axios.get(
-        `http://localhost:3000/check-email?email=${formData.user_email}`
+        `http://13.235.9.106:3000/check-email?email=${formData.user_email}`
       );
   
       if (checkEmailResponse.data.status === 400) {
@@ -62,7 +62,7 @@ const RegistrationForm = () => {
       }
   
       const response = await axios.post(
-        "http://localhost:3000/register",
+        "http://13.235.9.106:3000/register",
         formDataToSend,
         {
           headers: {
