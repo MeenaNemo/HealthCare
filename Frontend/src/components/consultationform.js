@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import billbg from "../logo/template.jpeg";
 import ReactToPrint from "react-to-print";
-import {useReactToPrint} from 'react-to-print';
-
 
 const FloatingAlert = ({ message, type }) => {
   useEffect(() => {
@@ -13,12 +11,6 @@ const FloatingAlert = ({ message, type }) => {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const handlePrint = useReactToPrint({
-    content: ()=>componentRef.current,
-    documentTitle:'billing-data',
-  
-  })
 
   const style={
     position: "fixed",
@@ -420,17 +412,7 @@ const ConsultationForm = () => {
         {!showForm && submittedData && (
           <>
             <div className="d-flex justify-content-end align-items-end">
-            <button
-                type="button"
-                className="btn me-2"
-                onClick={handlePrint}
-                style={{
-                  backgroundColor: "teal",
-                  color: "white"}}
-              >
-                Print
-              </button>
-              {/* <ReactToPrint
+              <ReactToPrint
                 trigger={() => (
                   <button
                     type="button"
@@ -441,7 +423,7 @@ const ConsultationForm = () => {
                   </button>
                 )}
                 content={() => componentRef.current}
-              /> */}
+              />
               <button
                 type="button"
                 className="btn me-2 ms-2"
@@ -475,7 +457,7 @@ const ConsultationForm = () => {
     >
      <h3 style={{ paddingBottom: "10px" }}>
         {" "}
-        <b style={{marginLeft:'150px'}}>Doctor Consultation Form</b>
+        <b>Doctor Consultation Form</b>
       </h3>
       <table style={{ width: "100%" }}>
   <tbody>
@@ -531,8 +513,8 @@ const ConsultationForm = () => {
         
     </div>
     <div className='text-end' style={{width:'85%',
-  marginTop:'29%', fontSize:'20px' }}>
-          <p ><b>Doctor Signature</b></p>
+  marginTop:'30%' }}>
+          <p style={{}}><b>Doctor Signature</b></p>
         </div>
   </div>
 )}

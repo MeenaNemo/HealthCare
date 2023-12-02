@@ -175,7 +175,7 @@ function Billing() {
     try {
         const { medicinename, dosage } = extractMedicineInfo(selectedSuggestion);
         const mrpResponse = await axios.get(
-            `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+            `http://13.233.114.161:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
         );
         const mrp = mrpResponse.data.mrp;
         console.log("mrp", mrp);
@@ -200,7 +200,7 @@ function Billing() {
 
     try {
         const response = await axios.get(
-            `http://localhost:3000/suggestions?partialName=${inputValue}`
+            `http://13.233.114.161:3000/suggestions?partialName=${inputValue}`
         );
         const fetchedSuggestions = response.data.suggestions;
         setSuggestions(fetchedSuggestions);
@@ -227,7 +227,7 @@ const handleKeyPress = async (event, rowIndex, colIndex, id) => {
       if (event.target.id === `medicinename${id}`) {
         try {
           const response = await axios.get(
-            `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+            `http://13.233.114.161:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
           );
           const expired = response.data.expired;
 
@@ -434,7 +434,7 @@ const clearRow = (id) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/billing",
+        "http://13.233.114.161:3000/billing",
         billingData
       );
       const generatedInvoiceNumber = response.data.invoicenumber;
@@ -449,30 +449,42 @@ const clearRow = (id) => {
     }
   };
 
-  const handlePdf = () => {
-    const capture = document.querySelector(".bill");
+  const handlePdf = async () => {
     setLoader(true);
     const html2canvasOptions = {
       scale: 2,
       logging: false,
       allowTaint: true,
     };
-
-    html2canvas(capture, html2canvasOptions).then((canvas) => {
+  
+    const jsPDFOptions = {
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    };
+  
+    const doc = new jsPDF(jsPDFOptions);
+    
+    // Get all elements with class "bill"
+    const pages = document.querySelectorAll(".bill");
+  
+    for (let i = 0; i < pages.length; i++) {
+      const capture = pages[i];
+  
+      // Use html2canvas to capture each page
+      const canvas = await html2canvas(capture, html2canvasOptions);
       const imgData = canvas.toDataURL("image/png");
-      const jsPDFOptions = {
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      };
-
-      const doc = new jsPDF(jsPDFOptions);
+  
       const imageWidth = 180;
       const imageHeight = (canvas.height * imageWidth) / canvas.width;
-
+  
       const marginLeft = (doc.internal.pageSize.width - imageWidth) / 2;
       const marginTop = (doc.internal.pageSize.height - imageHeight) / 2;
-
+  
+      if (i > 0) {
+        doc.addPage(); // Add a new page for each capture (except the first)
+      }
+  
       doc.addImage(
         imgData,
         "PNG",
@@ -481,9 +493,10 @@ const clearRow = (id) => {
         imageWidth,
         imageHeight
       );
-      setLoader(false);
-      doc.save("bill.pdf");
-    });
+    }
+  
+    setLoader(false);
+    doc.save("bill.pdf");
   };
 
   const handleWhatsApp = () => {
@@ -542,83 +555,7 @@ const clearRow = (id) => {
 
   return (
     <>
-      <style>
-        {`
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            .bill, .bill * {
-              visibility: visible;
-             
-            }
-            .bill {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-              text-align: center;
-            }
-
-            /* Center content on the printed page */
-            @page {
-              size: A4;
-              // margin: 0;
-              // margin: 10mm;
-            }
-            @media print {
-              html, body {
-                height: 100%;
-                margin: 0;
-              }
-              body {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12pt;
-              }
-              .bill {
-                width: 100%;
-                margin: 0;
-                padding: 20px; /* Add padding for better visibility */
-              }
-
-              /* Increase font size */
-              .bill {
-                font-size: 14px; /* Adjust the font size as needed */
-              }
-              /* Adjust font size for specific elements */
-              .bill h3 {
-                font-size: 20px; /* Adjust the font size as needed */
-              }
-              .bill table {
-                font-size: 12px; /* Adjust the font size as needed */
-              }
-            }
-          }
-
-
-// @media screen and (max-width: 767px) {
-//   .btn {
-//     font-size: 12px; // Adjust the font size for small screens
-//   }
-
-//   h2 {
-//     font-size: 18px; // Adjust the font size for small screens
-//   }
-
-//   th h5, td input {
-//     font-size: 14px; // Adjust the font size for small screens
-//   }
-
-//   label, input, b {
-//     font-size: 12px; // Adjust the font size for small screens
-//   }
-
-// }
-        `
-        }
-      </style>
+     
       <div className="container" style={{ fontFamily: 'serif' }}>
         {!isSubmitted ? (
           <div className="row m-1">
@@ -1021,84 +958,84 @@ const clearRow = (id) => {
         
           <div  className="row m-4">
           <div className="col-md-10 col-lg-8">
-          <div  ref={componentRef}>
-  {/* Loop through each page */}
-  {Array.from({ length: totalPages }, (_, page) => {
-    const startIndex = page * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
+          <div ref={componentRef}>
+    {/* Loop through each page */}
+    {Array.from({ length: totalPages }, (_, page) => {
+      const startIndex = page * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const isLastPage = page === totalPages - 1; // Check if it's the last page
 
-    return (
-      <div
-        key={page}
-       
-        className="bill"
-        style={{
-          border: "1px solid black",
-          backgroundImage: `url(${billbg})`,
-          backgroundSize: "210mm 297mm",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          height: "297mm",
-          width: "210mm",
-          position: "relative",
-          marginBottom: '20px' // Add margin between pages
-        }}
-      >
-        <div className="text-end me-4" style={{ marginTop: '130px' }}>
-          <h3 className="me-5" style={{ color: "darkblue" }}>Invoice</h3>
-          <h6>Invoice No: {invoiceNumber}</h6>
-          <h6>Invoice Date: {currentDateFormatted}</h6>
-          <h6>Patient Name: {patientName}</h6>
-        </div>
-
-        <div className="table-responsive mt-3 me-5 ms-5">
-          <table className="table table-bordered table-striped p-5">
-            <thead className="table-dark">
-              <tr>
-                <th className="text-center">S.No</th>
-                <th className="text-center">Medicine Name</th>
-                <th className="text-center">Price</th>
-                <th className="text-center">Qty</th>
-                <th className="text-center">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Render table rows for the current page */}
-              {Array.isArray(submittedData) && submittedData.slice(startIndex, endIndex).map((data, index) => (
-                <tr key={data.id}>
-                  <td className="text-center">{startIndex + index + 1}</td>
-                  <td className="text-center">{data.medicinename}</td>
-                  <td className="text-center">{data.qtyprice}</td>
-                  <td className="text-center">{data.qty}</td>
-                  <td className="text-center">{data.total}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {(startIndex !== 0 || endIndex > 10) && ( // Show on second page if > 10 rows
-          <div className="d-flex justify-content-between" style={{ position: 'absolute', bottom: '15%', width: '100%' }}>
-            <div>
-              <div className="text-start ms-5">
-                <p>Cash Given: {cashGiven}</p>
-                <p>Balance: {balance}</p>
-              </div>
-            </div>
-            <div>
-              <div className="text-end me-5">
-                <p>Subtotal: {subtotal}</p>
-                <p>Discount: <span>{discount}</span></p>
-                <p>Grand Total: {grandtotal}</p>
-              </div>
-            </div>
+      return (
+        <div
+          key={page}
+          className="bill"
+          style={{
+            border: "1px solid black",
+            backgroundImage: `url(${billbg})`,
+            backgroundSize: "210mm 297mm",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            height: "297mm",
+            width: "210mm",
+            position: "relative",
+            marginBottom: '20px' // Add margin between pages
+          }}
+        >
+          <div className="text-end me-4" style={{ marginTop: '130px' }}>
+            <h3 className="me-5" style={{ color: "darkblue" }}>Invoice</h3>
+            <h6>Invoice No: {invoiceNumber}</h6>
+            <h6>Invoice Date: {currentDateFormatted}</h6>
+            <h6>Patient Name: {patientName}</h6>
           </div>
-        )}
-      </div>
-    );
-  })}
-</div>
 
+          <div className="table-responsive mt-3 me-5 ms-5">
+            <table className="table table-bordered table-striped p-5">
+              <thead className="table-dark">
+                <tr>
+                  <th className="text-center">S.No</th>
+                  <th className="text-center">Medicine Name</th>
+                  <th className="text-center">Price</th>
+                  <th className="text-center">Qty</th>
+                  <th className="text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Render table rows for the current page */}
+                {Array.isArray(submittedData) && submittedData.slice(startIndex, endIndex).map((data, index) => (
+                  <tr key={data.id}>
+                    <td className="text-center">{startIndex + index + 1}</td>
+                    <td className="text-center">{data.medicinename}</td>
+                    <td className="text-center">{data.qtyprice}</td>
+                    <td className="text-center">{data.qty}</td>
+                    <td className="text-center">{data.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Render details only on the last page */}
+          {isLastPage && (
+            <div className="d-flex justify-content-between" style={{ position: 'absolute', bottom: '15%', width: '100%' }}>
+              <div>
+                <div className="text-start ms-5">
+                  <p>Cash Given: {cashGiven}</p>
+                  <p>Balance: {balance}</p>
+                </div>
+              </div>
+              <div>
+                <div className="text-end me-5">
+                  <p>Subtotal: {subtotal}</p>
+                  <p>Discount: <span>{discount}</span></p>
+                  <p>Grand Total: {grandtotal}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
 
              
             </div>
