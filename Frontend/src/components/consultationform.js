@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import billbg from "../logo/template.jpeg";
 import ReactToPrint from "react-to-print";
+import {useReactToPrint} from 'react-to-print';
+
 
 const FloatingAlert = ({ message, type }) => {
   useEffect(() => {
@@ -11,6 +13,12 @@ const FloatingAlert = ({ message, type }) => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handlePrint = useReactToPrint({
+    content: ()=>componentRef.current,
+    documentTitle:'billing-data',
+  
+  })
 
   const style={
     position: "fixed",
@@ -42,7 +50,7 @@ const ConsultationForm = () => {
     gender: "",
     dob: "",
     consultingDoctorName: "Dr.G.Vasudevan M.S.,(Ortho)",
-    obervation: "",
+    observation: "",
     consultantCharge: "",
     clinicCharge: "",
     opNumber: 1,
@@ -79,7 +87,7 @@ const ConsultationForm = () => {
     } else if (
       name === "firstName" ||
       name === "lastName" ||
-      name === "obervation"
+      name === "observation"
     ) {
       // Validate for text
       if (/^[A-Za-z\s]+$/.test(value) || value === "") {
@@ -107,7 +115,7 @@ const ConsultationForm = () => {
       "gender",
       "dob",
       "consultingDoctorName",
-      "obervation",
+      "observation",
       "consultantCharge",
       "clinicCharge",
     ];
@@ -130,6 +138,7 @@ const ConsultationForm = () => {
     setShowForm(false);
     setShowAlert(false);
     clearAlert();
+   
 
 
     localStorage.setItem("opNumber", formData.opNumber.toString());
@@ -201,6 +210,7 @@ const ConsultationForm = () => {
     setShowForm(true); // Set showForm to true to display the consultation form again
     setShowAlert(false); 
     clearAlert(); // Hide the alert when canceling
+  
   };
   const clearAlert = () => {
     // Clear alert message and type
@@ -324,9 +334,9 @@ const ConsultationForm = () => {
                     <input
                       type="text"
                       className="form-control"
-                      id="obervation"
-                      name="obervation"
-                      value={formData.obervation}
+                      id="observation"
+                      name="observation"
+                      value={formData.observation}
                       onChange={handleChange}
                       required
                     />
@@ -410,7 +420,17 @@ const ConsultationForm = () => {
         {!showForm && submittedData && (
           <>
             <div className="d-flex justify-content-end align-items-end">
-              <ReactToPrint
+            <button
+                type="button"
+                className="btn me-2"
+                onClick={handlePrint}
+                style={{
+                  backgroundColor: "teal",
+                  color: "white"}}
+              >
+                Print
+              </button>
+              {/* <ReactToPrint
                 trigger={() => (
                   <button
                     type="button"
@@ -421,7 +441,7 @@ const ConsultationForm = () => {
                   </button>
                 )}
                 content={() => componentRef.current}
-              />
+              /> */}
               <button
                 type="button"
                 className="btn me-2 ms-2"
@@ -433,117 +453,87 @@ const ConsultationForm = () => {
             </div>
 
             {(!!submittedData.clinicCharge || !!submittedData.consultantCharge) && (
-  <div
-    className="mt-10"
-    style={{
-      marginLeft: "100px",
-      marginTop: "50px",
-      width: "67%",
-      border: "1px solid lightgray",
-      backgroundImage: `url(${billbg})`,
-      backgroundRepeat: "no-repeat",
-      backgroundSize: "100% 100%",
-      fontFamily: "serif",
-    }}
-  >
+              <div  style={{
+              border: "1px solid black",
+              backgroundImage: `url(${billbg})`,
+              backgroundSize: "210mm 297mm", // Set width and height
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center", // Adjust as needed
+              height: "297mm",
+              width: "210mm",
+            // Optional: Set the width of the container to match A4
+          }}>
      
     <div
       style={{ 
         gap: "10px",
-        width:'100%',
-        marginLeft: "160px",
-        marginTop: "200px",
+        width:'80%',
+        marginLeft: "90px",
+        marginTop: "300px",
         // marginBottom: "300px",
       }}
     >
      <h3 style={{ paddingBottom: "10px" }}>
         {" "}
-        <b>Doctor Consultation Form</b>
+        <b style={{marginLeft:'150px'}}>Doctor Consultation Form</b>
       </h3>
-      <div style={{
-         display: "grid",
-         marginLeft:'-30px',
-         gridTemplateColumns: "repeat(2, 1fr)",
-      }}>
-        <p>
-          <b style={{ width: "170px", display: "inline-block" }} >
-            OP Number:
-          </b>{" "}
-          {submittedData.opNumber}
-        </p>
-        <br/>
-        {submittedData.firstName && (
-          <p>
-            <b style={{ width: "170px", display: "inline-block" }}>
-              Patient Name:
-            </b>{" "}
-            {submittedData.firstName}{" "}
-            {submittedData.lastName && (
-              <span>{submittedData.lastName}</span>
-            )}
-          </p>
+      <table style={{ width: "100%" }}>
+  <tbody>
+    <tr>
+      <td><b>OP Number</b></td>
+      <td>{submittedData.opNumber}</td>
+    </tr>
+    <tr>
+      <td><b>Patient Name</b></td>
+      <td>
+        {submittedData.firstName}{" "}
+        {submittedData.lastName && (
+          <span>{submittedData.lastName}</span>
         )}
-        <br/>
-        {submittedData.gender && (
-          <p>
-            <b style={{ width: "170px", display: "inline-block" }}>
-              Gender:
-            </b>{" "}
-            {submittedData.gender}
-          </p>
-        )}
-<br/>
-                  {submittedData.age && (
-                    <p >
-                      <b style={{ width: "170px", display: "inline-block" }}>Age :</b> 
-                      {submittedData.age}
-                    </p>
-                  )}
-                  <br/>
-                  {submittedData.dob && (
-                    <p >
-                      <b style={{ width: "170px", display: "inline-block" }}>Date of Birth :</b> {submittedData.dob}
-                    </p>
-                  )}
-                  <br/>
-                  {submittedData.consultingDoctorName && (
-                    <p >
-                      <b > Doctor Name :</b>
-                      {submittedData.consultingDoctorName}
-                    </p>
-                  )}
-                  <br/>
-                  {submittedData.obervation && (
-                    <p >
-                      <b style={{ width: "170px", display: "inline-block" }}>Observation :</b> {submittedData.obervation}
-                    </p>
-                  )}
-                  <br/>
-                  {submittedData.consultantCharge && (
-                    <p >
-                      <b style={{ width: "170px", display: "inline-block" }}>Consultant Charge :</b> {submittedData.consultantCharge}
-                    </p>
-                  )}
-                  <br/>
-                  {submittedData.clinicCharge && (
-                    <p >
-                      <b style={{ width: "170px", display: "inline-block" }}>Clinic Charge :</b> {submittedData.clinicCharge}
-                    </p>
-                  )}
-                  <br/>
-                  {submittedData.totalCharge && (
-                    <p >
-                      <b style={{ width: "170px", display: "inline-block" }}>Total Charge :</b> {submittedData.totalCharge}
-                    </p>
-                  )}
+      </td>
+    </tr>
+    <tr>
+      <td><b>Gender</b></td>
+      <td>{submittedData.gender}</td>
+    </tr>
+    <tr>
+      <td><b>Age</b></td>
+      <td>{submittedData.age}</td>
+    </tr>
+    <tr>
+      <td><b>Date of Birth</b></td>
+      <td>{submittedData.dob}</td>
+    </tr>
+    <tr>
+      <td><b>Doctor Name</b></td>
+      <td>{submittedData.consultingDoctorName}</td>
+    </tr>
+    <tr>
+      <td><b>Observation</b></td>
+      <td>{submittedData.observation}</td>
+    </tr>
+    <tr>
+      <td><b>Consultant Charge</b></td>
+      <td>{submittedData.consultantCharge}</td>
+    </tr>
+    <tr>
+      <td><b>Clinic Charge</b></td>
+      <td>{submittedData.clinicCharge}</td>
+    </tr>
+    <tr>
+      <td><b>Total Charge</b></td>
+      <td>{submittedData.totalCharge}</td>
+    </tr>
+  </tbody>
+</table>
 
 
-      </div>
-
-        <div style={{marginTop:'260px'}}>
-          <p><b>Doctor Signature</b></p>
-        </div>
+        
     </div>
+    <div className='text-end' style={{width:'85%',
+  marginTop:'29%', fontSize:'20px' }}>
+          <p ><b>Doctor Signature</b></p>
+        </div>
   </div>
 )}
 

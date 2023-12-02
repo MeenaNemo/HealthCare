@@ -25,8 +25,6 @@ const db = mysql.createPool({
   database: "Alagar_Clinic",
 });
 
-
-
 const timestampDefaultValue = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
 
@@ -161,7 +159,6 @@ const privateKey =
     }
   });
   
-
   app.get("/check-email", async (req, res) => {
     try {
       const userEmail = req.query.email;
@@ -280,7 +277,6 @@ db.getConnection((connectionError, connection) => {
     }
   });
 });
-
 
 async function generateInvoiceNumber() {
   const currentDate = new Date();

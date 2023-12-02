@@ -47,7 +47,7 @@ const RegistrationForm = () => {
   
     try {
       const checkEmailResponse = await axios.get(
-        `http://13.235.9.106:3000/check-email?email=${formData.user_email}`
+        `http://13.233.114.161:3000/check-email?email=${formData.user_email}`
       );
   
       if (checkEmailResponse.data.status === 400) {
@@ -62,7 +62,7 @@ const RegistrationForm = () => {
       }
   
       const response = await axios.post(
-        "http://13.235.9.106:3000/register",
+        "http://13.233.114.161:3000/register",
         formDataToSend,
         {
           headers: {
@@ -123,7 +123,7 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="container mt-4" style={{ fontFamily: "serif, sans-serif" }}>
+    <div className="container mt-4" style={{ fontFamily: "serif, sans-serif", marginLeft:'20px' }}>
       <h2>
         <b>Registration Form</b>
       </h2>
@@ -131,7 +131,6 @@ const RegistrationForm = () => {
       <form
         onSubmit={handleSubmit}
         style={{
-          margin: "7px",
           backgroundColor: "white",
           border: "1px solid lightgray",
           padding: "70px",

@@ -32,9 +32,12 @@ function Billing() {
   const [buttonText, setButtonText] = useState('Add More Medicine');
   const [patientName, setPatientName] = useState('');
   const [requestedQuantities, setRequestedQuantities] = useState({});
-  const componentRef = useRef();
+  const componentRef = useRef(null);
 
 
+
+  const rowsPerPage = 10;
+  const totalPages = Math.ceil(submittedData.length / rowsPerPage);
 
   useEffect(() => {
     handleTotal();
@@ -107,7 +110,7 @@ function Billing() {
 
     try {
         const response = await axios.get(
-            `http://13.235.9.106:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+            `http://13.233.114.161:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
         );
         const availableQuantity = response.data.availableQuantity;
 
@@ -172,7 +175,7 @@ function Billing() {
     try {
         const { medicinename, dosage } = extractMedicineInfo(selectedSuggestion);
         const mrpResponse = await axios.get(
-            `http://13.235.9.106:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+            `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
         );
         const mrp = mrpResponse.data.mrp;
         console.log("mrp", mrp);
@@ -197,7 +200,7 @@ function Billing() {
 
     try {
         const response = await axios.get(
-            `http://13.235.9.106:3000/suggestions?partialName=${inputValue}`
+            `http://localhost:3000/suggestions?partialName=${inputValue}`
         );
         const fetchedSuggestions = response.data.suggestions;
         setSuggestions(fetchedSuggestions);
@@ -224,7 +227,7 @@ const handleKeyPress = async (event, rowIndex, colIndex, id) => {
       if (event.target.id === `medicinename${id}`) {
         try {
           const response = await axios.get(
-            `http://13.235.9.106:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+            `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
           );
           const expired = response.data.expired;
 
@@ -337,7 +340,10 @@ const clearRow = (id) => {
       setRequestedQuantities(updatedQuantities);
     }
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
-  };  
+  };
+  
+  
+  
 
   const handleSubmit = async () => {
     const isAnyFieldFilled = medicineRows.some((row) => {
@@ -428,7 +434,7 @@ const clearRow = (id) => {
 
     try {
       const response = await axios.post(
-        "http://13.235.9.106:3000/billing",
+        "http://localhost:3000/billing",
         billingData
       );
       const generatedInvoiceNumber = response.data.invoicenumber;
@@ -503,6 +509,11 @@ const clearRow = (id) => {
     window.open(whatsappLink, "_blank");
   };
 
+  // const handlePrint = () => {
+  //   window.print();
+  // };
+
+  
   const handlePrint = useReactToPrint({
     content: ()=>componentRef.current,
     documentTitle:'billing-data',
@@ -531,7 +542,7 @@ const clearRow = (id) => {
 
   return (
     <>
-    <style>
+      <style>
         {`
           @media print {
             body * {
@@ -552,8 +563,8 @@ const clearRow = (id) => {
             /* Center content on the printed page */
             @page {
               size: A4;
-              margin: 0;
-              // margin: 20mm;
+              // margin: 0;
+              // margin: 10mm;
             }
             @media print {
               html, body {
@@ -1010,68 +1021,93 @@ const clearRow = (id) => {
         
           <div  className="row m-4">
           <div className="col-md-10 col-lg-8">
-            <div ref={componentRef} className="bill" style={{
-                        border: "1px solid black",
-                        backgroundImage: `url(${billbg})`,
-                        backgroundSize: "210mm 297mm", // Set width and height
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center", // Adjust as needed
-                        height: "297mm",
-                        width: "210mm",
-                        position: "relative" // Optional: Set the width of the container to match A4
-                    }}>
-                <div className="text-end me-4" style={{marginTop: '130px'}}>
-                  <h3 className="me-5"  style={{ color: "darkblue" }}>Invoice</h3>
-                  <h6>Invoice No: {invoiceNumber}</h6>
-                  <h6>Invoice Date: {currentDateFormatted}</h6>
-                  <h6 className="me-4">Patient Name:{patientName}</h6>
-                </div>
-        
-                <div className="table-responsive mt-3 me-5 ms-5">
-                  <table className="table table-bordered table-striped p-5 ">
-                    <thead className="table-dark">
-                      <tr>
-                        <th className="text-center">S.No</th>
-                        <th className="text-center">Medicine Name</th>
-                        <th className="text-center">Price</th>
-                        <th className="text-center">Qty</th>
-                        <th className="text-center">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array.isArray(submittedData) && submittedData.map((data, index) => (
-                        <tr key={data.id}>
-                          <td className="text-center">{index + 1}</td>
-                          <td className="text-center">{data.medicinename}</td>
-                          <td className="text-center">{data.qtyprice}</td>
-                          <td className="text-center">{data.qty}</td>
-                          <td className="text-center">{data.total}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-        
-                <div className="d-flex justify-content-between" style={{ position: 'absolute', bottom: '15%', width: '100%' }}>
-                  <div>
-                  <div className="text-start ms-5">
-                      <p>Cash Given: {cashGiven}</p>
-                      <p>Balance: {balance}</p>
-                    </div>
-                  </div>
-                  <div>
-                  <div className="text-end me-5">
-                      <p>Subtotal: {subtotal}</p>
-                      <p>Discount: <span>{discount}</span></p>
-                      <p>Grand Total: {grandtotal}</p>
-                    </div>
-                  </div>
-                </div>
+          <div  ref={componentRef}>
+  {/* Loop through each page */}
+  {Array.from({ length: totalPages }, (_, page) => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+
+    return (
+      <div
+        key={page}
+       
+        className="bill"
+        style={{
+          border: "1px solid black",
+          backgroundImage: `url(${billbg})`,
+          backgroundSize: "210mm 297mm",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          height: "297mm",
+          width: "210mm",
+          position: "relative",
+          marginBottom: '20px' // Add margin between pages
+        }}
+      >
+        <div className="text-end me-4" style={{ marginTop: '130px' }}>
+          <h3 className="me-5" style={{ color: "darkblue" }}>Invoice</h3>
+          <h6>Invoice No: {invoiceNumber}</h6>
+          <h6>Invoice Date: {currentDateFormatted}</h6>
+          <h6>Patient Name: {patientName}</h6>
+        </div>
+
+        <div className="table-responsive mt-3 me-5 ms-5">
+          <table className="table table-bordered table-striped p-5">
+            <thead className="table-dark">
+              <tr>
+                <th className="text-center">S.No</th>
+                <th className="text-center">Medicine Name</th>
+                <th className="text-center">Price</th>
+                <th className="text-center">Qty</th>
+                <th className="text-center">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Render table rows for the current page */}
+              {Array.isArray(submittedData) && submittedData.slice(startIndex, endIndex).map((data, index) => (
+                <tr key={data.id}>
+                  <td className="text-center">{startIndex + index + 1}</td>
+                  <td className="text-center">{data.medicinename}</td>
+                  <td className="text-center">{data.qtyprice}</td>
+                  <td className="text-center">{data.qty}</td>
+                  <td className="text-center">{data.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {(startIndex !== 0 || endIndex > 10) && ( // Show on second page if > 10 rows
+          <div className="d-flex justify-content-between" style={{ position: 'absolute', bottom: '15%', width: '100%' }}>
+            <div>
+              <div className="text-start ms-5">
+                <p>Cash Given: {cashGiven}</p>
+                <p>Balance: {balance}</p>
               </div>
+            </div>
+            <div>
+              <div className="text-end me-5">
+                <p>Subtotal: {subtotal}</p>
+                <p>Discount: <span>{discount}</span></p>
+                <p>Grand Total: {grandtotal}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
+
+
              
             </div>
           </div>
+
+
+          
         </div>
+        
         )}
       </div>
     </>

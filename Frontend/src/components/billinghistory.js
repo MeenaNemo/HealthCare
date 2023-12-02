@@ -34,7 +34,7 @@ const BillingHis = () => {
 
   const fetchbillingData = async () => {
     try {
-      const response = await axios.get("http://13.235.9.106:3000/billingdata");
+      const response = await axios.get("http://13.233.114.161:3000/billingdata");
       setMedicineData(response.data);
     } catch (error) {
       setError("Error fetching data");
@@ -79,7 +79,7 @@ const BillingHis = () => {
   const View = async (invoiceNumber) => {
     try {
       const response = await axios.get(
-        `http://13.235.9.106:3000/billingdata/${invoiceNumber}`
+        `http://13.233.114.161:3000/billingdata/${invoiceNumber}`
       );
       const invoiceData = response.data;
       setInvoiceData(invoiceData);
