@@ -32,7 +32,6 @@ function Billing() {
   const [buttonText, setButtonText] = useState('Add More Medicine');
   const [patientName, setPatientName] = useState('');
   const [requestedQuantities, setRequestedQuantities] = useState({});
-  const [originalQuantities, setOriginalQuantities] = useState({});
   const componentRef = useRef(null);
 
 
@@ -109,68 +108,39 @@ function Billing() {
     const tabletname = inputRefs.current[id]?.[0].value || "";
     const { medicinename, dosage } = extractMedicineInfo(tabletname);
 
-    const originalQty = originalQuantities[medicinename] || 0;
-  const qtyChange = qty - originalQty;
-
     try {
-      const response = await axios.get(
-        `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
-      );
-      const availableQuantity = response.data.availableQuantity;
-  
-      const requestedQuantityForMedicine = requestedQuantities[medicinename] || 0;
-  
-      if (qtyChange + requestedQuantityForMedicine >= availableQuantity) {
-        const remainingQuantity = availableQuantity - requestedQuantityForMedicine;
-        showAlert(`Available Quantity for ${medicinename} is ${remainingQuantity}`);
-  
-        // Access the quantity input field and reset to original quantity
-        const qtyInput = inputRefs.current[id]?.[1];
-        const totalInput = inputRefs.current[id]?.[3];
-        if (qtyInput) {
-          qtyInput.value = originalQty;
-          totalInput.value = (originalQty * qtyprice).toFixed(2);
-        }
-      } else {
-        const qtyChange = qty - (originalQuantities[medicinename] || 0);
+        const response = await axios.get(
+            `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+        );
+        const availableQuantity = response.data.availableQuantity;
 
-        // Update the requestedQuantities with the qtyChange
-        setRequestedQuantities((prevQuantities) => ({
-          ...prevQuantities,
-          [medicinename]: (prevQuantities[medicinename] || 0) + qtyChange,
-        }));
-        
-        // Update the original quantities
-        setOriginalQuantities((prevOriginal) => ({
-          ...prevOriginal,
-          [medicinename]: qty,
-        }));
-      }
+        const requestedQuantityForMedicine = requestedQuantities[medicinename] || 0;
+
+        if (qty + requestedQuantityForMedicine > availableQuantity) {
+            const remainingQuantity = availableQuantity - requestedQuantityForMedicine;
+            showAlert(`Available Quantity for ${medicinename} is ${remainingQuantity}`);
+            
+            const qtyInput = inputRefs.current[id]?.[1];
+            if (qtyInput) {
+                qtyInput.value = "";
+                totalInput.value = "";
+            }
+        } else {
+            setRequestedQuantities((prevQuantities) => ({
+                ...prevQuantities,
+                [medicinename]: (prevQuantities[medicinename] || 0) + qty,
+            }));
+        }
     } catch (error) {
         console.error("Error fetching available quantity:", error);
-      }
+    }
 
     setMedicineRows((prevRows) =>
         prevRows.map((row) => (row.id === id ? { ...row, total } : row))
     );
 };
 
- 
-const handleRemoveMedicine = (id) => {
-  const removedMedicine = medicineRows.find((row) => row.id === id);
-  if (removedMedicine && removedMedicine.tabletname) {
-    const { medicinename } = extractMedicineInfo(removedMedicine.tabletname);
-
-    // Similar to handleQuantity, update the requestedQuantities
-    setRequestedQuantities((prevQuantities) => {
-      const updatedQuantities = { ...prevQuantities };
-      delete updatedQuantities[medicinename];
-      return updatedQuantities;
-    });
-  }
-  setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
-};
-
+  
   const handlePatientNameChange = (e) => {
     const newName = e.target.value;
     setPatientName(newName);
@@ -348,7 +318,32 @@ const clearRow = (id) => {
 
     const newGrandTotal = subtotal - newDiscountTotal;
     setGrandTotal(newGrandTotal);
-  };  
+  };
+
+  // const handleRemoveMedicine = (id) => {
+  //   setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
+  // };
+  const handleRemoveMedicine = (id) => {
+    const removedMedicine = medicineRows.find((row) => row.id === id);
+    if (removedMedicine && removedMedicine.tabletname) {
+      const { medicinename } = extractMedicineInfo(removedMedicine.tabletname);
+      
+      // Log the original quantities
+      console.log("Original Quantities:", requestedQuantities);
+  
+      const updatedQuantities = { ...requestedQuantities };
+      delete updatedQuantities[medicinename];
+      
+      // Log the updated quantities before setting
+      console.log("Updated Quantities:", updatedQuantities);
+  
+      setRequestedQuantities(updatedQuantities);
+    }
+    setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
+  };
+  
+  
+  
 
   const handleSubmit = async () => {
     const isAnyFieldFilled = medicineRows.some((row) => {
@@ -526,6 +521,11 @@ const clearRow = (id) => {
 
     window.open(whatsappLink, "_blank");
   };
+
+  // const handlePrint = () => {
+  //   window.print();
+  // };
+
   
   const handlePrint = useReactToPrint({
     content: ()=>componentRef.current,
@@ -551,11 +551,6 @@ const clearRow = (id) => {
     });
     setIsSubmitted(false);
     window.location.reload();
-  };
-  const handleKeyPress1 = (event) => {
-    if (event.key === '-') {
-      event.preventDefault();
-    }
   };
 
   return (
@@ -639,7 +634,7 @@ const clearRow = (id) => {
                                 ((inputRefs.current[id] ||= [])[1] = el)
                               }
                               onBlur={(e) => handleQuantity(e, rowIndex, 1, id)}
-                              onKeyPress={handleKeyPress1}
+                             
                               style={{
                                 WebkitAppearance: "none",
                                 MozAppearance: "textfield",
@@ -671,7 +666,6 @@ const clearRow = (id) => {
                                 ((inputRefs.current[id] ||= [])[3] = el)
                               }
                               onFocus={handleTotal}
-                              readOnly
                             />
                           </td>
                           <td>

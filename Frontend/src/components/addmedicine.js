@@ -146,7 +146,7 @@ function AddMedicine() {
 
     try {
       // Assuming your API call is successful
-      await axios.post("http://13.233.114.161:3000/purchase", formData);
+      await axios.post("http://localhost:3000/purchase", formData);
       setPopupType("success");
       setShowPopup(true);
       console.log("Form Submitted!");
