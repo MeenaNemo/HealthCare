@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mysql = require("mysql");
 const axios = require("axios");
@@ -10,6 +11,7 @@ const jwt = require("jsonwebtoken");
 const uuid = require("uuid").v4;
 const path = require("path");
 const moment = require("moment-timezone");
+const { time } = require("console");
 
 app.use(cors());
 app.use(express.json());
@@ -25,9 +27,6 @@ const db = mysql.createPool({
   database: "Alagar_Clinic",
 });
 
-const timestampDefaultValue = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-
-
 const createUsersTableQuery = `
   CREATE TABLE IF NOT EXISTS User_Inventory (
     user_id  VARCHAR(36) PRIMARY KEY,
@@ -38,7 +37,7 @@ const createUsersTableQuery = `
     user_role VARCHAR(20),
     user_password VARCHAR(255),
     user_token VARCHAR(255),
-    user_timestamp TIMESTAMP DEFAULT '${timestampDefaultValue}'  )
+    user_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP )
 `;
 
 const createPurchaseTableQuery = `
@@ -53,7 +52,7 @@ const createPurchaseTableQuery = `
     purchaseamount DECIMAL(10,2),
     expirydate DATE,
     mrp DECIMAL(10,2),
-    time TIMESTAMP DEFAULT '${moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}',
+    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, medicinename, dosage),
     INDEX (medicinename, dosage)
   )
@@ -71,7 +70,7 @@ const createStockTableQuery = `
     mrp DECIMAL(10,2),
     purchasedate DATE,
     expirydate DATE,
-    time TIMESTAMP DEFAULT '${moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}',
+    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (medicinename, dosage) REFERENCES Purchase_Inventory(medicinename, dosage)
   )
 `;
@@ -89,7 +88,7 @@ CREATE TABLE IF NOT EXISTS Billing_Inventory (
   cashgiven DECIMAL(10,2),
   balance DECIMAL(10,2),
   invoice_number VARCHAR(20),
-  createdate TIMESTAMP DEFAULT '${moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')}'
+  createdate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;
 
@@ -99,8 +98,9 @@ const privateKey =
   app.post("/register", async (req, res) => {
     try {
       const reqData = req.body;
+      console.log("Received data:", reqData);
   
-      if (Object.keys(reqData).length === 0) {
+      if (!reqData ||Object.keys(reqData).length === 0) {
         throw new Error("Please provide data.");
       }
   
@@ -121,6 +121,8 @@ const privateKey =
         const enpPassword = await bcrypt.hash(reqData.user_password, 10);
         const token = jwt.sign(reqData, privateKey);
         const user = "userid-" + uuid();
+
+        const istTimestamp = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
   
         const insertUserQuery = `
           INSERT INTO User_Inventory (user_id, user_first_name, user_last_name, user_email, user_mobile_number, user_role, user_password, user_token, user_timestamp)
@@ -136,7 +138,7 @@ const privateKey =
           reqData.user_role,
           enpPassword,
           token,
-          new Date(),
+          istTimestamp
         ];
   
         db.query(insertUserQuery, values, (error, result) => {
@@ -336,10 +338,12 @@ app.post("/billing", async (req, res) => {
       })),
     };
 
+    const istTimestamp = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
     const sql = `
       INSERT INTO Billing_Inventory
-        (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance, invoice_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (tabletdetails, subtotal, discount, grandtotal, patientname, doctorname, mobileno, cashgiven, balance, invoice_number,createdate)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
     `;
 
     db.query(
@@ -355,6 +359,7 @@ app.post("/billing", async (req, res) => {
         billingData.cashgiven,
         billingData.balance,
         invoicenumber,
+        istTimestamp,
       ],
       (err, result) => {
         if (err) throw err;
@@ -428,6 +433,65 @@ app.get("/stock", (req, res) => {
   });
 });
 
+app.delete("/stock/delete/:id", (req, res) => {
+  const id = req.params.id;  
+
+  console.log("The value of Id is:", id);
+
+  const deleteStockSql = "DELETE FROM Stock_Inventory WHERE id = ?";
+  db.query(deleteStockSql, [id], (err, stockResults) => {
+    if (err) {
+      console.error("Error deleting from Stock_Inventory table:", err);
+      res.status(500).json({ error: "Error deleting from Stock_Inventory table" });
+      return;
+    }
+  });
+});
+
+app.put('/stock/update/:id', (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+
+  console.log('ID:', id);
+  console.log('Updated Data:', updatedData);
+
+  const updateStockQuery = `
+    UPDATE Stock_Inventory 
+    SET medicinename = ?, 
+        brandname = ?, 
+        dosage = ?, 
+        purchaseprice = ?, 
+        totalqty = ?, 
+        purchaseamount = ?, 
+        mrp = ?, 
+        expirydate = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    updatedData.medicinename,
+    updatedData.brandname,
+    updatedData.dosage,
+    updatedData.purchaseprice,
+    updatedData.totalqty,
+    updatedData.purchaseamount,
+    updatedData.mrp,
+    updatedData.expirydate,
+    id
+  ];
+
+  db.query(updateStockQuery, values, (err, result) => {
+    if (err) {
+      console.error("Error updating Stock_Inventory:", err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      console.log("Stock item updated successfully");
+      res.status(200).json({ message: 'Stock item updated successfully', data: updatedData });
+    }
+  });
+});
+
+
 app.post("/purchase", (req, res) => {
   const {
     medicinename,
@@ -443,10 +507,12 @@ app.post("/purchase", (req, res) => {
 
   const formattedMRP = `${mrp}`;
 
+  const istTimestamp = moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+
   const insertPurchaseQuery = `
     INSERT INTO Purchase_Inventory 
-      (medicinename, brandname, otherdetails, purchaseprice, totalqty, purchaseamount, dosage, expirydate, mrp) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (medicinename, brandname, otherdetails, purchaseprice, totalqty, purchaseamount, dosage, expirydate, mrp,time) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)
   `;
 
   const valuesPurchase = [
@@ -459,6 +525,7 @@ app.post("/purchase", (req, res) => {
     dosage,
     expirydate,
     formattedMRP,
+    istTimestamp,
   ];
 
   db.query(insertPurchaseQuery, valuesPurchase, (err, result) => {
@@ -500,6 +567,7 @@ app.post("/purchase", (req, res) => {
               mrp,
               medicinename,
               dosage,
+             
             ];
 
             db.query(
@@ -534,7 +602,7 @@ app.post("/purchase", (req, res) => {
               totalqty,
               purchaseamount,
               expirydate,
-              mrp,
+              mrp
             ];
 
             db.query(insertStockQuery, valuesStock, (errStock, resultStock) => {
@@ -670,3 +738,4 @@ const extractMedicineInfo = (medData) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
