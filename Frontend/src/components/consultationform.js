@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import billbg from "../logo/template.jpeg";
+import billbg from "../logo/newpic.jpg";
 import ReactToPrint from "react-to-print";
 
 const FloatingAlert = ({ message, type }) => {
@@ -41,11 +41,10 @@ const ConsultationForm = () => {
     age: "",
     gender: "",
     dob: "",
-    consultingDoctorName: "Dr.G.Vasudevan M.S.,(Ortho)",
+    consultingDoctorName: "Dr. Jothipriya.A MBBS",
     observation: "",
     consultantCharge: "",
     clinicCharge: "",
-    opNumber: 1,
   });
 
   const [submittedData, setSubmittedData] = useState(null);
@@ -54,16 +53,7 @@ const ConsultationForm = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
 
-  useEffect(() => {
-    // Fetch the last OP Number from localStorage on component mount
-    const lastOPNumber = localStorage.getItem("opNumber");
-    if (lastOPNumber) {
-      setFormData((prevData) => ({
-        ...prevData,
-        opNumber: parseInt(lastOPNumber, 10) + 1,
-      }));
-    }
-  }, []);
+ 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -131,9 +121,6 @@ const ConsultationForm = () => {
     setShowAlert(false);
     clearAlert();
    
-
-
-    localStorage.setItem("opNumber", formData.opNumber.toString());
   };
 
   const calculateAge = (dob) => {
@@ -174,41 +161,33 @@ const ConsultationForm = () => {
     clearAlert();
   };
   
-
-  const generateOPNumber = () => {
-    // Increment the opNumber in the state
-    setFormData((prevData) => ({
-      ...prevData,
-      opNumber: prevData.opNumber + 1,
-    }));
-    return formData.opNumber + 1;
-  };
-
   const handleCancel = (event) => {
     event.preventDefault();
-    const lastOPNumber = localStorage.getItem("opNumber");
     setFormData({
       firstName: "",
       lastName: "",
       age: "",
       gender: "",
       dob: "",
-      consultingDoctorName: "Dr.G.Vasudevan M.S.,(Ortho)", // You might want to change this to consultingDoctorName to match the state
+      consultingDoctorName: "DR. Jothipriya.A MBBS", // You might want to change this to consultingDoctorName to match the state
       observation: "", // Corrected the property name
       consultantCharge: "",
       clinicCharge: "",
-      opNumber: lastOPNumber ? parseInt(lastOPNumber, 10) + 1 : 1,
     });
     setShowForm(true); // Set showForm to true to display the consultation form again
     setShowAlert(false); 
     clearAlert(); // Hide the alert when canceling
   
   };
+  
   const clearAlert = () => {
-    // Clear alert message and type
     setAlertMessage("");
     setAlertType("");
   };
+  
+  const tstyle = {
+    fontSize:'20px'
+      }
 
   return (
     <div
@@ -217,16 +196,32 @@ const ConsultationForm = () => {
         fontFamily: "serif",
       }}
     >
-      <div style={{ margin: "20px" }} ref={componentRef}>
+      <div  style={{ marginTop: "20px" }}>
         {showForm && (
           <>
-            <h2>
-              {" "}
-              <b>Doctor Consultation Form</b>
-            </h2>
+          <h2><b>Doctor Consultation Form</b></h2>
+
+          <div className="row">
+  <div className=" d-flex justify-content-end">
+      <div className="d-flex align-items-center">
+      <label htmlFor="currentDate" className="form-label mb-0 me-2">
+        <b> DATE</b>
+      </label>
+      <input
+        type="text"
+        className="form-control"
+        id="currentDate"
+        name="currentDate"
+        value={new Date().toLocaleDateString()}
+        readOnly
+        style={{width:'100px'}}
+      />      </div>
+    </div>
+  
+    <div >
             <form
               onSubmit={handleSubmit}
-              className=""
+              className="mt-2"
               style={{
                 backgroundColor: "white",
                 border: "1px solid lightgray",
@@ -377,6 +372,7 @@ const ConsultationForm = () => {
                     />
                   </div>
                 </div>
+       
 
                 <div className="row mt-3 mb-4">
                   <div className="col-md-12 text-end">
@@ -406,12 +402,14 @@ const ConsultationForm = () => {
           <FloatingAlert message={alertMessage} type={alertType} />
         )}
             </form>
+            </div>
+            </div>
           </>
         )}
 
         {!showForm && submittedData && (
           <>
-            <div className="d-flex justify-content-end align-items-end">
+    <div className="d-flex justify-content-end align-items-end">
               <ReactToPrint
                 trigger={() => (
                   <button
@@ -433,17 +431,16 @@ const ConsultationForm = () => {
                 Go to Previous page
               </button>
             </div>
-
             {(!!submittedData.clinicCharge || !!submittedData.consultantCharge) && (
-              <div  style={{
+              <div ref={componentRef}  style={{
               border: "1px solid black",
               backgroundImage: `url(${billbg})`,
-              backgroundSize: "210mm 297mm", // Set width and height
+              backgroundSize: "210mm 297mm", 
+              margin:'20px',
               backgroundRepeat: "no-repeat",
-              backgroundPosition: "center", // Adjust as needed
+              backgroundPosition: "center", 
               height: "297mm",
               width: "210mm",
-            // Optional: Set the width of the container to match A4
           }}>
      
     <div
@@ -451,23 +448,23 @@ const ConsultationForm = () => {
         gap: "10px",
         width:'80%',
         marginLeft: "90px",
-        marginTop: "300px",
-        // marginBottom: "300px",
+        marginTop: "270px",
       }}
     >
-     <h3 style={{ paddingBottom: "10px" }}>
+     <h3 style={{ paddingBottom: "10px", textAlign: "center"  }}>
         {" "}
-        <b>Doctor Consultation Form</b>
+        <b >Doctor Consultation Form</b>
       </h3>
-      <table style={{ width: "100%" }}>
-  <tbody>
+      <table style={{ width: "100%"}}>
+  <tbody  >
+  <tr>
+  <td style={tstyle}><b> Date</b></td>
+  <td style={tstyle}>{new Date().toLocaleDateString()}</td>
+</tr>
+   
     <tr>
-      <td><b>OP Number</b></td>
-      <td>{submittedData.opNumber}</td>
-    </tr>
-    <tr>
-      <td><b>Patient Name</b></td>
-      <td>
+      <td style={tstyle}><b>Patient Name</b></td>
+      <td style={tstyle}>
         {submittedData.firstName}{" "}
         {submittedData.lastName && (
           <span>{submittedData.lastName}</span>
@@ -475,45 +472,45 @@ const ConsultationForm = () => {
       </td>
     </tr>
     <tr>
-      <td><b>Gender</b></td>
-      <td>{submittedData.gender}</td>
+      <td style={tstyle}><b>Gender</b></td>
+      <td style={tstyle}>{submittedData.gender}</td>
     </tr>
     <tr>
-      <td><b>Age</b></td>
-      <td>{submittedData.age}</td>
+      <td style={tstyle}><b>Age</b></td>
+      <td style={tstyle}>{submittedData.age}</td>
+    </tr>
+    <tr >
+      <td style={tstyle}><b>Date of Birth</b></td>
+      <td style={tstyle}>{submittedData.dob}</td>
     </tr>
     <tr>
-      <td><b>Date of Birth</b></td>
-      <td>{submittedData.dob}</td>
+      <td style={tstyle}><b>Doctor Name</b></td>
+      <td style={tstyle}>{submittedData.consultingDoctorName}</td>
     </tr>
     <tr>
-      <td><b>Doctor Name</b></td>
-      <td>{submittedData.consultingDoctorName}</td>
+      <td style={tstyle}><b>Observation</b></td>
+      <td style={tstyle}>{submittedData.observation}</td>
     </tr>
     <tr>
-      <td><b>Observation</b></td>
-      <td>{submittedData.observation}</td>
+      <td style={tstyle}><b>Consultant Charge</b></td>
+      <td style={tstyle}>{submittedData.consultantCharge}</td>
     </tr>
     <tr>
-      <td><b>Consultant Charge</b></td>
-      <td>{submittedData.consultantCharge}</td>
+      <td style={tstyle}><b>Clinic Charge</b></td>
+      <td style={tstyle}>{submittedData.clinicCharge}</td>
     </tr>
     <tr>
-      <td><b>Clinic Charge</b></td>
-      <td>{submittedData.clinicCharge}</td>
+      <td style={tstyle}><b>Total Charge</b></td>
+      <td style={tstyle}>{submittedData.totalCharge}</td>
     </tr>
-    <tr>
-      <td><b>Total Charge</b></td>
-      <td>{submittedData.totalCharge}</td>
-    </tr>
+   
   </tbody>
 </table>
 
 
         
     </div>
-    <div className='text-end' style={{width:'85%',
-  marginTop:'30%' }}>
+    <div className='text-start' style={{margin:'100px', fontSize:'20px',  }}>
           <p style={{}}><b>Doctor Signature</b></p>
         </div>
   </div>

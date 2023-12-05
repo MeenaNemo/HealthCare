@@ -247,14 +247,13 @@ const Purchase = () => {
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(16);
       pdf.setTextColor(43, 128, 176);
-      pdf.text(
-        `Purchase Details from ${formattedFromDate} to ${formattedToDate}`,
-        10,
-        10,
-        null,
-        null,
-        "left"
-      );
+    
+
+      const headingText = fromDate && toDate
+        ? `Purchase Details from ${formattedFromDate} to ${formattedToDate}`
+        : "Purchase Details as on Today";
+  
+      pdf.text(headingText, 10, 10, null, null, "left");
 
       const headingHeight = 20;
       const tableStartY = 0 + headingHeight;
@@ -423,21 +422,22 @@ const Purchase = () => {
       </div>
     </div>
   </div>
+  
   <div className="row align-items-center mt-3">
-    <div className="col-12 col-md-6">
+    <div className="col-12 col-md-8">
       <div className="search-bar d-flex align-items-center" 
       style={{marginLeft:'-0px'}}>
         <FontAwesomeIcon icon={faSearch} />
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Search Medicine name..."
           value={searchQuery}
           onChange={(event) => handleSearchChange(event.target.value)}
           style={{height:'30px'}}
         />
       </div>
     </div>
-    <div className="col-12 col-md-6 mt-3 mt-md-0 d-flex justify-content-md-end">
+    <div className="col-12 col-md-12 mt-3 mt-md-0 d-flex justify-content-md-end">
       <span className="bold-placeholder me-3">
         From: <DatePicker onChange={handleFromDateChange} />
       </span>
@@ -447,8 +447,6 @@ const Purchase = () => {
     </div>
   </div>
 </div>
-
-
 
         <div className="purchase-table ms-4">
           {dataOnCurrentPage.length === 0 ? (

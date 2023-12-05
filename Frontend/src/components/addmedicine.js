@@ -50,16 +50,28 @@ function AddMedicine() {
       };
 
       if (id === "purchaseprice" || id === "totalqty") {
-        const numericValue = parseInt(value, 10);
-        if (!isNaN(numericValue)) {
-          updatedData[id] = numericValue;
-          updatedData.purchaseamount =
-            id === "purchaseprice" && !isNaN(prevData.totalqty)
-              ? numericValue * prevData.totalqty
-              : id === "totalqty" && !isNaN(prevData.purchaseprice)
-              ? prevData.purchaseprice * numericValue
-              : 0;
-        }
+        if (id === "totalqty") {
+          // Use parseInt to enforce integer value for totalqty
+          const intValue = parseInt(value, 10);
+          if (!isNaN(intValue)) {
+            updatedData.totalqty = intValue;
+            updatedData.purchaseamount =
+              !isNaN(prevData.purchaseprice) && intValue
+                ? prevData.purchaseprice * intValue
+                : 0;
+          }
+        } else {
+          // Change parseInt to parseFloat to handle decimal values
+          const numericValue = parseFloat(value);
+          if (!isNaN(numericValue)) {
+            updatedData[id] = numericValue;
+            updatedData.purchaseamount =
+              id === "purchaseprice" && !isNaN(prevData.totalqty)
+                ? numericValue * prevData.totalqty
+                : id === "totalqty" && !isNaN(prevData.purchaseprice)
+                ? prevData.purchaseprice * numericValue
+                : 0;
+          }}
       } else if (id === "mrp") {
         const numericValue = parseFloat(value);
         if (!isNaN(numericValue)) {
@@ -211,7 +223,7 @@ function AddMedicine() {
        
       }}
     >
-      <div className="m-4">
+      <div className="">
         <div className="d-flex justify-content-between align-items-center mb-3 mt-4">
           <h2 className="mb-0">
             <b>Add Medicine</b>
@@ -348,6 +360,13 @@ function AddMedicine() {
                     value={formData.purchaseprice}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    onInput={(e) => {
+                      const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData((prevData) => ({
+                        ...prevData,
+                        purchaseprice: numericValue,
+                      }));
+                    }}
                     style={{
                       WebkitAppearance: "none",
                       MozAppearance: "textfield",
@@ -368,6 +387,13 @@ function AddMedicine() {
                     value={formData.totalqty}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    onInput={(e) => {
+                      const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData((prevData) => ({
+                        ...prevData,
+                        totalqty: numericValue,
+                      }));
+                    }}
                     style={{
                       WebkitAppearance: "none",
                       MozAppearance: "textfield",
@@ -429,6 +455,13 @@ function AddMedicine() {
                     value={formData.mrp}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    onInput={(e) => {
+                      const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData((prevData) => ({
+                        ...prevData,
+                        mrp: numericValue,
+                      }));
+                    }}
                     style={{
                       WebkitAppearance: "none",
                       MozAppearance: "textfield",

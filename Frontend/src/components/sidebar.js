@@ -111,10 +111,9 @@ const Sidebar = () => {
       setShowRegistrationForm(false);
     }
   };
+  
 
   const handleBillingToggle = () => {
-    setShowBilling((prevState) => !prevState);
-
     if (
       (user && user.user.user_role === "Pharmacist") ||
       user.user.user_role === "Doctor"
@@ -126,6 +125,8 @@ const Sidebar = () => {
       setShowPurchase(false);
       setShowBillingHis(false);
       setShowRegistrationForm(false);
+    // window.location.reload();
+
     }
   };
 
@@ -194,6 +195,7 @@ const Sidebar = () => {
     }
   }, []);
 
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     history.push("/");
@@ -201,9 +203,9 @@ const Sidebar = () => {
   };
   return (
     <div className="container-fluid" style={{ fontFamily:'serif, sans-serif' }}>
-      <div className="row " >
-        <div className="col-lg-3" style={{flex: '0 0 330px'}}>
-          <div className="shadow-sm p-3 w-100 h-100 bg-white rounded">
+      <div className="row" >
+        <div className="col-lg-3 col-md-4" >
+          <div className="shadow-sm p-3  h-100 bg-white rounded">
             <div className="d-flex align-items-center mb-3">
               <img
                 src={logoImage}
@@ -221,7 +223,7 @@ const Sidebar = () => {
                 </h4>
                 <p className="mb-0" style={{ fontSize: "12px" }}>
                   Plot No-1, Fenner Colony, Virattipattu, Madurai-16.{" "}
-                  <b>Contact:</b> 88072 62725
+                  <b>Contact:</b> 0452-4051228
                 </p>
               </div>
             </div>
@@ -250,8 +252,9 @@ const Sidebar = () => {
                           <a
                             href="#"
                             className="text-decoration-none text-dark"
-                            onClick={handleBillingToggle}
+                            onClick={handleBillingToggle} 
                           >
+                            
                             <FontAwesomeIcon icon={faCashRegister} className="me-3"/>
                             <b>Billing</b>
                           </a>
@@ -363,16 +366,10 @@ const Sidebar = () => {
                 </div>
               </div>
             </div>
-
-            {/* <hr />
-
-            <div>
-              {user && <UserProfile user={user} onLogout={handleLogout} />}
-            </div> */}
           </div>
         </div>
 
-        <div className="col-lg-9 col-12">
+        <div className="col-lg-9 col-md-8 col-12">
           <div className="row">
             <div className="col">
               <div
@@ -380,7 +377,7 @@ const Sidebar = () => {
                 style={{ display: showStockDetails ? "block" : "none" }}
               >
                 {showStockDetails && (
-                  <div className="stock-details-content" style={{marginLeft:'10px'}}>
+                  <div className="stock-details-content" >
                     <StockDetailsPage />
                   </div>
                 )}
@@ -388,7 +385,7 @@ const Sidebar = () => {
 
               <div
                 className="billing-content"
-                style={{ display: showBilling ? "block" : "none", marginLeft:'10px' }}
+                style={{ display: showBilling ? "block" : "none", marginLeft:'0px' }}
               >
                 {showBilling && (
                   <div className="billing-content">

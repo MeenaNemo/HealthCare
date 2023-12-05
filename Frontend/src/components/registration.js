@@ -8,6 +8,7 @@ const RegistrationForm = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const mobileNumberRegex = /^\d{10}$/;
 
+  const [alertMessage, setAlertMessage] = useState(null);
 
   const [formData, setFormData] = useState({
     user_first_name: "",
@@ -16,42 +17,38 @@ const RegistrationForm = () => {
     user_mobile_number: "",
     user_role: "",
     user_password: "",
-    user_profile_photo: null,
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
 
-    if (
-      !formData.user_first_name ||
-      !formData.user_last_name ||
-      !emailRegex.test(formData.user_email) ||
-      !mobileNumberRegex.test(formData.user_mobile_number) ||
-      !formData.user_role ||
-      !formData.user_password
-    ) {
-      alert("Please fill in all fields with valid information.");
+    if (!emailRegex.test(formData.user_email)) {
+      setAlertMessage("Please enter a valid email address.");
+      setTimeout(() => {
+        setAlertMessage(null);
+      }, 2000);
       return;
     }
   
-    if (!emailRegex.test(formData.user_email)) {
-      alert("Please enter a valid email address.");
+    if (!mobileNumberRegex.test(formData.user_mobile_number)) {
+      setAlertMessage("Mobile number must be 10 digits long.");
+      setTimeout(() => {
+        setAlertMessage(null);
+      }, 2000);
       return;
     }
 
-    if (!mobileNumberRegex.test(formData.user_mobile_number)) {
-      alert("Mobile number must be 10 digits long.");
-      return;
-    }
-  
     try {
       const checkEmailResponse = await axios.get(
         `http://localhost:3000/check-email?email=${formData.user_email}`
       );
   
       if (checkEmailResponse.data.status === 400) {
-        alert("Email is already registered. Please use a different email address.");
+        setAlertMessage("Email is already registered. Please use a different email address.");
+        setTimeout(() => {
+          setAlertMessage(null);
+        }, 2000);
         setFormData({ ...formData, user_email: "" });
         return;
       }
@@ -66,14 +63,14 @@ const RegistrationForm = () => {
         formDataToSend,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
   
       console.log(response.data);
       if (response.data.status === 200) {
-        alert("Registration successful!");
+        setAlertMessage("Registration successful!");
 
         setFormData({
           user_first_name: "",
@@ -82,12 +79,31 @@ const RegistrationForm = () => {
           user_mobile_number: "",
           user_role: "",
           user_password: "",
-          user_profile_photo: null,
         });
+        setTimeout(() => {
+          setAlertMessage(null);
+        }, 3000);
       }
     } catch (error) {
       console.error("Registration failed:", error);
+      setAlertMessage("Registration failed");
     }
+
+    if (
+      !formData.user_first_name ||
+      !formData.user_last_name ||
+      !emailRegex.test(formData.user_email) ||
+      !mobileNumberRegex.test(formData.user_mobile_number) ||
+      !formData.user_role ||
+      !formData.user_password
+    ) {
+      setAlertMessage("Please fill in all fields with valid information.");
+      setTimeout(() => {
+        setAlertMessage(null);
+      }, 2000);
+      return;
+    }
+
   };
   
 
@@ -100,13 +116,10 @@ const RegistrationForm = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
   
-    // Regular expression to match only alphabetic characters and spaces
     const onlyLettersRegex = /^[a-zA-Z\s]*$/;
   
-    // Check if the entered value contains only alphabetic characters and spaces
     if (name === "user_first_name" || name === "user_last_name") {
       if (!onlyLettersRegex.test(value)) {
-        // If the input contains invalid characters, don't update the state
         return;
       }
     }
@@ -115,15 +128,9 @@ const RegistrationForm = () => {
   };
   
 
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      user_profile_photo: e.target.files[0],
-    });
-  };
-
+  
   return (
-    <div className="container mt-4" style={{ fontFamily: "serif, sans-serif", marginLeft:'20px' }}>
+    <div className="container mt-4" style={{ fontFamily: "serif, sans-serif", marginLeft:'0px' }}>
       <h2>
         <b>Registration Form</b>
       </h2>
@@ -193,7 +200,6 @@ const RegistrationForm = () => {
               name="user_mobile_number"
               onChange={handleInputChange}
               onInput={(e) => {
-                // Allow only numeric input
                 e.target.value = e.target.value.replace(/\D/, '').slice(0, 10);
               }}
               value={formData.user_mobile_number}
@@ -218,7 +224,6 @@ const RegistrationForm = () => {
               <option value="">Select User Role</option>
               <option value="Doctor">Doctor</option>
               <option value="Pharmacist">Pharmacist</option>
-              {/* Add more options as needed */}
             </select>
           </div>
           <div className="col-md-6">
@@ -249,6 +254,25 @@ const RegistrationForm = () => {
             </div>
           </div>
         </div>
+
+         {alertMessage && (
+        <div className="alert alert-success alert-dismissible fade show" role="alert" 
+        style={{
+          position: "fixed",
+          top: "10px",
+          left: "55%",
+          backgroundColor:"red",
+          color: "white",
+          padding: "10px",
+          borderRadius: "5px",
+          boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+          zIndex: "9999",
+          display: "block",
+        }}
+        >
+          {alertMessage}
+        </div>
+      )}
 
         <div className="row">
           <div className="col-md-12 text-center">

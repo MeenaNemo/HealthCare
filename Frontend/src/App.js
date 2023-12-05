@@ -9,6 +9,7 @@ import Billing from "./components/billing";
 import Purchase from "./components/purchase";
 import BillingHis from "./components/billinghistory";
 import RegistrationForm from "./components/registration";
+import StockDetailsPage1 from "./components/pharmacystock";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './index.css'
@@ -23,6 +24,7 @@ const App = () => {
         <Route path="/addmedicine" component={AddMedicine} />
         <Route path="/register" component={RegistrationForm} />
         <Route path="/stock" component={StockDetailsPage} />
+        <Route path="/pharmacystock" component={StockDetailsPage1} />
         <Route path="/billing" component={Billing} />
         <Route path="/purchase" component={Purchase} />
         <Route path="/billinghistory" component={BillingHis} />
