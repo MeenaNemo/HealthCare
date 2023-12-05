@@ -445,6 +445,7 @@ app.delete("/stock/delete/:id", (req, res) => {
       res.status(500).json({ error: "Error deleting from Stock_Inventory table" });
       return;
     }
+    res.status(200).json({ message: "Stock item deleted successfully" });
   });
 });
 

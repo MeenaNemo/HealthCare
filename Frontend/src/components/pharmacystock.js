@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash, faSearch, faFileExport } from "@fortawesome/free-solid-svg-icons";
-
+import { faSearch, faFileExport } from "@fortawesome/free-solid-svg-icons";
 import { DatePicker } from "antd";
 import moment from "moment";
 import html2canvas from "html2canvas";
@@ -12,30 +10,17 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import '../styles/stock.css'
 
-const StockDetailsPage = () => {
+const StockDetailsPage1 = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [medicineData, setMedicineData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [fromExpiryDate, setFromExpiryDate] = useState(null);
   const [toExpiryDate, setToExpiryDate] = useState(null);
   const [loader, setLoader] = useState(false);
-  const [formData, setFormData] = useState({/* initial data */});
-  const [editedRows, setEditedRows] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFromDate, setSelectedFromDate] = useState();
   const [selectedToDate, setSelectedToDate] = useState();
-  const [deletedRows, setDeletedRows] = useState([]);
-  const [markedForDeletion, setMarkedForDeletion] = useState([]);
-  // const [editedData, setEditedData] = useState({});
-  
-  const [editedData, setEditedData] = useState({
-    // ... (your existing properties),
-    originalData: {}, // to store the original values
-    lastEditTimestamp: null, // to store the timestamp of the last edit
-  });
-const [editMode, setEditMode] = useState(null);
   const itemsPerPage = 25;
 
   const filteredData = medicineData
@@ -63,7 +48,7 @@ const [editMode, setEditMode] = useState(null);
       });
 
       setMedicineData(response.data);
-      console.log("Updated Medicine Data:", response.data);
+      console.log(response.data);
     } catch (error) {
       console.error("Error fetching stock data:", error);
       if (error.response) {
@@ -122,88 +107,6 @@ const [editMode, setEditMode] = useState(null);
     setCurrentPage(1); // Reset page when the date changes
   };
 
-
-  const handleSaveEdit = async (id, updatedData) => {
-    try {
-      const response = await axios.put(
-        `http://13.233.114.161:3000/stock/update/${id}`,
-        updatedData
-      );
-  
-      // Update the editedRows state to mark the row as edited
-      setEditedRows((prevEditedRows) => [
-        ...prevEditedRows,
-        { id, timestamp: new Date() },
-      ]);
-  
-      // Update the medicineData state with the new data
-      setMedicineData((prevMedicineData) => {
-        const updatedMedicineData = prevMedicineData.map((item) =>
-          item.id === id ? { ...item, ...updatedData } : item
-        );
-        return updatedMedicineData;
-      });
-  
-      setEditMode(null);
-      alert("Stock item updated successfully");
-    } catch (error) {
-      console.error("Error updating stock item:", error);
-      alert("Error updating stock item. Please try again later.");
-    }
-  };
-  
-  const handleDelete = async (id) => {
-    console.log("Deleting item with ID:", id);
-  
-    if (window.confirm("Are you sure you want to delete this item?")) {
-      try {
-        const response = await axios.delete(
-          `http://13.233.114.161:3000/stock/delete/${id}`
-        );
-        console.log("Delete response:", response.data);
-  
-        if (response.status === 200) {
-          setMedicineData((prevMedicineData) =>
-            prevMedicineData.filter((item) => item.id !== id)
-          );
-  
-          alert("Stock item deleted successfully");
-        } else {
-          alert("Failed to delete stock item. Please try again later.");
-        }
-      } catch (error) {
-        console.error("Error deleting stock item:", error);
-        alert("Error deleting stock item. Please try again later.");
-      }
-    }
-  };
-  
-
-  const handleEdit = (id) => {
-    const editedItem = medicineData.find((item) => item.id === id);
-    setEditMode(id);
-    setEditedData({
-      ...editedItem,
-      originalData: { ...editedItem }, // store original values
-      lastEditTimestamp: new Date(), // set timestamp
-    });
-  };
-  
-  const isRowEdited = (id) => editedRows.some((row) => row.id === id);
-  
-  const handleCancelEdit = () => {
-    setEditMode(null);
-    setEditedData({});
-  };
-
-  const handleChangeEditData = (name, value) => {
-    setEditedData((prevData) => ({
-      ...prevData,
-      [name]: value,
-      lastEditTimestamp: new Date(), // update timestamp on every change
-    }));
-  };  
-
   const exportToExcel = () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("StockData");
@@ -214,7 +117,7 @@ const [editMode, setEditMode] = useState(null);
       { header: "Dosage", key: "dosage", width: 15 },
       { header: "Brand Names", key: "brandname", width: 15 },
       { header: "Purchase Price", key: "purchaseprice", width: 15 },
-  
+      // { header: "Purchase Amount", key: "purchaseamount", width: 17 },
       { header: "MRP", key: "mrp", width: 15 },
       { header: "Total Qty", key: "totalqty", width: 15 },
       { header: "Expiry Date", key: "expirydate", width: 15 },
@@ -231,7 +134,7 @@ const [editMode, setEditMode] = useState(null);
           "dosage",
           "brandname",
           "purchaseprice",
-        
+          // "purchaseamount",
           "mrp",
           "totalqty",
           "expirydate",
@@ -261,7 +164,7 @@ const [editMode, setEditMode] = useState(null);
         dosage: item.dosage || "N/A",
         brandname: item.brandname || "N/A",
         purchaseprice: item.purchaseprice || "N/A",
-     
+        // purchaseamount: item.purchaseamount || "N/A",
         mrp: item.mrp || "N/A",
         totalqty: item.totalqty || "N/A",
         expirydate: item.expirydate
@@ -348,7 +251,7 @@ const [editMode, setEditMode] = useState(null);
         currentData.dosage || "N/A",
         currentData.brandname || "N/A",
         currentData.purchaseprice || "N/A",
-        
+        // currentData.purchaseamount || "N/A",
         currentData.mrp || "N/A",
         currentData.totalqty || "N/A",
         currentData.expirydate
@@ -364,7 +267,7 @@ const [editMode, setEditMode] = useState(null);
             "Dosage",
             "Brand Name",
             "Purchase Price",
-            "Purchase Amount",
+            // "Purchase Amount",
             "MRP",
             "Total Qty",
             "Expiry Date",
@@ -415,7 +318,7 @@ const [editMode, setEditMode] = useState(null);
           currentData.dosage || "N/A",
           currentData.brandname || "N/A",
           currentData.purchaseprice || "N/A",
-          
+          // currentData.purchaseamount || "N/A",
           currentData.mrp || "N/A",
           currentData.totalqty || "N/A",
           currentData.expirydate
@@ -431,7 +334,7 @@ const [editMode, setEditMode] = useState(null);
               "Dosage",
               "Brand Name",
               "Purchase Price",
-              "Purchase Amount",
+              // "Purchase Amount",
               "MRP",
               "Total Qty",
               "Expiry Date",
@@ -480,11 +383,13 @@ const [editMode, setEditMode] = useState(null);
     <div>
       <div
         style={{
-          marginTop: "10px",
+          fontSize: "14px",
           fontFamily: "serif",
+          // backgroundSize: "100% 100%",
+          // backgroundRepeat: "no-repeat",
         }}
       >
-       <div style={{ margin: "15px" }}>
+        <div style={{ margin: "15px" }}>
           <div className="d-flex align-items-center justify-content-between">
             <div >
               <h2>
@@ -547,14 +452,13 @@ const [editMode, setEditMode] = useState(null);
           </div>
 
         </div>
-
-        <div className="stock-table" style={{marginLeft:'0px'}}>
+        <div className="stock-table" >
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
             <div>
               <div style={{ overflowX: "auto" }}>
-                <h2 className="text-center">Stock Details</h2>
+                <h2>Stock Details</h2>
 
                 <div class="scrollable-body">
                   <table class="table">
@@ -565,111 +469,32 @@ const [editMode, setEditMode] = useState(null);
                         <th style={thStyle}>Dosage</th>
                         <th style={thStyle}>Brand Name</th>
                         <th style={thStyle}>Purchase Price</th>
+                        {/* <th style={thStyle}>Purchase Amount</th> */}
                         <th style={thStyle}>MRP</th>
                         <th style={thStyle}>Total Qty</th>
                         <th style={thStyle}>Expiry Date</th>
-                        <th style={thStyle}></th>
-                        <th style={thStyle}>Edit</th>
-                        <th style={thStyle}>Delete</th>
                       </tr>
                     </thead>
                     <tbody>
-                    {medicineData.map((item, index) => (
+                    {dataOnCurrentPage.map((item, index) => (
   <tr key={item.ID}>
-    
-<td style={tdStyle}>
+    <td style={tdStyle}>
       {item.purchasedate
         ? moment(item.purchasedate).format("YYYY-MM-DD")
         : "N/A"}
     </td>
-
     <td style={{ ...tdStyle, textAlign: 'left' }}>{item.medicinename || "N/A"}</td>
+    {/* Add textAlign: 'left' to the style of the Medicine Name cell */}
     <td style={tdStyle}>{item.dosage || "N/A"}</td>
+    <td style={tdStyle}>{item.brandname || "N/A"}</td>
+    <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
+    {/* <td style={tdStyle}>{item.purchaseamount || "N/A"}</td> */}
+    <td style={tdStyle}>{item.mrp || "N/A"}</td>
+    <td style={tdStyle}>{item.totalqty || "N/A"}</td>
     <td style={tdStyle}>
-      {editMode === item.id ? (
-        <input
-          type="text"
-          value={editedData.brandname}
-          onChange={(e) => handleChangeEditData("brandname", e.target.value)}
-        />
-      ) : (
-        item.brandname || "N/A"
-      )}
-    </td>
-    <td style={tdStyle}>
-      {editMode === item.id ? (
-        <input
-          type="text"
-          value={editedData.purchaseprice}
-          onChange={(e) => handleChangeEditData("purchaseprice", e.target.value)}
-        />
-      ) : (
-        item.purchaseprice || "N/A"
-      )}
-    </td>
-   
-    <td style={tdStyle}>
-      {editMode === item.id ? (
-        <input
-          type="text"
-          value={editedData.mrp}
-          onChange={(e) => handleChangeEditData("mrp", e.target.value)}
-        />
-      ) : (
-        item.mrp || "N/A"
-      )}
-    </td>
-    <td style={tdStyle}>
-      {editMode === item.id ? (
-        <input
-          type="text"
-          value={editedData.totalqty}
-          onChange={(e) => handleChangeEditData("totalqty", e.target.value)}
-        />
-      ) : (
-        item.totalqty || "N/A"
-      )}
-    </td>
-    <td style={tdStyle}>
-      {editMode === item.id ? (
-        <input
-          type="text"
-          value={editedData.expirydate}
-          onChange={(e) => handleChangeEditData("expirydate", e.target.value)}
-        />
-      ) : (
-        item.expirydate ? moment(item.expirydate).format("YYYY-MM-DD") : "N/A"
-      )}
-    </td>
-    <td style={tdStyle}>
-                          {isRowEdited(item.id) ? (
-                            <span style={{ color: 'orange' }}>Edited</span>
-                          ) : null}
-                        </td>
-    <td style={tdStyle}>
-      {editMode === item.id ? (
-        <>
-         <button onClick={() => handleSaveEdit(item.id, editedData)} style={{ marginRight: '5px' }}>
-  Save
-</button>
-          <button onClick={handleCancelEdit}>
-            Cancel
-          </button>
-        </>
-      ) : (
-        <FontAwesomeIcon
-          icon={faEdit}
-          onClick={() => handleEdit(item.id)}
-          style={{ cursor: 'pointer', marginRight: '10px', color: 'blue' }}
-        />
-      )}
-    </td>
-    <td style={tdStyle}>
-      <FontAwesomeIcon
-        icon={faTrash}
-        onClick={() => handleDelete(item.id)}
-        style={{ cursor: 'pointer', marginRight: '10px', color: 'red' }}
-      />
+      {item.expirydate
+        ? moment(item.expirydate).format("YYYY-MM-DD")
+        : "N/A"}
     </td>
   </tr>
 ))}
@@ -704,4 +529,4 @@ const [editMode, setEditMode] = useState(null);
   );
 };
 
-export default StockDetailsPage;
+export default StockDetailsPage1;

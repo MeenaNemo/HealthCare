@@ -20,6 +20,7 @@ import ConsultationForm from "./consultationform";
 import Purchase from "./purchase";
 import BillingHis from "./billinghistory";
 import RegistrationForm from "./registration";
+import StockDetailsPage1 from "./pharmacystock";
 import { BiChevronUp, BiChevronDown } from "react-icons/bi"; 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -83,6 +84,7 @@ const Sidebar = () => {
   const [showPurchase, setShowPurchase] = useState(false);
   const [showBillingHis, setShowBillingHis] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [showStockDetails1, setShowStockDetails1] = useState(false);
   const history = useHistory();
 
   const handleRegistrationFormToggle = () => {
@@ -94,6 +96,19 @@ const Sidebar = () => {
       setShowForm(false);
       setShowPurchase(false);
       setShowBillingHis(false);
+    }
+  };
+  const handleStockDetailsToggle1 = () => {
+    if (
+      (user && user.user.user_role === "Pharmacist")) {
+      setShowBilling(false);
+      setShowStockDetails(false);
+      setShowStockDetails1(true)
+      setShowAddMedicine(false);
+      setShowForm(false);
+      setShowPurchase(false);
+      setShowBillingHis(false);
+      setShowRegistrationForm(false);
     }
   };
 
@@ -120,6 +135,7 @@ const Sidebar = () => {
     ) {
       setShowBilling(true);
       setShowStockDetails(false);
+      setShowStockDetails1(false);
       setShowAddMedicine(false);
       setShowForm(false);
       setShowPurchase(false);
@@ -266,7 +282,7 @@ const Sidebar = () => {
                         <a
                           href="#"
                           className="text-decoration-none text-dark"
-                          onClick={handleStockDetailsToggle}
+                          onClick={handleStockDetailsToggle1}
                         >
                           <FontAwesomeIcon icon={faBoxes} className="me-3" />{" "}
                           <b>Stock Details</b>
@@ -379,6 +395,17 @@ const Sidebar = () => {
                 {showStockDetails && (
                   <div className="stock-details-content" >
                     <StockDetailsPage />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="stock-details-content"
+                style={{ display: showStockDetails1 ? "block" : "none" }}
+              >
+                {showStockDetails1 && (
+                  <div className="stock-details-content" >
+                    <StockDetailsPage1 />
                   </div>
                 )}
               </div>
