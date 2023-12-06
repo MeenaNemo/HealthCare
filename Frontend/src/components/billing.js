@@ -94,6 +94,10 @@ function Billing() {
     year: "numeric",
   });
 
+  document.addEventListener('DOMContentLoaded', () => {
+    addInputListeners();
+  });
+
   const handleQuantity = async (event, rowIndex, colIndex, id) => {
     const input = inputRefs.current[id]?.[1];
     const totalInput = inputRefs.current[id]?.[3];
@@ -113,7 +117,7 @@ function Billing() {
 
     try {
       const response = await axios.get(
-        `http://13.233.114.161:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+        `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
       );
       const availableQuantity = response.data.availableQuantity;
 
@@ -194,7 +198,7 @@ function Billing() {
     try {
       const { medicinename, dosage } = extractMedicineInfo(selectedSuggestion);
       const mrpResponse = await axios.get(
-        `http://13.233.114.161:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+        `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
       );
       const mrp = mrpResponse.data.mrp;
       console.log("mrp", mrp);
@@ -218,7 +222,7 @@ function Billing() {
 
     try {
       const response = await axios.get(
-        `http://13.233.114.161:3000/suggestions?partialName=${inputValue}`
+        `http://localhost:3000/suggestions?partialName=${inputValue}`
       );
       const fetchedSuggestions = response.data.suggestions;
       setSuggestions(fetchedSuggestions);
@@ -245,7 +249,7 @@ function Billing() {
         if (event.target.id === `medicinename${id}`) {
           try {
             const response = await axios.get(
-              `http://13.233.114.161:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+              `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
             );
             const expired = response.data.expired;
 
@@ -329,6 +333,7 @@ function Billing() {
     const formattedValue = inputValue.replace(/\D/g, "").slice(0, 10);
     setMobileNo(formattedValue);
   };
+  
 
   const handleDiscountChange = (event) => {
     const newDiscountTotal = parseFloat(event.target.value) || "";
@@ -371,6 +376,58 @@ function Billing() {
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
 
+  const handleDynamicColorChange = (element) => {
+    const handleInput = () => {
+      if (element.value.trim() !== '') {
+        element.style.borderColor = ''; // Reset border color if input is not empty
+      } else {
+        element.style.borderColor = 'red'; // Set border color to red if input is empty
+      }
+    };
+  
+    const handleBlur = () => {
+      if (element.style.borderColor === 'red' && element.value.trim() !== '') {
+        element.style.borderColor = ''; // Reset border color when the field loses focus and has content
+      }
+    };
+  
+    element.addEventListener('input', handleInput);
+    element.addEventListener('blur', handleBlur);
+  
+    // Remove red border when user starts typing in the field
+    element.addEventListener('keydown', () => {
+      if (element.style.borderColor === 'red') {
+        element.style.borderColor = '';
+      }
+    });
+  
+    if (element.value.trim() === '') {
+      element.style.borderColor = 'red';
+    }
+  };
+  
+  
+  const addInputListeners = () => {
+    const patientNameField = document.getElementById('patientname');
+    const mobileNoField = document.getElementById('mobileno');
+    const cashGivenField = document.getElementById('cashgiven');
+  
+    handleDynamicColorChange(patientNameField);
+  handleDynamicColorChange(mobileNoField);
+  handleDynamicColorChange(cashGivenField);
+  
+    if (!patientNameField.value.trim() || !/^[a-zA-Z\s]+$/.test(patientNameField.value) || /\d/.test(patientNameField.value)) {
+      patientNameField.style.borderColor = 'red';
+    }
+
+    if (!mobileNoField.value.trim() || mobileNoField.value.length < 10) {
+      mobileNoField.style.borderColor = 'red';
+    }
+    if (!cashGivenField.value.trim()) {
+      cashGivenField.style.borderColor = 'red';
+    }
+  };
+
   const handleSubmit = async () => {
     const isAnyFieldFilled = medicineRows.some((row) => {
       const hasFilledInput = inputRefs.current[row.id].some(
@@ -383,7 +440,6 @@ function Billing() {
       showAlert("Please fill all input fields.", "error");
       return;
     }
-
     let hasIncompleteRow = false;
 
     const updatedMedicineRows = medicineRows
@@ -420,29 +476,24 @@ function Billing() {
       return;
     }
 
-    const patientName = document.getElementById("patientname").value.trim();
-    if (!patientName) {
-      showAlert("Please enter a valid Patient Name");
-      return;
-    } else if (!/^[a-zA-Z\s]+$/.test(patientName)) {
-      showAlert("Give the valid Patient Name");
-      return;
-    } else if (/\d/.test(patientName)) {
-      showAlert("Patient Name should not contain numbers");
-      return;
-    }
+    const patientNameField = document.getElementById("patientname");
+  const mobileNoField = document.getElementById("mobileno");
+  const cashGivenField = document.getElementById("cashgiven");
 
-    const mobileno = document.getElementById("mobileno").value.trim();
-    if (!mobileno || mobileno.length < 10) {
-      showAlert("Check Mobile Number");
-      return;
-    }
+  if (!patientName || !patientName.trim() || !/^[a-zA-Z\s]+$/.test(patientName) || /\d/.test(patientName)) {
+    patientNameField.style.borderColor = "red";
+    return;
+  } 
 
-    const cashgiven = document.getElementById("cashgiven").value.trim();
-    if (!cashgiven) {
-      showAlert("Please fill the Cash given");
-      return;
-    }
+  if (!mobileNo || mobileNo.length < 10) {
+    mobileNoField.style.borderColor = "red";
+    return;
+  }
+
+  if (!cashGiven) {
+    cashGivenField.style.borderColor = "red";
+    return;
+  } 
 
     setSubmittedData(updatedMedicineRows);
 
@@ -454,14 +505,14 @@ function Billing() {
       patientname: document.getElementById("patientname").value || "",
       doctorname: document.getElementById("doctorname").value || "",
       mobileno: document.getElementById("mobileno").value || "",
-      cashgiven: cashgiven,
+      cashgiven: cashGiven,
       balance: balance,
       medicinename: updatedMedicineRows.map((row) => row.medicinename),
     };
 
     try {
       const response = await axios.post(
-        "http://13.233.114.161:3000/billing",
+        "http://localhost:3000/billing",
         billingData
       );
       const generatedInvoiceNumber = response.data.invoicenumber;
@@ -474,7 +525,10 @@ function Billing() {
     } catch (error) {
       console.error("Error submitting billing data:", error);
     }
+
   };
+
+
 
   const handlePdf = async () => {
     setLoader(true);
@@ -589,7 +643,13 @@ function Billing() {
           margin: 10px;
         }  
       }
+
+      input.error {
+        border: 1px solid red;
+      }
     `}
+    
+    
       </style>
 
       <div className="container" style={{ fontFamily: "serif" }}>
@@ -837,6 +897,7 @@ function Billing() {
                         <input
                           type="text"
                           id="patientname"
+                          class="error"
                           onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
                           onChange={handlePatientNameChange}
                           className="form-control"
@@ -886,6 +947,7 @@ function Billing() {
                             type="tel"
                             id="mobileno"
                             value={mobileNo}
+                            class="error"
                             onChange={handleInputChange}
                             className="form-control"
                             style={{ width: "140px" }}
@@ -915,6 +977,7 @@ function Billing() {
                       <input
                         type="text"
                         id="cashgiven"
+                        class="error"
                         value={cashGiven}
                         onChange={handleCashGivenChange}
                         onBlur={handleCashGivenBlur}
@@ -1043,11 +1106,11 @@ function Billing() {
                           style={{ marginTop: "130px" }}
                         >
                           <h3 className="me-5" style={{ color: "darkblue" }}>
-                            Invoice
+                            <b>Invoice</b>
                           </h3>
-                          <h6>Invoice No: {invoiceNumber}</h6>
-                          <h6>Invoice Date: {currentDateFormatted}</h6>
-                          <h6>Patient Name: {patientName}</h6>
+                          <h6 style={{ color: "darkblue" }}><b>Invoice No  : </b>{invoiceNumber}</h6>
+                          <h6 style={{ color: "darkblue" }}><b>Invoice Date: </b>{currentDateFormatted}</h6>
+                          <h6 style={{ color: "darkblue" }}><b>Patient Name: </b>{patientName}</h6>
                         </div>
 
                         <div className="table-responsive mt-3 me-5 ms-5">

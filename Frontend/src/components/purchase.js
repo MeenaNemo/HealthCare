@@ -76,7 +76,7 @@ const Purchase = () => {
     const fetchpurchaseData = async () => {
       try {
         const response = await axios.get(
-          "http://13.233.114.161:3000/allpurchase"
+          "http://localhost:3000/allpurchase"
         );
         setMedicineData(response.data);
       } catch (error) {

@@ -80,7 +80,7 @@ const StockDetailsPage = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const response = await axios.get("http://13.233.114.161:3000/stock");
+        const response = await axios.get("http://localhost:3000/stock");
         setMedicineData(response.data);
       } catch (error) {
         setError("Error fetching data");
@@ -109,19 +109,20 @@ const StockDetailsPage = () => {
     setCurrentPage(1);
   };
   const handleFromDateChange = (date, dateString) => {
-    setFromExpiryDate(dateString);
-    setCurrentPage(1);
+    setFromExpiryDate(moment(dateString).startOf('day').toISOString());
+    setCurrentPage(1); 
+  };
+  
+  const handleToDateChange = (date, dateString) => {
+    setToExpiryDate(moment(dateString).endOf('day').toISOString());
+    setCurrentPage(1); 
   };
 
-  const handleToDateChange = (date, dateString) => {
-    setToExpiryDate(dateString);
-    setCurrentPage(1);
-  };
 
   const handleSaveEdit = async (id, updatedData) => {
     try {
       const response = await axios.put(
-        `http://13.233.114.161:3000/stock/update/${id}`,
+        `http://localhost:3000/stock/update/${id}`,
         updatedData
       );
 
@@ -151,7 +152,7 @@ const StockDetailsPage = () => {
     if (window.confirm("Are you sure you want to delete this item?")) {
       try {
         const response = await axios.delete(
-          `http://13.233.114.161:3000/stock/delete/${id}`
+          `http://localhost:3000/stock/delete/${id}`
         );
         console.log("Delete response:", response.data);
 
@@ -324,7 +325,9 @@ const StockDetailsPage = () => {
 
       const headingText =
         fromExpiryDate && toExpiryDate
-          ? `Stock Details from ${fromExpiryDate} to ${toExpiryDate}`
+          ? `Stock Details from ${moment(fromExpiryDate).format(
+              "YYYY-MM-DD"
+            )} to ${moment(toExpiryDate).format("YYYY-MM-DD")}`
           : "Stock Details as on Today";
 
       pdf.text(headingText, 10, 10, null, null, "left");
@@ -574,7 +577,7 @@ const StockDetailsPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {medicineData.map((item, index) => (
+                      {filteredData.map((item, index) => (
                         <tr key={item.ID}>
                           <td style={tdStyle}>
                             {item.purchasedate
