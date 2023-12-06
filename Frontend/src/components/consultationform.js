@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import billbg from "../logo/newpic.jpg";
+import billbg from "../logo/newtemplate.jpg";
 import ReactToPrint from "react-to-print";
 
 const FloatingAlert = ({ message, type }) => {
@@ -12,7 +12,7 @@ const FloatingAlert = ({ message, type }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const style={
+  const style = {
     position: "fixed",
     top: "10px",
     right: "300px",
@@ -21,14 +21,14 @@ const FloatingAlert = ({ message, type }) => {
     boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
     zIndex: "9999",
     display: "block",
-    backgroundColor: type === "error" ?  "blue": "red" ,
+    backgroundColor: type === "error" ? "blue" : "red",
     color: "white",
-  }
+  };
 
   return (
     <div id="floating-alert" style={style}>
-    {message}
-  </div>
+      {message}
+    </div>
   );
 };
 
@@ -53,13 +53,10 @@ const ConsultationForm = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
 
- 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "clinicCharge" || name === "consultantCharge") {
-      // Validate for numbers
       if (/^\d+$/.test(value) || value === "") {
         setFormData({
           ...formData,
@@ -71,7 +68,6 @@ const ConsultationForm = () => {
       name === "lastName" ||
       name === "observation"
     ) {
-      // Validate for text
       if (/^[A-Za-z\s]+$/.test(value) || value === "") {
         setFormData({
           ...formData,
@@ -79,7 +75,6 @@ const ConsultationForm = () => {
         });
       }
     } else {
-      // For other fields, allow any input
       setFormData({
         ...formData,
         [name]: value,
@@ -89,7 +84,6 @@ const ConsultationForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const requiredFields = [
       "firstName",
       "lastName",
@@ -106,9 +100,9 @@ const ConsultationForm = () => {
       !!formData.clinicCharge || !!formData.consultantCharge;
 
     if (isAnyFieldEmpty && !isChargeFieldFilled) {
-      setShowAlert(true); // Show floating alert if any required field is empty
+      setShowAlert(true);
       setTimeout(() => {
-        setShowAlert(false); // Hide alert after 3 seconds
+        setShowAlert(false);
       }, 2000);
       return;
     }
@@ -120,7 +114,6 @@ const ConsultationForm = () => {
     setShowForm(false);
     setShowAlert(false);
     clearAlert();
-   
   };
 
   const calculateAge = (dob) => {
@@ -142,25 +135,23 @@ const ConsultationForm = () => {
   const handleDOBChange = (e) => {
     const selectedDate = new Date(e.target.value);
     const currentDate = new Date();
-  
-    // Check if the selected date is in the future
+
     if (selectedDate > currentDate) {
       setAlertMessage("Please enter a valid date of birth.");
       setAlertType("error");
       return;
     }
-  
+
     const age = calculateAge(e.target.value);
     setFormData({
       ...formData,
       dob: e.target.value,
       age: age.toString(),
     });
-  
-    // Clear DOB alert on valid DOB entry
+
     clearAlert();
   };
-  
+
   const handleCancel = (event) => {
     event.preventDefault();
     setFormData({
@@ -169,25 +160,24 @@ const ConsultationForm = () => {
       age: "",
       gender: "",
       dob: "",
-      consultingDoctorName: "DR. Jothipriya.A MBBS", // You might want to change this to consultingDoctorName to match the state
-      observation: "", // Corrected the property name
+      consultingDoctorName: "DR. Jothipriya.A MBBS",
+      observation: "",
       consultantCharge: "",
       clinicCharge: "",
     });
-    setShowForm(true); // Set showForm to true to display the consultation form again
-    setShowAlert(false); 
-    clearAlert(); // Hide the alert when canceling
-  
+    setShowForm(true);
+    setShowAlert(false);
+    clearAlert();
   };
-  
+
   const clearAlert = () => {
     setAlertMessage("");
     setAlertType("");
   };
-  
+
   const tstyle = {
-    fontSize:'20px'
-      }
+    fontSize: "20px",
+  };
 
   return (
     <div
@@ -196,328 +186,373 @@ const ConsultationForm = () => {
         fontFamily: "serif",
       }}
     >
-      <div  style={{ marginTop: "20px" }}>
+      <style>
+        {`
+      @media print  {
+        body {
+          margin: 10px;
+        }  
+      }
+    `}
+      </style>
+      <div style={{ marginTop: "20px" }}>
         {showForm && (
           <>
-          <h2><b>Doctor Consultation Form</b></h2>
+            <h2>
+              <b>Doctor Consultation Form</b>
+            </h2>
 
-          <div className="row">
-  <div className=" d-flex justify-content-end">
-      <div className="d-flex align-items-center">
-      <label htmlFor="currentDate" className="form-label mb-0 me-2">
-        <b> DATE</b>
-      </label>
-      <input
-        type="text"
-        className="form-control"
-        id="currentDate"
-        name="currentDate"
-        value={new Date().toLocaleDateString()}
-        readOnly
-        style={{width:'100px'}}
-      />      </div>
-    </div>
-  
-    <div >
-            <form
-              onSubmit={handleSubmit}
-              className="mt-2"
-              style={{
-                backgroundColor: "white",
-                border: "1px solid lightgray",
-              }}
-            >
-              <div style={{ margin: "20px" }}>
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <label htmlFor="firstName" className="form-label">
-                      <b>First Name</b>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label htmlFor="lastName" className="form-label">
-                      <b>Last Name</b>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <label htmlFor="gender" className="form-label">
-                      <b>Gender</b>
-                    </label>
-                    <select
-                      className="form-select"
-                      id="gender"
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div className="col-md-6">
-                    <label htmlFor="dob" className="form-label">
-                      <b>Date of Birth</b>
-                    </label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      id="dob"
-                      name="dob"
-                      value={formData.dob}
-                      onChange={handleDOBChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <label
-                      htmlFor="consultingDoctorName"
-                      className="form-label"
-                    >
-                      <b>Consulting Doctor Name</b>
-                    </label>
-
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="consultingDoctorName"
-                      name="consultingDoctorName"
-                      value={formData.consultingDoctorName}
-                      onChange={handleChange}
-                      readOnly // Set readOnly attribute to make it non-editable
-                      required
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label htmlFor="doctorName" className="form-label">
-                      <b>Observation</b>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="observation"
-                      name="observation"
-                      value={formData.observation}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <label htmlFor="clinicCharge" className="form-label">
-                      <b>Clinic Charge</b>
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="clinicCharge"
-                      placeholder="Please Enter a Number"
-                      name="clinicCharge"
-                      value={formData.clinicCharge}
-                      onChange={handleChange}
-                      style={{
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                      }}
-                      required
-                      min="0"
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label htmlFor="consultantCharge" className="form-label">
-                      <b>Consultant Charge</b>
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="consultantCharge"
-                      name="consultantCharge"
-                      placeholder="Please Enter a Number"
-                      value={formData.consultantCharge}
-                      onChange={handleChange}
-                      style={{
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                      }}
-                      required
-                      min="0"
-                    />
-                  </div>
-                </div>
-       
-
-                <div className="row mt-3 mb-4">
-                  <div className="col-md-12 text-end">
-                    <button
-                      type="submit"
-                      className="btn  me-2"
-                      onClick={handleCancel}
-                      style={{ backgroundColor: "teal", color: "white" }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      style={{ backgroundColor: "teal", color: "white" }}
-                      className="btn "
-                      onClick={handleSubmit}
-                    >
-                      Submit
-                    </button>
-                  </div>
+            <div className="row">
+              <div className=" d-flex justify-content-end">
+                <div className="d-flex align-items-center">
+                  <label htmlFor="currentDate" className="form-label mb-0 me-2">
+                    <b>Date</b>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="currentDate"
+                    name="currentDate"
+                    value={new Date().toLocaleDateString()}
+                    readOnly
+                    style={{ width: "100px" }}
+                  />{" "}
                 </div>
               </div>
-              {showAlert && (
-                <FloatingAlert message="Please fill in all required fields." />
-              )}
-               {alertMessage && (
-          <FloatingAlert message={alertMessage} type={alertType} />
-        )}
-            </form>
-            </div>
+
+              <div>
+                <form
+                  onSubmit={handleSubmit}
+                  className="mt-2"
+                  style={{
+                    backgroundColor: "white",
+                    border: "1px solid lightgray",
+                  }}
+                >
+                  <div style={{ margin: "20px" }}>
+                    <div className="row mb-4">
+                      <div className="col-md-6">
+                        <label htmlFor="firstName" className="form-label">
+                          <b>First Name</b>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="firstName"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label htmlFor="lastName" className="form-label">
+                          <b>Last Name</b>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="lastName"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="row mb-4">
+                      <div className="col-md-6">
+                        <label htmlFor="gender" className="form-label">
+                          <b>Gender</b>
+                        </label>
+                        <select
+                          className="form-select"
+                          id="gender"
+                          name="gender"
+                          value={formData.gender}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div className="col-md-6">
+                        <label htmlFor="dob" className="form-label">
+                          <b>Date of Birth</b>
+                        </label>
+                        <input
+                          type="date"
+                          className="form-control"
+                          id="dob"
+                          name="dob"
+                          value={formData.dob}
+                          onChange={handleDOBChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="row mb-4">
+                      <div className="col-md-6">
+                        <label
+                          htmlFor="consultingDoctorName"
+                          className="form-label"
+                        >
+                          <b>Consulting Doctor Name</b>
+                        </label>
+
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="consultingDoctorName"
+                          name="consultingDoctorName"
+                          value={formData.consultingDoctorName}
+                          onChange={handleChange}
+                          readOnly
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label htmlFor="doctorName" className="form-label">
+                          <b>Observation</b>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="observation"
+                          name="observation"
+                          value={formData.observation}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="row mb-4">
+                      <div className="col-md-6">
+                        <label htmlFor="clinicCharge" className="form-label">
+                          <b>Clinic Charge</b>
+                        </label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          id="clinicCharge"
+                          placeholder="Please Enter a Number"
+                          name="clinicCharge"
+                          value={formData.clinicCharge}
+                          onChange={handleChange}
+                          style={{
+                            WebkitAppearance: "none",
+                            MozAppearance: "textfield",
+                          }}
+                          required
+                          min="0"
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label
+                          htmlFor="consultantCharge"
+                          className="form-label"
+                        >
+                          <b>Consultant Charge</b>
+                        </label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          id="consultantCharge"
+                          name="consultantCharge"
+                          placeholder="Please Enter a Number"
+                          value={formData.consultantCharge}
+                          onChange={handleChange}
+                          style={{
+                            WebkitAppearance: "none",
+                            MozAppearance: "textfield",
+                          }}
+                          required
+                          min="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="row mt-3 mb-4">
+                      <div className="col-md-12 text-end">
+                        <button
+                          type="submit"
+                          className="btn  me-2"
+                          onClick={handleCancel}
+                          style={{ backgroundColor: "teal", color: "white" }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          style={{ backgroundColor: "teal", color: "white" }}
+                          className="btn "
+                          onClick={handleSubmit}
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {showAlert && (
+                    <FloatingAlert message="Please fill all input fields." />
+                  )}
+                  {alertMessage && (
+                    <FloatingAlert message={alertMessage} type={alertType} />
+                  )}
+                </form>
+              </div>
             </div>
           </>
         )}
-
-        {!showForm && submittedData && (
-          <>
-    <div className="d-flex justify-content-end align-items-end">
-              <ReactToPrint
-                trigger={() => (
-                  <button
-                    type="button"
-                    className="btn"
-                    style={{ backgroundColor: "teal", color: "white" }}
+        <div className="overflow-auto">
+          {!showForm && submittedData && (
+            <>
+              <div className="d-flex justify-content-end align-items-end">
+                <ReactToPrint
+                  trigger={() => (
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ backgroundColor: "teal", color: "white" }}
+                    >
+                      Print
+                    </button>
+                  )}
+                  content={() => componentRef.current}
+                />
+                <button
+                  type="button"
+                  className="btn me-2 ms-2"
+                  style={{ backgroundColor: "green", color: "white" }}
+                  onClick={handleCancel}
+                >
+                  Go to Previous page
+                </button>
+              </div>
+              {(!!submittedData.clinicCharge ||
+                !!submittedData.consultantCharge) && (
+                <div
+                  ref={componentRef}
+                  style={{
+                    border: "1px solid grey",
+                    backgroundImage: `url(${billbg})`,
+                    backgroundSize: "205mm 290mm",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                    height: "290mm",
+                    width: "205mm",
+                    position: "relative",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      gap: "10px",
+                      width: "80%",
+                      marginLeft: "90px",
+                      marginTop: "270px",
+                    }}
                   >
-                    Print
-                  </button>
-                )}
-                content={() => componentRef.current}
-              />
-              <button
-                type="button"
-                className="btn me-2 ms-2"
-                style={{ backgroundColor: "green", color: "white" }}
-                onClick={handleCancel}
-              >
-                Go to Previous page
-              </button>
-            </div>
-            {(!!submittedData.clinicCharge || !!submittedData.consultantCharge) && (
-              <div ref={componentRef}  style={{
-              border: "1px solid black",
-              backgroundImage: `url(${billbg})`,
-              backgroundSize: "210mm 297mm", 
-              margin:'20px',
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center", 
-              height: "297mm",
-              width: "210mm",
-          }}>
-     
-    <div
-      style={{ 
-        gap: "10px",
-        width:'80%',
-        marginLeft: "90px",
-        marginTop: "270px",
-      }}
-    >
-     <h3 style={{ paddingBottom: "10px", textAlign: "center"  }}>
-        {" "}
-        <b >Doctor Consultation Form</b>
-      </h3>
-      <table style={{ width: "100%"}}>
-  <tbody  >
-  <tr>
-  <td style={tstyle}><b> Date</b></td>
-  <td style={tstyle}>{new Date().toLocaleDateString()}</td>
-</tr>
-   
-    <tr>
-      <td style={tstyle}><b>Patient Name</b></td>
-      <td style={tstyle}>
-        {submittedData.firstName}{" "}
-        {submittedData.lastName && (
-          <span>{submittedData.lastName}</span>
-        )}
-      </td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Gender</b></td>
-      <td style={tstyle}>{submittedData.gender}</td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Age</b></td>
-      <td style={tstyle}>{submittedData.age}</td>
-    </tr>
-    <tr >
-      <td style={tstyle}><b>Date of Birth</b></td>
-      <td style={tstyle}>{submittedData.dob}</td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Doctor Name</b></td>
-      <td style={tstyle}>{submittedData.consultingDoctorName}</td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Observation</b></td>
-      <td style={tstyle}>{submittedData.observation}</td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Consultant Charge</b></td>
-      <td style={tstyle}>{submittedData.consultantCharge}</td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Clinic Charge</b></td>
-      <td style={tstyle}>{submittedData.clinicCharge}</td>
-    </tr>
-    <tr>
-      <td style={tstyle}><b>Total Charge</b></td>
-      <td style={tstyle}>{submittedData.totalCharge}</td>
-    </tr>
-   
-  </tbody>
-</table>
+                    <h3 style={{ paddingBottom: "10px", textAlign: "center" }}>
+                      {" "}
+                      <b>Doctor Consultation Form</b>
+                    </h3>
+                    <table style={{ width: "100%" }}>
+                      <tbody>
+                        <tr>
+                          <td style={tstyle}>
+                            <b> Date</b>
+                          </td>
+                          <td style={tstyle}>
+                            {new Date().toLocaleDateString()}
+                          </td>
+                        </tr>
 
-
-        
-    </div>
-    <div className='text-start' style={{margin:'100px', fontSize:'20px',  }}>
-          <p style={{}}><b>Doctor Signature</b></p>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Patient Name</b>
+                          </td>
+                          <td style={tstyle}>
+                            {submittedData.firstName}{" "}
+                            {submittedData.lastName && (
+                              <span>{submittedData.lastName}</span>
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Gender</b>
+                          </td>
+                          <td style={tstyle}>{submittedData.gender}</td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Age</b>
+                          </td>
+                          <td style={tstyle}>{submittedData.age}</td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Date of Birth</b>
+                          </td>
+                          <td style={tstyle}>{submittedData.dob}</td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Doctor Name</b>
+                          </td>
+                          <td style={tstyle}>
+                            {submittedData.consultingDoctorName}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Observation</b>
+                          </td>
+                          <td style={tstyle}>{submittedData.observation}</td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Consultant Charge</b>
+                          </td>
+                          <td style={tstyle}>
+                            {submittedData.consultantCharge}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Clinic Charge</b>
+                          </td>
+                          <td style={tstyle}>{submittedData.clinicCharge}</td>
+                        </tr>
+                        <tr>
+                          <td style={tstyle}>
+                            <b>Total Charge</b>
+                          </td>
+                          <td style={tstyle}>{submittedData.totalCharge}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div
+                    className="text-start"
+                    style={{ margin: "100px", fontSize: "20px" }}
+                  >
+                    <p style={{}}>
+                      <b>Doctor Signature</b>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
-  </div>
-)}
-
-          </>
-        )}
       </div>
     </div>
   );

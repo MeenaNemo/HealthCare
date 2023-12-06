@@ -21,7 +21,7 @@ import Purchase from "./purchase";
 import BillingHis from "./billinghistory";
 import RegistrationForm from "./registration";
 import StockDetailsPage1 from "./pharmacystock";
-import { BiChevronUp, BiChevronDown } from "react-icons/bi"; 
+import { BiChevronUp, BiChevronDown } from "react-icons/bi";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const UserProfile = ({ user, onLogout }) => {
@@ -35,7 +35,7 @@ const UserProfile = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="flex-grow-0" style={{ fontFamily:'serif, sans-serif' }}>
+    <div className="flex-grow-0" style={{ fontFamily: "serif, sans-serif" }}>
       <div className="d-flex align-items-center ">
         <img
           src={profileImg}
@@ -99,11 +99,10 @@ const Sidebar = () => {
     }
   };
   const handleStockDetailsToggle1 = () => {
-    if (
-      (user && user.user.user_role === "Pharmacist")) {
+    if (user && user.user.user_role === "Pharmacist") {
       setShowBilling(false);
       setShowStockDetails(false);
-      setShowStockDetails1(true)
+      setShowStockDetails1(true);
       setShowAddMedicine(false);
       setShowForm(false);
       setShowPurchase(false);
@@ -126,7 +125,6 @@ const Sidebar = () => {
       setShowRegistrationForm(false);
     }
   };
-  
 
   const handleBillingToggle = () => {
     if (
@@ -141,8 +139,6 @@ const Sidebar = () => {
       setShowPurchase(false);
       setShowBillingHis(false);
       setShowRegistrationForm(false);
-    // window.location.reload();
-
     }
   };
 
@@ -211,16 +207,18 @@ const Sidebar = () => {
     }
   }, []);
 
-
   const handleLogout = () => {
     localStorage.removeItem("user");
     history.push("/");
     window.location.reload();
   };
   return (
-    <div className="container-fluid" style={{ fontFamily:'serif, sans-serif' }}>
-      <div className="row" >
-        <div className="col-lg-3 col-md-4" >
+    <div
+      className="container-fluid"
+      style={{ fontFamily: "serif, sans-serif" }}
+    >
+      <div className="row">
+        <div className="col-lg-3 col-md-4">
           <div className="shadow-sm p-3  h-100 bg-white rounded">
             <div className="d-flex align-items-center mb-3">
               <img
@@ -268,10 +266,12 @@ const Sidebar = () => {
                           <a
                             href="#"
                             className="text-decoration-none text-dark"
-                            onClick={handleBillingToggle} 
+                            onClick={handleBillingToggle}
                           >
-                            
-                            <FontAwesomeIcon icon={faCashRegister} className="me-3"/>
+                            <FontAwesomeIcon
+                              icon={faCashRegister}
+                              className="me-3"
+                            />
                             <b>Billing</b>
                           </a>
                         </li>
@@ -314,7 +314,10 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handleFormToggle}
                         >
-                          <FontAwesomeIcon icon={faFileMedical} className="me-3"/>
+                          <FontAwesomeIcon
+                            icon={faFileMedical}
+                            className="me-3"
+                          />
                           <b>Consultation Form</b>
                         </a>
                       </li>
@@ -342,7 +345,7 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handlePurchaseToggle}
                         >
-                          <FontAwesomeIcon icon={faStore} className="me-3"/>
+                          <FontAwesomeIcon icon={faStore} className="me-3" />
                           <b>Purchase History</b>
                         </a>
                       </li>
@@ -356,7 +359,10 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handleBillingHisToggle}
                         >
-                          <FontAwesomeIcon icon={faMoneyBillTransfer} className="me-3" />
+                          <FontAwesomeIcon
+                            icon={faMoneyBillTransfer}
+                            className="me-3"
+                          />
                           <b>Billing History</b>
                         </a>
                       </li>
@@ -369,7 +375,7 @@ const Sidebar = () => {
                           className="text-decoration-none text-dark"
                           onClick={handleRegistrationFormToggle}
                         >
-                          <FontAwesomeIcon  icon={faIdCard} className="me-3"/>
+                          <FontAwesomeIcon icon={faIdCard} className="me-3" />
                           <b>Registration Form</b>
                         </a>
                       </li>
@@ -393,7 +399,7 @@ const Sidebar = () => {
                 style={{ display: showStockDetails ? "block" : "none" }}
               >
                 {showStockDetails && (
-                  <div className="stock-details-content" >
+                  <div className="stock-details-content">
                     <StockDetailsPage />
                   </div>
                 )}
@@ -404,7 +410,7 @@ const Sidebar = () => {
                 style={{ display: showStockDetails1 ? "block" : "none" }}
               >
                 {showStockDetails1 && (
-                  <div className="stock-details-content" >
+                  <div className="stock-details-content">
                     <StockDetailsPage1 />
                   </div>
                 )}
@@ -412,7 +418,10 @@ const Sidebar = () => {
 
               <div
                 className="billing-content"
-                style={{ display: showBilling ? "block" : "none", marginLeft:'0px' }}
+                style={{
+                  display: showBilling ? "block" : "none",
+                  marginLeft: "0px",
+                }}
               >
                 {showBilling && (
                   <div className="billing-content">
@@ -484,5 +493,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
-

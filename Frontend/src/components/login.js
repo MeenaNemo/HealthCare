@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
-import logoImage from "../logo/logo.jpg"; // Adjust the path as needed
+import logoImage from "../logo/logo.jpg";
 
 const Login = () => {
   const history = useHistory();
@@ -11,7 +11,7 @@ const Login = () => {
     password: "",
   });
 
-  const [alertMessage, setAlertMessage] = useState(null); // State for managing alerts
+  const [alertMessage, setAlertMessage] = useState(null); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +30,7 @@ const Login = () => {
       if (response.data.status === 200) {
         setAlertMessage("Login Successful!");
         setTimeout(() => {
-          setAlertMessage(null); // Clear alert message after 2 seconds
+          setAlertMessage(null); 
           localStorage.setItem("user", JSON.stringify(response.data.data));
           history.push("/sidebar");
           window.location.reload();
@@ -51,17 +51,16 @@ const Login = () => {
         setAlertMessage("An unexpected error occurred. Please try again.");
       }
       setTimeout(() => {
-        setAlertMessage(null); // Clear alert message after 2 seconds
+        setAlertMessage(null); 
       }, 2000);
     } else {
       console.error("An unexpected error occurred:", error);
       setAlertMessage("An unexpected error occurred. Please try again.");
       setTimeout(() => {
-        setAlertMessage(null); // Clear alert message after 2 seconds
+        setAlertMessage(null); 
       }, 2000);
     }
   }
-  
   };
 
   const alertStyle = {
@@ -69,19 +68,17 @@ const Login = () => {
     top: "10px",
     left: "50%",
     transform: "translateX(-50%)",
-    backgroundColor: "green", // Default to green color for success message
+    backgroundColor: "green", 
     color: "white",
     padding: "10px",
     borderRadius: "5px",
     boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
     zIndex: "9999",
-    display: alertMessage ? "block" : "none", // Show only if alertMessage is present
-    opacity: alertMessage ? 1 : 0, // Set opacity for fade effect
-    transition: "opacity 0.5s ease-in-out", // Add transition for smooth fade effect
+    display: alertMessage ? "block" : "none", 
+    opacity: alertMessage ? 1 : 0, 
+    transition: "opacity 0.5s ease-in-out", 
   };
   
-
-
   return (
     <div
       className="d-flex justify-content-center align-items-center"
@@ -113,11 +110,7 @@ const Login = () => {
         </div>
         <div style={alertStyle}>{alertMessage}</div>
 
-        {/* {alertMessage && ( // Display alert message if present
-          <div className="alert alert-info mb-3" role="alert">
-            {alertMessage}
-          </div>
-        )} */}
+        
         <form onSubmit={handleLogin}>
           <div className="mb-3">
             <label htmlFor="loginIdentifier" className="form-label">

@@ -19,7 +19,6 @@ function AddMedicine() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
 
-  
   const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
 
   const handleChange = (event) => {
@@ -51,7 +50,6 @@ function AddMedicine() {
 
       if (id === "purchaseprice" || id === "totalqty") {
         if (id === "totalqty") {
-          // Use parseInt to enforce integer value for totalqty
           const intValue = parseInt(value, 10);
           if (!isNaN(intValue)) {
             updatedData.totalqty = intValue;
@@ -71,7 +69,8 @@ function AddMedicine() {
                 : id === "totalqty" && !isNaN(prevData.purchaseprice)
                 ? prevData.purchaseprice * numericValue
                 : 0;
-          }}
+          }
+        }
       } else if (id === "mrp") {
         const numericValue = parseFloat(value);
         if (!isNaN(numericValue)) {
@@ -84,22 +83,19 @@ function AddMedicine() {
       if (id === "expirydate" && !isNaN(new Date(value).getTime())) {
         const selectedDate = new Date(value);
         const currentDate = new Date();
-  
+
         if (selectedDate < currentDate) {
-          // Display a popup with an error message
           setPopupType("error");
-          setPopupMessage('Please enter a valid expiry date.');
+          setPopupMessage("Please enter a valid expiry date.");
           setShowPopup(true);
-  
-          // Hide the popup after 2 seconds
+
           setTimeout(() => {
             setShowPopup(false);
           }, 2000);
-  
-  
-     return prevData; // Do not update the state if validation fails
+
+          return prevData;
         }
-          updatedData.expirydate = new Date(value).toISOString().split("T")[0];
+        updatedData.expirydate = new Date(value).toISOString().split("T")[0];
       }
       return updatedData;
     });
@@ -157,7 +153,6 @@ function AddMedicine() {
     }
 
     try {
-      // Assuming your API call is successful
       await axios.post("http://13.233.114.161:3000/purchase", formData);
       setPopupType("success");
       setShowPopup(true);
@@ -176,18 +171,12 @@ function AddMedicine() {
         mrp: "",
       });
 
-      // Hide popup after 2 seconds
       setTimeout(() => {
         setShowPopup(false);
       }, 2000);
     } catch (error) {
-      // Handle API call error
       console.error("Error submitting data: " + error);
     }
-  };
-
-  const closePopup = (event) => {
-    setShowPopup(false);
   };
 
   const handleKeyDown = (event) => {
@@ -220,7 +209,6 @@ function AddMedicine() {
       style={{
         fontFamily: "serif",
         width: "100%",
-       
       }}
     >
       <div className="">
@@ -361,7 +349,10 @@ function AddMedicine() {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     onInput={(e) => {
-                      const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                      const numericValue = e.target.value.replace(
+                        /[^0-9]/g,
+                        ""
+                      );
                       setFormData((prevData) => ({
                         ...prevData,
                         purchaseprice: numericValue,
@@ -388,7 +379,10 @@ function AddMedicine() {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     onInput={(e) => {
-                      const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                      const numericValue = e.target.value.replace(
+                        /[^0-9]/g,
+                        ""
+                      );
                       setFormData((prevData) => ({
                         ...prevData,
                         totalqty: numericValue,
@@ -438,7 +432,6 @@ function AddMedicine() {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Select a date"
-
                   />
                 </div>
               </div>
@@ -456,7 +449,10 @@ function AddMedicine() {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     onInput={(e) => {
-                      const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                      const numericValue = e.target.value.replace(
+                        /[^0-9]/g,
+                        ""
+                      );
                       setFormData((prevData) => ({
                         ...prevData,
                         mrp: numericValue,
@@ -478,15 +474,14 @@ function AddMedicine() {
                   type="submit"
                   className="btn btn-sm me-2"
                   onClick={handleCancel}
-                  style={{backgroundColor:'teal', color:'white'}}
+                  style={{ backgroundColor: "teal", color: "white" }}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
-                  style={{backgroundColor:'teal', color:'white'}}
-
+                  style={{ backgroundColor: "teal", color: "white" }}
                   onClick={handleSubmit}
                 >
                   Submit
@@ -500,14 +495,17 @@ function AddMedicine() {
           tabIndex="-1"
           role="dialog"
         >
-               <div
+          <div
             className="modal-header"
             style={{
               position: "fixed",
               top: "10px",
               left: "55%",
               transform: "translateX(-50%)",
-              backgroundColor:popupType === "error" || popupType === "emptyFields" ? "red" : "green",
+              backgroundColor:
+                popupType === "error" || popupType === "emptyFields"
+                  ? "red"
+                  : "green",
               color: "white",
               padding: "10px",
               borderRadius: "5px",
@@ -516,13 +514,13 @@ function AddMedicine() {
               display: "block",
             }}
           >
-           <p>
-  {popupType === "emptyFields"
-    ? "Please fill all input fields."
-    : popupType === "error"
-    ? popupMessage
-    : "Medicine added successfully."}
-</p>
+            <p>
+              {popupType === "emptyFields"
+                ? "Please fill all input fields."
+                : popupType === "error"
+                ? popupMessage
+                : "Medicine added successfully."}
+            </p>
           </div>
         </div>
       </div>

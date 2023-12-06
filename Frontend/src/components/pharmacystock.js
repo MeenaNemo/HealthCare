@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch, faFileExport } from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { DatePicker } from "antd";
 import moment from "moment";
 import html2canvas from "html2canvas";
 import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import '../styles/stock.css'
+import "../styles/stock.css";
 
 const StockDetailsPage1 = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,8 +19,6 @@ const StockDetailsPage1 = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedFromDate, setSelectedFromDate] = useState();
-  const [selectedToDate, setSelectedToDate] = useState();
   const itemsPerPage = 25;
 
   const filteredData = medicineData
@@ -33,7 +31,6 @@ const StockDetailsPage1 = () => {
         (!toExpiryDate || moment(item.expirydate).isSameOrBefore(toExpiryDate))
     )
     .sort((a, b) => {
-      // Sort by expiry date in ascending order
       return moment(a.expirydate) - moment(b.expirydate);
     });
 
@@ -99,12 +96,12 @@ const StockDetailsPage1 = () => {
   };
   const handleFromDateChange = (date, dateString) => {
     setFromExpiryDate(dateString);
-    setCurrentPage(1); // Reset page when the date changes
+    setCurrentPage(1);
   };
 
   const handleToDateChange = (date, dateString) => {
     setToExpiryDate(dateString);
-    setCurrentPage(1); // Reset page when the date changes
+    setCurrentPage(1);
   };
 
   const exportToExcel = () => {
@@ -117,7 +114,6 @@ const StockDetailsPage1 = () => {
       { header: "Dosage", key: "dosage", width: 15 },
       { header: "Brand Names", key: "brandname", width: 15 },
       { header: "Purchase Price", key: "purchaseprice", width: 15 },
-      // { header: "Purchase Amount", key: "purchaseamount", width: 17 },
       { header: "MRP", key: "mrp", width: 15 },
       { header: "Total Qty", key: "totalqty", width: 15 },
       { header: "Expiry Date", key: "expirydate", width: 15 },
@@ -134,7 +130,6 @@ const StockDetailsPage1 = () => {
           "dosage",
           "brandname",
           "purchaseprice",
-          // "purchaseamount",
           "mrp",
           "totalqty",
           "expirydate",
@@ -143,12 +138,12 @@ const StockDetailsPage1 = () => {
         cell.fill = {
           type: "pattern",
           pattern: "solid",
-          fgColor: { argb: "FF001F3F" }, // Navy blue color
+          fgColor: { argb: "FF001F3F" },
         };
         cell.alignment = { horizontal: "center" };
       }
       cell.font = {
-        color: { argb: "FFFFFF" }, // White text color
+        color: { argb: "FFFFFF" },
         bold: true,
       };
     });
@@ -164,7 +159,6 @@ const StockDetailsPage1 = () => {
         dosage: item.dosage || "N/A",
         brandname: item.brandname || "N/A",
         purchaseprice: item.purchaseprice || "N/A",
-        // purchaseamount: item.purchaseamount || "N/A",
         mrp: item.mrp || "N/A",
         totalqty: item.totalqty || "N/A",
         expirydate: item.expirydate
@@ -214,32 +208,32 @@ const StockDetailsPage1 = () => {
       logging: false,
       allowTaint: true,
     };
-  
+
     const capture = document.querySelector(".stock-table");
     setLoader(true);
-  
+
     html2canvas(capture, html2canvasOptions).then((canvas) => {
       const jsPDFOptions = {
         orientation: "portrait",
         unit: "mm",
         format: "a4",
       };
-  
+
       const pdf = new jsPDF(jsPDFOptions);
-      const imageWidth = 210; // A4 width in mm
+      const imageWidth = 210;
       const imageHeight = (canvas.height * imageWidth) / canvas.width;
-  
+
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(16);
       pdf.setTextColor(43, 128, 176);
-  
-      // Set the PDF heading based on date filtering
-      const headingText = fromExpiryDate && toExpiryDate
-        ? `Stock Details from ${fromExpiryDate} to ${toExpiryDate}`
-        : "Stock Details as on Today";
-  
+
+      const headingText =
+        fromExpiryDate && toExpiryDate
+          ? `Stock Details from ${fromExpiryDate} to ${toExpiryDate}`
+          : "Stock Details as on Today";
+
       pdf.text(headingText, 10, 10, null, null, "left");
-  
+
       const headingHeight = 20;
       const tableStartY = 0 + headingHeight;
       const firstPageData = filteredData.slice(0, itemsPerPage);
@@ -251,14 +245,13 @@ const StockDetailsPage1 = () => {
         currentData.dosage || "N/A",
         currentData.brandname || "N/A",
         currentData.purchaseprice || "N/A",
-        // currentData.purchaseamount || "N/A",
         currentData.mrp || "N/A",
         currentData.totalqty || "N/A",
         currentData.expirydate
           ? moment(currentData.expirydate).format("YYYY-MM-DD")
           : "N/A",
       ]);
-  
+
       pdf.autoTable({
         head: [
           [
@@ -267,7 +260,6 @@ const StockDetailsPage1 = () => {
             "Dosage",
             "Brand Name",
             "Purchase Price",
-            // "Purchase Amount",
             "MRP",
             "Total Qty",
             "Expiry Date",
@@ -288,24 +280,23 @@ const StockDetailsPage1 = () => {
         columnStyles: {
           0: { cellWidth: 20, cellHeight: 10 },
           1: { cellWidth: 30, cellHeight: 10 },
-          // Add more column styles as needed
         },
         alternateRowStyles: {
           fillColor: [224, 224, 224],
           lineWidth: 0.3,
         },
       });
-  
+
       let rowIndex = itemsPerPage;
       const numberOfRows = filteredData.length;
-  
+
       while (rowIndex < numberOfRows) {
         pdf.addPage();
         pdf.text(`Page ${Math.ceil((rowIndex + 1) / itemsPerPage)}`, 10, 10);
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(16);
         pdf.setTextColor(43, 128, 176);
-  
+
         const currentPageData = filteredData.slice(
           rowIndex,
           rowIndex + itemsPerPage
@@ -318,14 +309,13 @@ const StockDetailsPage1 = () => {
           currentData.dosage || "N/A",
           currentData.brandname || "N/A",
           currentData.purchaseprice || "N/A",
-          // currentData.purchaseamount || "N/A",
           currentData.mrp || "N/A",
           currentData.totalqty || "N/A",
           currentData.expirydate
             ? moment(currentData.expirydate).format("YYYY-MM-DD")
             : "N/A",
         ]);
-  
+
         pdf.autoTable({
           head: [
             [
@@ -334,7 +324,6 @@ const StockDetailsPage1 = () => {
               "Dosage",
               "Brand Name",
               "Purchase Price",
-              // "Purchase Amount",
               "MRP",
               "Total Qty",
               "Expiry Date",
@@ -355,22 +344,21 @@ const StockDetailsPage1 = () => {
           columnStyles: {
             0: { cellWidth: 20, cellHeight: 10 },
             1: { cellWidth: 30, cellHeight: 10 },
-            // Add more column styles as needed
           },
           alternateRowStyles: {
             fillColor: [224, 224, 224],
             lineWidth: 0.3,
           },
         });
-  
+
         rowIndex += itemsPerPage;
       }
-  
+
       setLoader(false);
       pdf.save("stock.pdf");
     });
   };
-  
+
   const tdStyle = {
     textAlign: "center",
     whiteSpace: "nowrap",
@@ -385,13 +373,11 @@ const StockDetailsPage1 = () => {
         style={{
           fontSize: "14px",
           fontFamily: "serif",
-          // backgroundSize: "100% 100%",
-          // backgroundRepeat: "no-repeat",
         }}
       >
         <div style={{ margin: "15px" }}>
           <div className="d-flex align-items-center justify-content-between">
-            <div >
+            <div>
               <h2>
                 <b> Stock Details</b>
               </h2>
@@ -401,7 +387,11 @@ const StockDetailsPage1 = () => {
               <button onClick={exportToExcel} className="export">
                 Export as Excel
               </button>
-              <button onClick={downloadPDF} disabled={!(loader === false)} className="export">
+              <button
+                onClick={downloadPDF}
+                disabled={!(loader === false)}
+                className="export"
+              >
                 {loader ? (
                   <span>Downloading</span>
                 ) : (
@@ -410,49 +400,55 @@ const StockDetailsPage1 = () => {
               </button>
             </div>
           </div>
-          <br /> 
+          <br />
 
           <div className="row align-items-center ">
-          <div className="col-10 col-md-8 ">
-
-          <div className="search-bar d-flex align-items-center"
-      style={{marginLeft:'0px'}}>
-              <FontAwesomeIcon icon={faSearch} />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                style={{height:'30px'}}
-                onChange={(event) => handleSearchChange(event.target.value)}
-              />
-             </div>
-    </div>
-    <div className="col-12 col-md-12 mt-5 mt-md-0 ">       
-    <h6 style={{ fontSize: "18px", fontFamily: "serif", textAlign:'end', marginRight:'100px'}}>
-      <b>Expiry Date Filter</b>
-    </h6>
-    <div className="d-flex justify-content-md-end">       
-              <span className="bold-placeholder me-3">
-              From{" "}
-              <DatePicker
-                onChange={handleFromDateChange}
-                className="bold-placeholder"
-              />{" "}
-                    </span>
-                    <span className="bold-placeholder">
-
-              To{" "}
-              <DatePicker
-                onChange={handleToDateChange}
-                className="bold-placeholder"
-              />
-                    </span>
-                    </div>
-                      </div>
+            <div className="col-10 col-md-8 ">
+              <div
+                className="search-bar d-flex align-items-center"
+                style={{ marginLeft: "0px" }}
+              >
+                <FontAwesomeIcon icon={faSearch} />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  style={{ height: "30px" }}
+                  onChange={(event) => handleSearchChange(event.target.value)}
+                />
+              </div>
+            </div>
+            <div className="col-12 col-md-12 mt-5 mt-md-0 ">
+              <h6
+                style={{
+                  fontSize: "18px",
+                  fontFamily: "serif",
+                  textAlign: "end",
+                  marginRight: "100px",
+                }}
+              >
+                <b>Expiry Date Filter</b>
+              </h6>
+              <div className="d-flex justify-content-md-end">
+                <span className="bold-placeholder me-3">
+                  From{" "}
+                  <DatePicker
+                    onChange={handleFromDateChange}
+                    className="bold-placeholder"
+                  />{" "}
+                </span>
+                <span className="bold-placeholder">
+                  To{" "}
+                  <DatePicker
+                    onChange={handleToDateChange}
+                    className="bold-placeholder"
+                  />
+                </span>
+              </div>
+            </div>
           </div>
-
         </div>
-        <div className="stock-table" >
+        <div className="stock-table">
           {dataOnCurrentPage.length === 0 ? (
             <p>No search results found</p>
           ) : (
@@ -464,41 +460,39 @@ const StockDetailsPage1 = () => {
                   <table class="table">
                     <thead class="sticky-top bg-light">
                       <tr>
-                        <th style={thStyle }>Purchase Date</th>
+                        <th style={thStyle}>Purchase Date</th>
                         <th style={thStyle}>Medicine Name</th>
                         <th style={thStyle}>Dosage</th>
                         <th style={thStyle}>Brand Name</th>
                         <th style={thStyle}>Purchase Price</th>
-                        {/* <th style={thStyle}>Purchase Amount</th> */}
                         <th style={thStyle}>MRP</th>
                         <th style={thStyle}>Total Qty</th>
                         <th style={thStyle}>Expiry Date</th>
                       </tr>
                     </thead>
                     <tbody>
-                    {dataOnCurrentPage.map((item, index) => (
-  <tr key={item.ID}>
-    <td style={tdStyle}>
-      {item.purchasedate
-        ? moment(item.purchasedate).format("YYYY-MM-DD")
-        : "N/A"}
-    </td>
-    <td style={{ ...tdStyle, textAlign: 'left' }}>{item.medicinename || "N/A"}</td>
-    {/* Add textAlign: 'left' to the style of the Medicine Name cell */}
-    <td style={tdStyle}>{item.dosage || "N/A"}</td>
-    <td style={tdStyle}>{item.brandname || "N/A"}</td>
-    <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
-    {/* <td style={tdStyle}>{item.purchaseamount || "N/A"}</td> */}
-    <td style={tdStyle}>{item.mrp || "N/A"}</td>
-    <td style={tdStyle}>{item.totalqty || "N/A"}</td>
-    <td style={tdStyle}>
-      {item.expirydate
-        ? moment(item.expirydate).format("YYYY-MM-DD")
-        : "N/A"}
-    </td>
-  </tr>
-))}
-
+                      {dataOnCurrentPage.map((item, index) => (
+                        <tr key={item.ID}>
+                          <td style={tdStyle}>
+                            {item.purchasedate
+                              ? moment(item.purchasedate).format("YYYY-MM-DD")
+                              : "N/A"}
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: "left" }}>
+                            {item.medicinename || "N/A"}
+                          </td>
+                          <td style={tdStyle}>{item.dosage || "N/A"}</td>
+                          <td style={tdStyle}>{item.brandname || "N/A"}</td>
+                          <td style={tdStyle}>{item.purchaseprice || "N/A"}</td>
+                          <td style={tdStyle}>{item.mrp || "N/A"}</td>
+                          <td style={tdStyle}>{item.totalqty || "N/A"}</td>
+                          <td style={tdStyle}>
+                            {item.expirydate
+                              ? moment(item.expirydate).format("YYYY-MM-DD")
+                              : "N/A"}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
