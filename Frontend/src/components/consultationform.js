@@ -46,7 +46,7 @@ const ConsultationForm = () => {
     consultantCharge: "",
     clinicCharge: "",
   });
-
+  const [highlightedFields, setHighlightedFields] = useState([]);
   const [submittedData, setSubmittedData] = useState(null);
   const [showForm, setShowForm] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
@@ -80,6 +80,8 @@ const ConsultationForm = () => {
         [name]: value,
       });
     }
+    setHighlightedFields(highlightedFields.filter(field => field !== name));
+
   };
 
   const handleSubmit = (e) => {
@@ -95,18 +97,25 @@ const ConsultationForm = () => {
       "consultantCharge",
       "clinicCharge",
     ];
-    const isAnyFieldEmpty = requiredFields.some((field) => !formData[field]);
-    const isChargeFieldFilled =
-      !!formData.clinicCharge || !!formData.consultantCharge;
 
-    if (isAnyFieldEmpty && !isChargeFieldFilled) {
-      setShowAlert(true);
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 2000);
-      return;
-    }
+    const emptyFields = requiredFields.filter(field => !formData[field]);
+  if (emptyFields.length > 0) {
+    // Highlight empty fields
+    setHighlightedFields(emptyFields);
+    return;
+  }
+  
+// const isAnyFieldEmpty = requiredFields.some((field) => !formData[field]);
+//     const isChargeFieldFilled =
+//       !!formData.clinicCharge || !!formData.consultantCharge;
 
+//     if (isAnyFieldEmpty && !isChargeFieldFilled) {
+//       setShowAlert(true);
+//       setTimeout(() => {
+//         setShowAlert(false);
+//       }, 2000);
+//       return;
+//     }
     const totalCharge =
       parseInt(formData.consultantCharge || 0, 10) +
       parseInt(formData.clinicCharge || 0, 10);
@@ -115,6 +124,8 @@ const ConsultationForm = () => {
     setShowAlert(false);
     clearAlert();
   };
+
+ 
 
   const calculateAge = (dob) => {
     const today = new Date();
@@ -192,7 +203,10 @@ const ConsultationForm = () => {
         body {
           margin: 10px;
         }  
+      .highlight-input {
+        border: 1px solid red;
       }
+    }
     `}
       </style>
       <div style={{ marginTop: "20px" }}>
@@ -242,6 +256,9 @@ const ConsultationForm = () => {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleChange}
+                          style={{
+                            border: highlightedFields.includes('firstName') ? '1px solid red' : '1px solid #ccc',
+                          }}
                           required
                         />
                       </div>
@@ -256,6 +273,9 @@ const ConsultationForm = () => {
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleChange}
+                          style={{
+                            border: highlightedFields.includes('lastName') ? '1px solid red' : '1px solid #ccc',
+                          }}
                           required
                         />
                       </div>
@@ -272,6 +292,9 @@ const ConsultationForm = () => {
                           name="gender"
                           value={formData.gender}
                           onChange={handleChange}
+                          style={{
+                            border: highlightedFields.includes('gender') ? '1px solid red' : '1px solid #ccc',
+                          }}
                           required
                         >
                           <option value="">Select Gender</option>
@@ -291,6 +314,9 @@ const ConsultationForm = () => {
                           name="dob"
                           value={formData.dob}
                           onChange={handleDOBChange}
+                          style={{
+                            border: highlightedFields.includes('dob') ? '1px solid red' : '1px solid #ccc',
+                          }}
                           required
                         />
                       </div>
@@ -327,6 +353,9 @@ const ConsultationForm = () => {
                           name="observation"
                           value={formData.observation}
                           onChange={handleChange}
+                          style={{
+                            border: highlightedFields.includes('observation') ? '1px solid red' : '1px solid #ccc',
+                          }}
                           required
                         />
                       </div>
@@ -348,6 +377,7 @@ const ConsultationForm = () => {
                           style={{
                             WebkitAppearance: "none",
                             MozAppearance: "textfield",
+                            border: highlightedFields.includes('clinicCharge') ? '1px solid red' : '1px solid #ccc',
                           }}
                           required
                           min="0"
@@ -371,6 +401,8 @@ const ConsultationForm = () => {
                           style={{
                             WebkitAppearance: "none",
                             MozAppearance: "textfield",
+                            border: highlightedFields.includes('consultantCharge') ? '1px solid red' : '1px solid #ccc',
+
                           }}
                           required
                           min="0"

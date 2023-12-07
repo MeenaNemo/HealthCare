@@ -94,10 +94,6 @@ function Billing() {
     year: "numeric",
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    addInputListeners();
-  });
-
   const handleQuantity = async (event, rowIndex, colIndex, id) => {
     const input = inputRefs.current[id]?.[1];
     const totalInput = inputRefs.current[id]?.[3];
@@ -161,11 +157,14 @@ function Billing() {
     );
   };
 
-  const handlePatientNameChange = (e) => {
-    const newName = e.target.value;
+  function handlePatientNameChange(event) {
+    const newName = event.target.value;
+    const regex = /^[a-zA-Z]+$/;
     setPatientName(newName);
-    console.log(`Patient Name changed to: ${newName}`);
-  };
+    if (!regex.test(newName)) {
+      event.target.value = newName.slice(0, -1);
+    }
+  }
 
   const handleTotal = () => {
     if (isAlertActive) {
@@ -333,7 +332,6 @@ function Billing() {
     const formattedValue = inputValue.replace(/\D/g, "").slice(0, 10);
     setMobileNo(formattedValue);
   };
-  
 
   const handleDiscountChange = (event) => {
     const newDiscountTotal = parseFloat(event.target.value) || "";
@@ -376,58 +374,6 @@ function Billing() {
     setMedicineRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
 
-  const handleDynamicColorChange = (element) => {
-    const handleInput = () => {
-      if (element.value.trim() !== '') {
-        element.style.borderColor = ''; // Reset border color if input is not empty
-      } else {
-        element.style.borderColor = 'red'; // Set border color to red if input is empty
-      }
-    };
-  
-    const handleBlur = () => {
-      if (element.style.borderColor === 'red' && element.value.trim() !== '') {
-        element.style.borderColor = ''; // Reset border color when the field loses focus and has content
-      }
-    };
-  
-    element.addEventListener('input', handleInput);
-    element.addEventListener('blur', handleBlur);
-  
-    // Remove red border when user starts typing in the field
-    element.addEventListener('keydown', () => {
-      if (element.style.borderColor === 'red') {
-        element.style.borderColor = '';
-      }
-    });
-  
-    if (element.value.trim() === '') {
-      element.style.borderColor = 'red';
-    }
-  };
-  
-  
-  const addInputListeners = () => {
-    const patientNameField = document.getElementById('patientname');
-    const mobileNoField = document.getElementById('mobileno');
-    const cashGivenField = document.getElementById('cashgiven');
-  
-    handleDynamicColorChange(patientNameField);
-  handleDynamicColorChange(mobileNoField);
-  handleDynamicColorChange(cashGivenField);
-  
-    if (!patientNameField.value.trim() || !/^[a-zA-Z\s]+$/.test(patientNameField.value) || /\d/.test(patientNameField.value)) {
-      patientNameField.style.borderColor = 'red';
-    }
-
-    if (!mobileNoField.value.trim() || mobileNoField.value.length < 10) {
-      mobileNoField.style.borderColor = 'red';
-    }
-    if (!cashGivenField.value.trim()) {
-      cashGivenField.style.borderColor = 'red';
-    }
-  };
-
   const handleSubmit = async () => {
     const isAnyFieldFilled = medicineRows.some((row) => {
       const hasFilledInput = inputRefs.current[row.id].some(
@@ -437,9 +383,10 @@ function Billing() {
     });
 
     if (!isAnyFieldFilled) {
-      showAlert("Please fill all input fields.", "error");
+      showAlert("Please fill in at least one input field", "error");
       return;
     }
+
     let hasIncompleteRow = false;
 
     const updatedMedicineRows = medicineRows
@@ -476,24 +423,45 @@ function Billing() {
       return;
     }
 
-    const patientNameField = document.getElementById("patientname");
-  const mobileNoField = document.getElementById("mobileno");
-  const cashGivenField = document.getElementById("cashgiven");
+    function highlightInvalidField(fieldId, placeholderText) {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        field.classList.add("highlight-input");
+        field.placeholder = placeholderText;
+      }
+    }
 
-  if (!patientName || !patientName.trim() || !/^[a-zA-Z\s]+$/.test(patientName) || /\d/.test(patientName)) {
-    patientNameField.style.borderColor = "red";
-    return;
-  } 
+    const patientName = document.getElementById("patientname").value.trim();
+    if (!patientName) {
+      highlightInvalidField("patientname", "Fill the mandatory field");
+      return;
+    } else if (!/^[a-zA-Z\s]+$/.test(patientName)) {
+      highlightInvalidField("patientname", "Fill the mandatory field");
+      return;
+    } else if (/\d/.test(patientName)) {
+      highlightInvalidField("patientname", "Fill the mandatory field");
+      return;
+    } else {
+      document
+        .getElementById("patientname")
+        .classList.remove("highlight-input");
+    }
 
-  if (!mobileNo || mobileNo.length < 10) {
-    mobileNoField.style.borderColor = "red";
-    return;
-  }
+    const mobileno = document.getElementById("mobileno").value.trim();
+    if (!mobileno || mobileno.length < 10) {
+      highlightInvalidField("mobileno", "Fill the mandatory field");
+      return;
+    } else {
+      document.getElementById("mobileno").classList.remove("highlight-input");
+    }
 
-  if (!cashGiven) {
-    cashGivenField.style.borderColor = "red";
-    return;
-  } 
+    const cashgiven = document.getElementById("cashgiven").value.trim();
+    if (!cashgiven) {
+      highlightInvalidField("cashgiven", "Fill the mandatory field");
+      return;
+    } else {
+      document.getElementById("cashgiven").classList.remove("highlight-input");
+    }
 
     setSubmittedData(updatedMedicineRows);
 
@@ -505,7 +473,7 @@ function Billing() {
       patientname: document.getElementById("patientname").value || "",
       doctorname: document.getElementById("doctorname").value || "",
       mobileno: document.getElementById("mobileno").value || "",
-      cashgiven: cashGiven,
+      cashgiven: cashgiven,
       balance: balance,
       medicinename: updatedMedicineRows.map((row) => row.medicinename),
     };
@@ -516,7 +484,6 @@ function Billing() {
         billingData
       );
       const generatedInvoiceNumber = response.data.invoicenumber;
-      console.log("Generated Invoice Number:", generatedInvoiceNumber);
 
       setIsSubmitted(true);
       showAlert("Successfully submitted!", "success");
@@ -525,10 +492,7 @@ function Billing() {
     } catch (error) {
       console.error("Error submitting billing data:", error);
     }
-
   };
-
-
 
   const handlePdf = async () => {
     setLoader(true);
@@ -647,9 +611,12 @@ function Billing() {
       input.error {
         border: 1px solid red;
       }
+
+      .highlight-input {
+        border: 1px solid red;
+      }
+
     `}
-    
-    
       </style>
 
       <div className="container" style={{ fontFamily: "serif" }}>
@@ -1098,7 +1065,7 @@ function Billing() {
                           height: "290mm",
                           width: "205mm",
                           position: "relative",
-                          marginBottom: '20px'
+                          marginBottom: "20px",
                         }}
                       >
                         <div
@@ -1108,9 +1075,56 @@ function Billing() {
                           <h3 className="me-5" style={{ color: "darkblue" }}>
                             <b>Invoice</b>
                           </h3>
-                          <h6 style={{ color: "darkblue" }}><b>Invoice No  : </b>{invoiceNumber}</h6>
-                          <h6 style={{ color: "darkblue" }}><b>Invoice Date: </b>{currentDateFormatted}</h6>
-                          <h6 style={{ color: "darkblue" }}><b>Patient Name: </b>{patientName}</h6>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-end",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-around",
+                                width: "200px",
+                              }}
+                            >
+                              <h6 style={{ color: "darkblue" }}>
+                                <b>Invoice No:</b>
+                              </h6>
+                              <h6 style={{ color: "darkblue" }}>
+                                {invoiceNumber}
+                              </h6>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-around",
+                                width: "200px",
+                              }}
+                            >
+                              <h6 style={{ color: "darkblue" }}>
+                                <b>Invoice Date:</b>
+                              </h6>
+                              <h6 style={{ color: "darkblue" }}>
+                                {currentDateFormatted}
+                              </h6>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-around",
+                                width: "200px",
+                              }}
+                            >
+                              <h6 style={{ color: "darkblue" }}>
+                                <b>Patient Name:</b>
+                              </h6>
+                              <h6 style={{ color: "darkblue" }}>
+                                {patientName}
+                              </h6>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="table-responsive mt-3 me-5 ms-5">

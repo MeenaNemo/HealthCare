@@ -240,7 +240,6 @@ const BillingHis = () => {
                       className="sticky-top"
                       style={{
                         backgroundColor: "blue",
-                        borderBottom: "2px solid black",
                       }}
                     >
                       <tr>

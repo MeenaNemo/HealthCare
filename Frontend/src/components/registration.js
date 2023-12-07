@@ -19,8 +19,25 @@ const RegistrationForm = () => {
     user_password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [highlightedFields, setHighlightedFields] = useState([]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const requiredFields = [
+      "user_first_name",
+      "user_last_name",
+      "user_email",
+      "user_mobile_number",
+      "user_role",
+      "user_password",
+    ];
+    
+    const emptyFields = requiredFields.filter(field => !formData[field]);
+    if (emptyFields.length > 0) {
+      setHighlightedFields(emptyFields);
+      return;
+    }
 
     if (!emailRegex.test(formData.user_email)) {
       setAlertMessage("Please enter a valid email address.");
@@ -106,15 +123,12 @@ const RegistrationForm = () => {
     }
   };
 
-  const [showPassword, setShowPassword] = useState(false);
-
   const handlePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     const onlyLettersRegex = /^[a-zA-Z\s]*$/;
 
     if (name === "user_first_name" || name === "user_last_name") {
@@ -122,10 +136,11 @@ const RegistrationForm = () => {
         return;
       }
     }
-
     setFormData({ ...formData, [name]: value });
-  };
+    setHighlightedFields(highlightedFields.filter(field => field !== name));
 
+  };
+  
   return (
     <div
       className="container mt-4"
@@ -155,7 +170,9 @@ const RegistrationForm = () => {
               name="user_first_name"
               onChange={handleInputChange}
               value={formData.user_first_name}
-              required
+              style={{
+                border: highlightedFields.includes('user_first_name') ? '1px solid red' : '1px solid #ccc',
+              }}
             />
           </div>
           <div className="col-md-6">
@@ -169,7 +186,9 @@ const RegistrationForm = () => {
               name="user_last_name"
               onChange={handleInputChange}
               value={formData.user_last_name}
-              required
+              style={{
+                border: highlightedFields.includes('user_last_name') ? '1px solid red' : '1px solid #ccc',
+              }}
             />
           </div>
         </div>
@@ -186,7 +205,9 @@ const RegistrationForm = () => {
               name="user_email"
               onChange={handleInputChange}
               value={formData.user_email}
-              required
+              style={{
+                border: highlightedFields.includes('user_email') ? '1px solid red' : '1px solid #ccc',
+              }}
             />
           </div>
           <div className="col-md-6">
@@ -203,7 +224,9 @@ const RegistrationForm = () => {
                 e.target.value = e.target.value.replace(/\D/, "").slice(0, 10);
               }}
               value={formData.user_mobile_number}
-              required
+              style={{
+                border: highlightedFields.includes('user_mobile_number') ? '1px solid red' : '1px solid #ccc',
+              }}
             />
           </div>
         </div>
@@ -219,7 +242,9 @@ const RegistrationForm = () => {
               name="user_role"
               onChange={handleInputChange}
               value={formData.user_role}
-              required
+              style={{
+                border: highlightedFields.includes('user_role') ? '1px solid red' : '1px solid #ccc',
+              }}
             >
               <option value="">Select User Role</option>
               <option value="Doctor">Doctor</option>
@@ -242,7 +267,9 @@ const RegistrationForm = () => {
                 name="user_password"
                 onChange={handleInputChange}
                 value={formData.user_password}
-                required
+                style={{
+                  border: highlightedFields.includes('user_password') ? '1px solid red' : '1px solid #ccc',
+                }}
               />
               <button
                 className="btn h-0"

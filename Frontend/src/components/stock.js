@@ -557,8 +557,6 @@ const StockDetailsPage = () => {
           ) : (
             <div>
               <div style={{ overflowX: "auto" }}>
-                <h2 className="text-center">Stock Details</h2>
-
                 <div class="scrollable-body">
                   <table class="table">
                     <thead class="sticky-top bg-light">
