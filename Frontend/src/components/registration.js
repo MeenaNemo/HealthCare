@@ -57,7 +57,7 @@ const RegistrationForm = () => {
 
     try {
       const checkEmailResponse = await axios.get(
-        `https://api.5ytechno.com:8000/check-email?email=${formData.user_email}`
+        `https://api.5ytechno.com/check-email?email=${formData.user_email}`
       );
 
       if (checkEmailResponse.data.status === 400) {
@@ -77,7 +77,7 @@ const RegistrationForm = () => {
       }
 
       const response = await axios.post(
-        "https://api.5ytechno.com:8000/register",
+        "https://api.5ytechno.com/register",
         formDataToSend,
         {
           headers: {

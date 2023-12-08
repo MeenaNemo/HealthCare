@@ -76,7 +76,7 @@ const Purchase = () => {
     const fetchpurchaseData = async () => {
       try {
         const response = await axios.get(
-          "https://api.5ytechno.com:8000/allpurchase"
+          "https://api.5ytechno.com/allpurchase"
         );
         setMedicineData(response.data);
       } catch (error) {

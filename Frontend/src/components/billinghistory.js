@@ -43,7 +43,7 @@ const BillingHis = () => {
   const fetchbillingData = async () => {
     try {
       const response = await axios.get(
-        "https://api.5ytechno.com:8000/billingdata"
+        "https://api.5ytechno.com/billingdata"
       );
       setMedicineData(response.data);
     } catch (error) {
@@ -89,7 +89,7 @@ const BillingHis = () => {
   const View = async (invoiceNumber) => {
     try {
       const response = await axios.get(
-        `https://api.5ytechno.com:8000/billingdata/${invoiceNumber}`
+        `https://api.5ytechno.com/billingdata/${invoiceNumber}`
       );
       const invoiceData = response.data;
       setInvoiceData(invoiceData);
