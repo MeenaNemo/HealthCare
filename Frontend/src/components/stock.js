@@ -54,8 +54,8 @@ const StockDetailsPage = () => {
 
   const fetchStockData = async () => {
     try {
-      const response = await axios.get("/stock", {
-        params: { medicinename: searchQuery, fromExpiryDate, toExpiryDate },
+        const response = await axios.get("https://api.5ytechno.com/stock", {
+                    params: { medicinename: searchQuery, fromExpiryDate, toExpiryDate },
       });
 
       setMedicineData(response.data);
