@@ -66,7 +66,7 @@ const StockDetailsPage1 = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const response = await axios.get("https://api.5ytechno.com/stock");
+        const response = await axios.get("https://api.5ytechno.com:8000/stock");
         setMedicineData(response.data);
       } catch (error) {
         setError("Error fetching data");
