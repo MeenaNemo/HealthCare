@@ -114,7 +114,7 @@ const privateKey =
             status: 400,
             message: "Email already exists.",
             error: true,
-          });
+          }); 
         }
   
         const enpPassword = await bcrypt.hash(reqData.user_password, 10);
@@ -490,7 +490,6 @@ app.put('/stock/update/:id', (req, res) => {
     }
   });
 });
-
 
 app.post("/purchase", (req, res) => {
   const {

@@ -171,7 +171,7 @@ const ConsultationForm = () => {
       age: "",
       gender: "",
       dob: "",
-      consultingDoctorName: "DR. Jothipriya.A MBBS",
+      consultingDoctorName: "Dr. Jothipriya.A MBBS",
       observation: "",
       consultantCharge: "",
       clinicCharge: "",

@@ -113,7 +113,7 @@ function Billing() {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/quantity?medicinename=${medicinename}&dosage=${dosage}`
+        `https://api.5ytechno.com/quantity?medicinename=${medicinename}&dosage=${dosage}`
       );
       const availableQuantity = response.data.availableQuantity;
 
@@ -197,7 +197,7 @@ function Billing() {
     try {
       const { medicinename, dosage } = extractMedicineInfo(selectedSuggestion);
       const mrpResponse = await axios.get(
-        `http://localhost:3000/getMRP?medicinename=${medicinename}&dosage=${dosage}`
+        `https://api.5ytechno.com/getMRP?medicinename=${medicinename}&dosage=${dosage}`
       );
       const mrp = mrpResponse.data.mrp;
       console.log("mrp", mrp);
@@ -221,7 +221,7 @@ function Billing() {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/suggestions?partialName=${inputValue}`
+        `https://api.5ytechno.com/suggestions?partialName=${inputValue}`
       );
       const fetchedSuggestions = response.data.suggestions;
       setSuggestions(fetchedSuggestions);
@@ -248,7 +248,7 @@ function Billing() {
         if (event.target.id === `medicinename${id}`) {
           try {
             const response = await axios.get(
-              `http://localhost:3000/allstock?medicinename=${medicinename}&dosage=${dosage}`
+              `https://api.5ytechno.com/allstock?medicinename=${medicinename}&dosage=${dosage}`
             );
             const expired = response.data.expired;
 
@@ -480,7 +480,7 @@ function Billing() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/billing",
+        "https://api.5ytechno.com/billing",
         billingData
       );
       const generatedInvoiceNumber = response.data.invoicenumber;
@@ -1127,7 +1127,7 @@ function Billing() {
                           </div>
                         </div>
 
-                        <div className="table-responsive mt-3 me-5 ms-5">
+                        <div className="table-responsive mt-1 me-5 ms-5">
                           <table className="table table-bordered table-striped p-5">
                             <thead className="table">
                               <tr>

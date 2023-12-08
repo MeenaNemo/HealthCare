@@ -43,7 +43,7 @@ const BillingHis = () => {
   const fetchbillingData = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/billingdata"
+        "https://api.5ytechno.com/billingdata"
       );
       setMedicineData(response.data);
     } catch (error) {
@@ -89,7 +89,7 @@ const BillingHis = () => {
   const View = async (invoiceNumber) => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/billingdata/${invoiceNumber}`
+        `https://api.5ytechno.com/billingdata/${invoiceNumber}`
       );
       const invoiceData = response.data;
       setInvoiceData(invoiceData);
@@ -369,25 +369,26 @@ const BillingHis = () => {
                             style={{ marginTop: "130px" }}
                           >
                             <h3 className="me-5" style={{ color: "darkblue" }}>
-                              Invoice
+                             <b>Invoice</b> 
                             </h3>
                             <h6>
-                              Invoice No: {invoiceData[index].invoice_number}
+                              <b>Invoice No  : </b> {invoiceData[index].invoice_number}
                             </h6>
                             <h6>
-                              Invoice Date:{" "}
+                              <b>Invoice Date    : </b>{" "}
                               {invoiceData[index].createdate
                                 ? moment(invoiceData[index].createdate).format(
                                     "YYYY-MM-DD"
                                   )
                                 : "N/A" || "N/A"}
                             </h6>
-                            <h6>
-                              Patient Name: {invoiceData[index].patientname}
-                            </h6>
+                            <h5 className="text-start" style={{marginLeft:'50px'}}>
+                             <b>Patient Name:</b>  {invoiceData[index].patientname}
+                            </h5>
                           </div>
+                         
 
-                          <div className="table-responsive mt-3 me-5 ms-5">
+                          <div className="table-responsive mt-2 me-5 ms-5">
                             <table className="table table-bordered table-striped p-5">
                               <thead className="table-dark">
                                 <tr>

@@ -66,7 +66,7 @@ const StockDetailsPage1 = () => {
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/stock");
+        const response = await axios.get("https://api.5ytechno.com/stock");
         setMedicineData(response.data);
       } catch (error) {
         setError("Error fetching data");
@@ -454,7 +454,7 @@ const StockDetailsPage1 = () => {
           ) : (
             <div>
               <div style={{ overflowX: "auto" }}>
-                <h2>Stock Details</h2>
+                <h3 className="text-center" style={{height:'10px'}}>Stock Details</h3>
 
                 <div class="scrollable-body">
                   <table class="table">
