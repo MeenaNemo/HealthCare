@@ -23,7 +23,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://api.5ytechno.com:3000/login",
+        "https://api.5ytechno.com/login",
         loginData
       );
       console.log(response.data);
