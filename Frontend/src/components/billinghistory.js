@@ -43,7 +43,7 @@ const BillingHis = () => {
   const fetchbillingData = async () => {
     try {
       const response = await axios.get(
-        "https://alagarclinic.5ytechno.com/billingdata"
+        "https://api.5ytechno.com/billingdata"
       );
       setMedicineData(response.data);
     } catch (error) {

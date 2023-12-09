@@ -40,7 +40,7 @@ const StockDetailsPage1 = () => {
 
   const fetchStockData = async () => {
     try {
-      const response = await axios.get("/stock", {
+      const response = await axios.get("https://api.5ytechno.com/stock", {
         params: { medicinename: searchQuery, fromExpiryDate, toExpiryDate },
       });
 

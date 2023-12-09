@@ -864,7 +864,6 @@ function Billing() {
                         <input
                           type="text"
                           id="patientname"
-                          class="error"
                           onBlur={(e) => handleKeyPress(e, 0, 0, "patientname")}
                           onChange={handlePatientNameChange}
                           className="form-control"
@@ -914,7 +913,6 @@ function Billing() {
                             type="tel"
                             id="mobileno"
                             value={mobileNo}
-                            class="error"
                             onChange={handleInputChange}
                             className="form-control"
                             style={{ width: "140px" }}
@@ -944,7 +942,6 @@ function Billing() {
                       <input
                         type="text"
                         id="cashgiven"
-                        class="error"
                         value={cashGiven}
                         onChange={handleCashGivenChange}
                         onBlur={handleCashGivenBlur}

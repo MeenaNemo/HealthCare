@@ -28,9 +28,8 @@ const StockDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editedData, setEditedData] = useState({
-    // ... (your existing properties),
-    originalData: {}, // to store the original values
-    lastEditTimestamp: null, // to store the timestamp of the last edit
+    originalData: {}, 
+    lastEditTimestamp: null, 
   });
   const [editMode, setEditMode] = useState(null);
   const itemsPerPage = 25;
@@ -372,7 +371,7 @@ const StockDetailsPage = () => {
           fontSize: 9,
           halign: "center",
         },
-        headerStyles: {
+        headStyles: {
           fillColor: [41, 128, 185],
           textColor: 255,
           lineWidth: 0.3,
@@ -557,9 +556,9 @@ const StockDetailsPage = () => {
           ) : (
             <div>
               <div style={{ overflowX: "auto" }}>
-                <div class="scrollable-body">
-                  <table class="table">
-                    <thead class="sticky-top bg-light">
+                <div className="scrollable-body">
+                  <table className="table">
+                    <thead className="sticky-top bg-light">
                       <tr>
                         <th style={thStyle}>Purchase Date</th>
                         <th style={thStyle}>Medicine Name</th>
