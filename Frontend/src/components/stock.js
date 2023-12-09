@@ -576,7 +576,7 @@ const StockDetailsPage = () => {
                     </thead>
                     <tbody>
                       {filteredData.map((item, index) => (
-                        <tr key={item.ID}>
+                        <tr key={item.id}>
                           <td style={tdStyle}>
                             {item.purchasedate
                               ? moment(item.purchasedate).format("YYYY-MM-DD")

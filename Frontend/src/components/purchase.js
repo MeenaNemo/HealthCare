@@ -22,6 +22,7 @@ const Purchase = () => {
   const [filteredData, setFilteredData] = useState([]);
 
   const itemsPerPage = 25;
+  
   const filterData = () => {
     return medicineData.filter((item) => {
       const isSearched = item.medicinename
@@ -53,7 +54,7 @@ const Purchase = () => {
 
   const fetchpurchaseData = async () => {
     try {
-      const response = await axios.get("/allpurchase", {
+      const response = await axios.get("https://api.5ytechno.com/allpurchase", {
         params: { medicinename: searchQuery },
       });
 
@@ -286,7 +287,7 @@ const Purchase = () => {
           fontSize: 9,
           halign: "center",
         },
-        headerStyles: {
+        headStyles: {
           fillColor: [41, 128, 185],
           textColor: 255,
           lineWidth: 0.3,
@@ -352,7 +353,7 @@ const Purchase = () => {
             fontSize: 9,
             halign: "center",
           },
-          headerStyles: {
+          headStyles: {
             fillColor: [41, 128, 185],
             textColor: 255,
             lineWidth: 0.3,
@@ -451,7 +452,7 @@ const Purchase = () => {
             <div className="scrollable-body ">
               <table className="table">
                 <thead className="sticky-top bg-light">
-                  <tr>
+                  <tr >
                     <th className="text-center">Purchase Date</th>
                     <th className="text-center">Medicine Name</th>
                     <th className="text-center">Dosage</th>
@@ -464,8 +465,8 @@ const Purchase = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {dataOnCurrentPage.map((item) => (
-                    <tr key={item.ID}>
+                  {dataOnCurrentPage.map((item, index) => (
+                    <tr key={item.ID || index}>
                       <td className="text-center">
                         {item.time
                           ? moment(item.time).format("YYYY-MM-DD")
