@@ -272,7 +272,7 @@ const StockDetailsPage1 = () => {
           fontSize: 9,
           halign: "center",
         },
-        headerStyles: {
+        headStyles: {
           fillColor: [41, 128, 185],
           textColor: 255,
           lineWidth: 0.3,
@@ -456,9 +456,9 @@ const StockDetailsPage1 = () => {
               <div style={{ overflowX: "auto" }}>
                 <h3 className="text-center" style={{height:'10px'}}>Stock Details</h3>
 
-                <div class="scrollable-body">
-                  <table class="table">
-                    <thead class="sticky-top bg-light">
+                <div className="scrollable-body">
+                  <table className="table">
+                    <thead className="sticky-top bg-light">
                       <tr>
                         <th style={thStyle}>Purchase Date</th>
                         <th style={thStyle}>Medicine Name</th>
@@ -472,7 +472,7 @@ const StockDetailsPage1 = () => {
                     </thead>
                     <tbody>
                       {dataOnCurrentPage.map((item, index) => (
-                        <tr key={item.ID}>
+                        <tr key={item.id}>
                           <td style={tdStyle}>
                             {item.purchasedate
                               ? moment(item.purchasedate).format("YYYY-MM-DD")
