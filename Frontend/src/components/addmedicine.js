@@ -11,14 +11,13 @@ function AddMedicine() {
     totalqty: "",
     purchaseamount: 0,
     dosage: "",
-    dosageUnit: "mg",
+    dosageUnit: "",
     expirydate: "",
     mrp: "",
   });
   const [popupType, setPopupType] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
-
   const [dosageUnitPopupShown, setDosageUnitPopupShown] = useState(false);
 
   const handleChange = (event) => {
@@ -43,7 +42,7 @@ function AddMedicine() {
         [id]:
           id === "medicinename" || id === "brandname"
             ? isNaN(numericValue)
-              ? value
+              ? value.toUpperCase()
               : numericValue
             : prevData[id],
       };
@@ -66,8 +65,8 @@ function AddMedicine() {
               id === "purchaseprice" && !isNaN(prevData.totalqty)
                 ? numericValue * prevData.totalqty
                 : id === "totalqty" && !isNaN(prevData.purchaseprice)
-                ? prevData.purchaseprice * numericValue
-                : 0;
+                  ? prevData.purchaseprice * numericValue
+                  : 0;
           }
         }
       } else if (id === "mrp") {
@@ -102,21 +101,26 @@ function AddMedicine() {
 
   const handleDosageUnitChange = (event) => {
     const { value } = event.target;
+    const enteredValue = value.replace(/[^a-zA-Z]/g, '');
 
     setFormData((prevData) => {
       const currentDosage = String(prevData.dosage);
-
-      const dosageWithoutUnit = currentDosage.replace(/[^\d]/g, "");
-      const newDosage = dosageWithoutUnit + value;
-
+      const dosageWithoutUnit = currentDosage.replace(/[^\d.]/g, "");
+      const newDosage = dosageWithoutUnit + enteredValue;
       return {
         ...prevData,
-        dosage: newDosage,
-        dosageUnit: value,
+        dosage: newDosage.toUpperCase(),
+        dosageUnit: enteredValue.toUpperCase(),
       };
     });
-
     setDosageUnitPopupShown(true);
+  };
+
+
+  const handleDosageUnitKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
   };
 
   const handleCancel = (event) => {
@@ -129,7 +133,7 @@ function AddMedicine() {
       totalqty: "",
       purchaseamount: 0,
       dosage: "",
-      dosageUnit: "mg",
+      dosageUnit: "",
       expirydate: "",
       mrp: "",
     });
@@ -274,14 +278,12 @@ function AddMedicine() {
                         type="text"
                         className="form-control"
                         id="dosage"
-                        value={formData.dosage}
+                        value={formData.dosage.toUpperCase()}
                         onChange={handleChange}
                         onKeyDown={handleKeyDown}
                         onInput={(e) => {
-                          const numericValue = e.target.value.replace(
-                            /[^0-9]/g,
-                            ""
-                          );
+                          const numericValue = e.target.value.replace(/[^0-9.]/g, "");
+
                           setFormData((prevData) => ({
                             ...prevData,
                             dosage: numericValue,
@@ -298,10 +300,14 @@ function AddMedicine() {
                           }));
                         }}
                       />
-                      <select
-                        className="form-select w-15"
+
+                      <input
+                        type="text"
                         id="dosageUnit"
-                        value={formData.dosageUnit}
+                        list="unitOptions"
+                        className="form-control"
+                        placeholder="Dosage unit"
+                        value={formData.dosageUnit.toUpperCase()}
                         onChange={(e) => {
                           handleDosageUnitChange(e);
                           const dosageInput = document.getElementById("dosage");
@@ -309,11 +315,17 @@ function AddMedicine() {
                             dosageInput.dispatchEvent(new Event("blur"));
                           }
                         }}
-                      >
-                        <option value="mg">mg</option>
-                        <option value="ml">ml</option>
-                        <option value="gm">gm</option>
-                      </select>
+                        onKeyDown={handleDosageUnitKeyDown}
+
+                      />
+                      <datalist id="unitOptions">
+                        <option value="MG" />
+                        <option value="ML" />
+                        <option value="GM" />
+                        {formData.dosageUnit && !["MG", "ML", "GM"].includes(formData.dosageUnit.toUpperCase()) && (
+                          <option value={formData.dosageUnit.toUpperCase()} />
+                        )}
+                      </datalist>
                     </div>
                   </div>
                 </div>
@@ -538,8 +550,8 @@ function AddMedicine() {
                 {popupType === "emptyFields"
                   ? "Please fill all input fields."
                   : popupType === "error"
-                  ? popupMessage
-                  : "Medicine added successfully."}
+                    ? popupMessage
+                    : "Medicine added successfully."}
               </p>
             </div>
           </div>
@@ -548,5 +560,6 @@ function AddMedicine() {
     </>
   );
 }
+
 
 export default AddMedicine;

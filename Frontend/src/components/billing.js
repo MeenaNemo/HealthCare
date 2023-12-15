@@ -88,9 +88,11 @@ function Billing() {
     }
   }, [cashGiven, grandtotal]);
 
+  // const currentDateFormatted = moment().format('MMMM D, YYYY');
+
   const currentDateFormatted = new Date().toLocaleDateString("en-GB", {
-    day: "numeric",
     month: "numeric",
+    day: "numeric",
     year: "numeric",
   });
 
@@ -315,14 +317,15 @@ function Billing() {
   };
 
   const handleDiscountBlur = () => {
-    const discountValue =
-      typeof discount === "number"
-        ? discount
-        : parseFloat(discount.replace(/[^\d.]/g, 0));
-
-    const formattedValue = discountValue.toFixed(2);
-    setDiscountTotal(formattedValue);
+    const discountValue = parseFloat(discount);
+    if (isNaN(discountValue)) {
+      setDiscountTotal("0");
+    } else {
+      const formattedValue = discountValue.toFixed(2);
+      setDiscountTotal(formattedValue);
+    }
   };
+
   const handleCountryCodeChange = (e) => {
     setCountryCode(e.target.value);
   };
@@ -813,7 +816,7 @@ function Billing() {
                         <input
                           id="discount"
                           className="border-0 text-start p-1"
-                          type="number"
+                          type="text"
                           value={discount}
                           onChange={handleDiscountChange}
                           onBlur={handleDiscountBlur}

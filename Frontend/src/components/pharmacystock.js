@@ -336,7 +336,7 @@ const StockDetailsPage1 = () => {
             fontSize: 9,
             halign: "center",
           },
-          headerStyles: {
+          headStyles: {
             fillColor: [41, 128, 185],
             textColor: 255,
             lineWidth: 0.3,

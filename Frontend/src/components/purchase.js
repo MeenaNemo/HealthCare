@@ -156,20 +156,20 @@ const Purchase = () => {
     filteredData.forEach((item) => {
       const formattedDate = item.time
         ? moment(item.time).format("YYYY-MM-DD")
-        : "N/A";
+        : "0";
 
       const dataRow = worksheet.addRow({
-        purchasedate: formattedDate || "N/A",
-        medicinename: item.medicinename || "N/A",
-        dosage: item.dosage || "N/A",
-        brandname: item.brandname || "N/A",
-        purchaseprice: item.purchaseprice || "N/A",
-        purchaseamount: item.purchaseamount || "N/A",
-        mrp: item.mrp || "N/A",
-        totalqty: item.totalqty || "N/A",
+        purchasedate: formattedDate || "0",
+        medicinename: item.medicinename || "0",
+        dosage: item.dosage || "0",
+        brandname: item.brandname || "0",
+        purchaseprice: item.purchaseprice || "0",
+        purchaseamount: item.purchaseamount || "0",
+        mrp: item.mrp || "0",
+        totalqty: item.totalqty || "0",
         expirydate: item.expirydate
           ? moment(item.expirydate).format("YYYY-MM-DD")
-          : "N/A",
+          : "0",
       });
 
       dataRow.eachCell((cell) => {
@@ -219,11 +219,11 @@ const Purchase = () => {
 
     const formattedFromDate = fromDate
       ? moment(fromDate).format("YYYY-MM-DD")
-      : "N/A";
+      : "0";
 
     const formattedToDate = toDate
       ? moment(toDate).format("YYYY-MM-DD")
-      : "N/A";
+      : "0";
 
     html2canvas(capture, html2canvasOptions).then((canvas) => {
       const jsPDFOptions = {
@@ -253,17 +253,17 @@ const Purchase = () => {
       const firstPageBodyData = firstPageData.map((currentData) => [
         currentData.time
           ? moment(currentData.time).format("YYYY-MM-DD")
-          : "N/A",
-        currentData.medicinename || "N/A",
-        currentData.dosage || "N/A",
-        currentData.brandname || "N/A",
-        currentData.purchaseprice || "N/A",
-        currentData.purchaseamount || "N/A",
-        currentData.mrp || "N/A",
-        currentData.totalqty || "N/A",
+          : "0",
+        currentData.medicinename || "0",
+        currentData.dosage || "0",
+        currentData.brandname || "0",
+        currentData.purchaseprice || "0",
+        currentData.purchaseamount || "0",
+        currentData.mrp || "0",
+        currentData.totalqty || "0",
         currentData.expirydate
           ? moment(currentData.expirydate).format("YYYY-MM-DD")
-          : "N/A",
+          : "0",
       ]);
 
       pdf.autoTable({
@@ -317,19 +317,19 @@ const Purchase = () => {
           rowIndex + itemsPerPage
         );
         const bodyData = currentPageData.map((currentData) => [
-          currentData.medicinename || "N/A",
-          currentData.brandname || "N/A",
-          currentData.dosage || "N/A",
-          currentData.purchaseprice || "N/A",
-          currentData.totalqty || "N/A",
-          currentData.purchaseamount || "N/A",
+          currentData.medicinename || "0",
+          currentData.brandname || "0",
+          currentData.dosage || "0",
+          currentData.purchaseprice || "0",
+          currentData.totalqty || "0",
+          currentData.purchaseamount || "0",
           currentData.expirydate
             ? moment(currentData.expirydate).format("YYYY-MM-DD")
-            : "N/A",
-          currentData.mrp || "N/A",
+            : "0",
+          currentData.mrp || "0",
           currentData.time
             ? moment(currentData.time).format("YYYY-MM-DD")
-            : "N/A",
+            : "0",
         ]);
 
         pdf.autoTable({
@@ -470,25 +470,25 @@ const Purchase = () => {
                       <td className="text-center">
                         {item.time
                           ? moment(item.time).format("YYYY-MM-DD")
-                          : "N/A" || "N/A"}
+                          : "0" || "0"}
                       </td>
                       <td className="text-start">
-                        {item.medicinename || "N/A"}
+                        {item.medicinename || "0"}
                       </td>
-                      <td className="text-center">{item.dosage || "N/A"}</td>
-                      <td className="text-center">{item.brandname || "N/A"}</td>
+                      <td className="text-center">{item.dosage || "0"}</td>
+                      <td className="text-center">{item.brandname || "0"}</td>
                       <td className="text-center">
-                        {item.purchaseprice || "N/A"}
+                        {item.purchaseprice || "0"}
                       </td>
                       <td className="text-center">
-                        {item.purchaseamount || "N/A"}
+                        {item.purchaseamount || "0"}
                       </td>
-                      <td className="text-center">{item.mrp || "N/A"}</td>
-                      <td className="text-center">{item.totalqty || "N/A"}</td>
+                      <td className="text-center">{item.mrp || "0"}</td>
+                      <td className="text-center">{item.totalqty || "0"}</td>
                       <td className="text-center">
                         {item.expirydate
                           ? moment(item.expirydate).format("YYYY-MM-DD")
-                          : "N/A"}
+                          : "0"}
                       </td>
                     </tr>
                   ))}
