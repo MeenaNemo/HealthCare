@@ -99,6 +99,7 @@ function AddMedicine() {
     });
   };
 
+
   const handleDosageUnitChange = (event) => {
     const { value } = event.target;
     const enteredValue = value.replace(/[^a-zA-Z]/g, '');
@@ -143,8 +144,12 @@ function AddMedicine() {
     event.preventDefault();
 
     const emptyFields = Object.entries(formData).filter(([key, value]) => {
-      return typeof value === "string" && !value.trim();
+      if (key === 'dosage' || key === 'dosageUnit') {
+        return false;
+      }
+      return typeof value === 'string' && !value.trim();
     });
+    
 
     if (emptyFields.length > 0) {
       emptyFields.forEach(([key, _]) => {

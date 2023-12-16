@@ -54,7 +54,7 @@ const StockDetailsPage = () => {
   const fetchStockData = async () => {
     try {
         const response = await axios.get("https://api.5ytechno.com/stock", {
-                    params: { medicinename: searchQuery, fromExpiryDate, toExpiryDate },
+              params: { medicinename: searchQuery, fromExpiryDate, toExpiryDate },
       });
 
       setMedicineData(response.data);
@@ -120,6 +120,7 @@ const StockDetailsPage = () => {
 
   const handleSaveEdit = async (id, updatedData) => {
     try {
+
       const response = await axios.put(
         `https://api.5ytechno.com/stock/update/${id}`,
         updatedData
@@ -172,21 +173,34 @@ const StockDetailsPage = () => {
   };
 
   const handleEdit = (id) => {
-    const editedItem = medicineData.find((item) => item.id === id);
-    setEditMode(id);
-    setEditedData({
-      ...editedItem,
-      originalData: { ...editedItem },
-      lastEditTimestamp: new Date(),
-    });
+    const index = medicineData.findIndex((item) => item.id === id);
+  
+    if (index !== -1) {
+      setEditMode(id);
+  
+      setEditedData((prevData) => {
+        const updatedMedicineData = [...medicineData];
+        const editedItem = { ...updatedMedicineData[index] };
+  
+        return {
+          ...editedItem,
+          originalData: { ...editedItem },
+          lastEditTimestamp: new Date(),
+        };
+      });
+    }
   };
-
+  
+  
   const isRowEdited = (id) => editedRows.some((row) => row.id === id);
 
   const handleCancelEdit = () => {
     setEditMode(null);
     setEditedData({});
   };
+
+
+
 
   const handleChangeEditData = (name, value) => {
     setEditedData((prevData) => ({
@@ -195,7 +209,7 @@ const StockDetailsPage = () => {
       lastEditTimestamp: new Date(),
     }));
   };
-
+  
   const exportToExcel = () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("StockData");
@@ -437,7 +451,7 @@ const StockDetailsPage = () => {
             fontSize: 9,
             halign: "center",
           },
-          headerStyles: {
+          headStyles: {
             fillColor: [41, 128, 185],
             textColor: 255,
             lineWidth: 0.3,
@@ -586,6 +600,7 @@ const StockDetailsPage = () => {
                             {item.medicinename || "0"}
                           </td>
                           <td style={tdStyle}>{item.dosage || "0"}</td>
+
                           <td style={tdStyle}>
                             {editMode === item.id ? (
                               <input
@@ -649,23 +664,22 @@ const StockDetailsPage = () => {
                             )}
                           </td>
                           <td style={tdStyle}>
-                            {editMode === item.id ? (
-                              <input
-                                type="text"
-                                value={editedData.expirydate}
-                                onChange={(e) =>
-                                  handleChangeEditData(
-                                    "expirydate",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            ) : item.expirydate ? (
-                              moment(item.expirydate).format("YYYY-MM-DD")
-                            ) : (
-                              "0"
-                            )}
-                          </td>
+  {editMode === item.id ? (
+    <input
+      type="date"
+      value={editedData.expirydate ? editedData.expirydate.slice(0, 10) : ''}
+      onChange={(e) =>
+        handleChangeEditData("expirydate", e.target.value)
+      }
+    />
+  ) : item.expirydate ? (
+    moment(item.expirydate).format("YYYY-MM-DD")
+  ) : (
+    "0"
+  )}
+</td>
+
+
                           <td style={tdStyle}>
                             {isRowEdited(item.id) ? (
                               <span style={{ color: "orange" }}>Edited</span>
