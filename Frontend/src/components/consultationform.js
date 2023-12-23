@@ -55,12 +55,23 @@ const ConsultationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+  
     if (name === "clinicCharge" || name === "consultantCharge") {
       if (/^\d+$/.test(value) || value === "") {
         setFormData({
           ...formData,
           [name]: value,
+        });
+      }
+    } else if (name === "dob") {
+      // Handle Age input
+      if (/^\d{0,3}$/.test(value) || value === "") {
+        // Allow only up to two digits for age
+        const age = value;
+        setFormData({
+          ...formData,
+          dob: age, // Storing age in the "dob" field
+          age: age,
         });
       }
     } else if (
@@ -80,10 +91,9 @@ const ConsultationForm = () => {
         [name]: value,
       });
     }
-    setHighlightedFields(highlightedFields.filter(field => field !== name));
-
+    setHighlightedFields(highlightedFields.filter((field) => field !== name));
   };
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     const requiredFields = [
@@ -94,28 +104,22 @@ const ConsultationForm = () => {
       "dob",
       "consultingDoctorName",
       "observation",
-      "consultantCharge",
-      "clinicCharge",
     ];
-
-    const emptyFields = requiredFields.filter(field => !formData[field]);
-  if (emptyFields.length > 0) {
-    // Highlight empty fields
-    setHighlightedFields(emptyFields);
-    return;
-  }
   
-// const isAnyFieldEmpty = requiredFields.some((field) => !formData[field]);
-//     const isChargeFieldFilled =
-//       !!formData.clinicCharge || !!formData.consultantCharge;
-
-//     if (isAnyFieldEmpty && !isChargeFieldFilled) {
-//       setShowAlert(true);
-//       setTimeout(() => {
-//         setShowAlert(false);
-//       }, 2000);
-//       return;
-//     }
+    const emptyFields = requiredFields.filter((field) => !formData[field]);
+    if (emptyFields.length > 0) {
+      // Highlight empty fields
+      setHighlightedFields(emptyFields);
+      return;
+    }
+  
+    // Check if at least one of the charges is filled
+    if (!formData.consultantCharge && !formData.clinicCharge) {
+      // Highlight charges if both are empty
+      setHighlightedFields(["consultantCharge", "clinicCharge"]);
+      return;
+    }
+  
     const totalCharge =
       parseInt(formData.consultantCharge || 0, 10) +
       parseInt(formData.clinicCharge || 0, 10);
@@ -124,44 +128,7 @@ const ConsultationForm = () => {
     setShowAlert(false);
     clearAlert();
   };
-
- 
-
-  const calculateAge = (dob) => {
-    const today = new Date();
-    const birthDate = new Date(dob);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  };
-
-  const handleDOBChange = (e) => {
-    const selectedDate = new Date(e.target.value);
-    const currentDate = new Date();
-
-    if (selectedDate > currentDate) {
-      setAlertMessage("Please enter a valid date of birth.");
-      setAlertType("error");
-      return;
-    }
-
-    const age = calculateAge(e.target.value);
-    setFormData({
-      ...formData,
-      dob: e.target.value,
-      age: age.toString(),
-    });
-
-    clearAlert();
-  };
+  
 
   const handleCancel = (event) => {
     event.preventDefault();
@@ -305,15 +272,15 @@ const ConsultationForm = () => {
                       </div>
                       <div className="col-md-6">
                         <label htmlFor="dob" className="form-label">
-                          <b>Date of Birth</b>
+                          <b>Age</b>
                         </label>
                         <input
-                          type="date"
+                          type="number"
                           className="form-control"
                           id="dob"
                           name="dob"
                           value={formData.dob}
-                          onChange={handleDOBChange}
+                          onChange={handleChange}
                           style={{
                             border: highlightedFields.includes('dob') ? '1px solid red' : '1px solid #ccc',
                           }}
@@ -529,12 +496,7 @@ const ConsultationForm = () => {
                           </td>
                           <td style={tstyle}>{submittedData.age}</td>
                         </tr>
-                        <tr>
-                          <td style={tstyle}>
-                            <b>Date of Birth</b>
-                          </td>
-                          <td style={tstyle}>{submittedData.dob}</td>
-                        </tr>
+                       
                         <tr>
                           <td style={tstyle}>
                             <b>Doctor Name</b>
@@ -576,7 +538,7 @@ const ConsultationForm = () => {
                     className="text-start"
                     style={{ margin: "100px", fontSize: "20px" }}
                   >
-                    <p style={{}}>
+                    <p style={{paddingTop:'15px'}}>
                       <b>Doctor Signature</b>
                     </p>
                   </div>

@@ -290,7 +290,7 @@ const RegistrationForm = () => {
               position: "fixed",
               top: "10px",
               left: "55%",
-              backgroundColor: "red",
+              backgroundColor: "Green",
               color: "white",
               padding: "10px",
               borderRadius: "5px",
